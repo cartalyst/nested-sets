@@ -1202,7 +1202,7 @@ SQL;
 			{
 				if ($item_m->validation()->errors->has())
 				{
-					throw new Exception(print_r($item_m, true).'Menu item failed to save. '.implode('', $item_m->validation()->errors->all(':message')));
+					throw new Exception('Menu item failed to save. '.implode('', $item_m->validation()->errors->all(':message')));
 				}
 
 				throw new Exception('Menu item failed to save.');
@@ -1237,7 +1237,7 @@ SQL;
 			{
 				if ($item_m->validation()->errors->has())
 				{
-					throw new Exception(print_r($item_m, true).'Menu item failed to save. '.implode('', $item_m->validation()->errors->all(':message')));
+					throw new Exception('Menu item failed to save. '.implode('', $item_m->validation()->errors->all(':message')));
 				}
 
 				throw new Exception('Menu item failed to save.');
