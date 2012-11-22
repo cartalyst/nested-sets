@@ -6,6 +6,7 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Events\Dispatcher as EventDispatcher;
 
+// @todo, add timestamp support
 class Worker implements Foreman
 {
 	/**
@@ -395,59 +396,29 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$result = $this->connection->transaction(function($connection) use ($me, $node, $parent) {
+		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
 
-			// Shift all nodes two to the right, where their left
-			// limit is greater than the parent's left limit
-			$query = $connection->table($me->table);
-			$query
-				->where(
-					$me->nestyAttributes['right'],
-					'>',
-					$parent->{$me->nestyAttributes['left']}
-				)
-				->where(
-					$me->nestyAttributes['tree'],
-					$parent->{$me->nestyAttributes['tree']}
-				)
-				->update(array(
-					$me->nestyAttributes['right'] => new Expression("`{$me->nestyAttributes['right']}` + 2"),
-				));
+			// Make a gap for us
+			$this->gap(
+				$parent->{$me->nestyAttributes['left']} + 1,
+				2,
+				$node->{$this->nestyAttributes['tree']}
+			);
 
-			// And the same with the right
-			$query = $connection->table($me->table);
-			$query
-				->where(
-					$me->nestyAttributes['left'],
-					'>',
-					$parent->{$me->nestyAttributes['left']}
-				)
-				->where(
-					$me->nestyAttributes['tree'],
-					$parent->{$me->nestyAttributes['tree']}
-				)
-				->update(array(
-					$me->nestyAttributes['left'] => new Expression("`{$me->nestyAttributes['left']}` + 2"),
-				));
+			// Update node
+			$node->{$me->nestyAttributes['left']}  = $parent->{$me->nestyAttributes['left']} + 1;
+			$node->{$me->nestyAttributes['right']} = $parent->{$me->nestyAttributes['left']} + 2;
 
 			// Now, we're going to update our node's
 			// left and right limits, our parent node's
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			$query
-				->insert($node->toArray());
+			$query->insert($node->toArray());
 
-			// Of course, we manipulate the local objects after the
-			// last query has run. This is to ensure that if an
-			// Exception is thrown, that we don't actually modify
-			// our objects. Clever, right?
-			$node->{$me->nestyAttributes['left']}    = $parent->{$me->nestyAttributes['left']} + 1;
-			$node->{$me->nestyAttributes['right']}   = $parent->{$me->nestyAttributes['left']} + 2;
+			// Of course, we manipulate the local parent
 			$parent->{$me->nestyAttributes['right']} += 2;
 		});
-
-		// var_dump($result);
 	}
 
 	/**
@@ -460,7 +431,34 @@ class Worker implements Foreman
 	 */
 	public function insertNodeAsLastChild(Node $node, Node $parent)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
+
+			// Make a gap for us
+			$this->gap(
+				$parent->{$me->nestyAttributes['right']},
+				2,
+				$node->{$this->nestyAttributes['tree']}
+			);
+
+			// Update node
+			$node->{$me->nestyAttributes['left']}  = $parent->{$me->nestyAttributes['right']};
+			$node->{$me->nestyAttributes['right']} = $parent->{$me->nestyAttributes['right']} + 1;
+
+			// Now, we're going to update our node's
+			// left and right limits, our parent node's
+			// left and right limits (so the objects are)
+			// up to date and insert it in the database
+			$query = $connection->table($me->table);
+			$query->insert($node->toArray());
+
+			// Of course, we manipulate the local parent
+			$parent->{$me->nestyAttributes['right']} += 2;
+		});
 	}
 
 	/**
@@ -504,7 +502,7 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$result = $this->connection->transaction(function($connection) use ($me, $node, $parent) {
+		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
 
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
@@ -534,8 +532,6 @@ class Worker implements Foreman
 				$parent->{$me->nestyAttributes['left']} + 1
 			);
 		});
-
-		// var_dump($result);
 	}
 
 	/**
@@ -548,7 +544,41 @@ class Worker implements Foreman
 	 */
 	public function moveNodeAsLastChild(Node $node, Node $parent)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
+
+			// Slide it out of the tree
+			$me->slideNodeOutsideTree($node);
+
+			// Now, let's re-query the database for our
+			// parent item.
+			$parentUpdated = $connection
+			    ->table($me->table)
+			    ->select(array_values($this->nestyAttributes))
+			    ->where($me->key, $parent->{$me->key})
+			    ->first();
+
+			if ($parentUpdated == null) {
+				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
+			}
+
+			// Update our parent object's attributes
+			foreach ($this->nestyAttributes as $attribute) {
+				$parent->{$attribute} = $parentUpdated->{$attribute};
+			}
+
+			// Now we've updated the parent, we'll use
+			// it's new left to slide the node back into
+			// the tree.
+			$this->slideNodeInTree(
+				$node,
+				$parent->{$me->nestyAttributes['right']}
+			);
+		});
 	}
 
 	/**

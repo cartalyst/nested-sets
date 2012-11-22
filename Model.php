@@ -288,6 +288,48 @@ abstract class Model extends EloquentModel
 		// Synchronise node back in
 		$parent->fromNode($parentNode);
 		$this->fromNode($node);
+
+		// Make sure we are set to exist
+		if ( ! $this->exists) {
+			$this->exists = 1;
+		}
+	}
+
+	/**
+	 * Makes this model the last child of the parent
+	 *
+	 * @param   Nesty\Model  $parent
+	 * @return  void
+	 */
+	public function makeLastChildOf(Model $parent)
+	{
+		// Let's match up trees
+		if ( ! $this->exists) {
+			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
+		} elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']}) {
+			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
+		}
+
+		// Grab node representations of
+		// our model
+		$parentNode = $parent->toNode();
+		$node       = $this->toNode();
+
+		// Call our worker to
+		// insert / move nodes
+		$this->worker->{(($this->exists) ? 'move' : 'insert').'NodeAsLastChild'}(
+			$node,
+			$parentNode
+		);
+
+		// Synchronise node back in
+		$parent->fromNode($parentNode);
+		$this->fromNode($node);
+
+		// Make sure we are set to exist
+		if ( ! $this->exists) {
+			$this->exists = 1;
+		}
 	}
 
 	/**
