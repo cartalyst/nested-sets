@@ -97,4 +97,114 @@ interface Foreman
 	 * @return  array
 	 */
 	public function mapTree(array $nodes, Closure $beforePersist);
+
+	/**
+	 * Inserts the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function insertNodeAsFirstChild(Node $node, Node $parent);
+
+	/**
+	 * Inserts the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function insertNodeAsLastChild(Node $node, Node $parent);
+
+	/**
+	 * Inserts the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function insertNodeAsPreviousSibling(Node $node, Node $sibling);
+
+	/**
+	 * Inserts the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function insertNodeAsNextSibling(Node $node, Node $sibling);
+
+	/**
+	 * Moves the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function moveNodeAsFirstChild(Node $node, Node $parent);
+
+	/**
+	 * Moves the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function moveNodeAsLastChild(Node $node, Node $parent);
+
+	/**
+	 * Moves the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function moveNodeAsPreviousSibling(Node $node, Node $sibling);
+
+	/**
+	 * Moves the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function moveNodeAsNextSibling(Node $node, Node $sibling);
+
+	/**
+	 * Grabs a node, and adjusts it (and it's children
+	 * in the database) so they sit outside the hierarchy
+	 * of the tree.
+	 *
+	 * @param  Node  $node
+	 * @return void
+	 */
+	public function slideNodeOutsideTree(Node $node);
+
+	/**
+	 * Slides a node back into the tree structure, positioning
+	 * its left limits at the left limits provided.
+	 *
+	 * @param  Node  $node
+	 * @return void
+	 */
+	public function slideNodeInTree(Node $node, $left);
+
+	/**
+	 * Creates a gap in the tree, starting at a given position,
+	 * for a certain size.
+	 *
+	 * @param  int  $left
+	 * @param  int  $size
+	 * @param  int  $tree
+	 * @return void
+	 */
+	public function gap($left, $size, $tree);
 }

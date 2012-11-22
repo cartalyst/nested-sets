@@ -57,7 +57,7 @@ class Worker implements Foreman
 	 * @param   string  $table
 	 * @param   string  $key
 	 * @param   bool    $timestamps
-	 * @param   array   $nestyAtributes
+	 * @param   array   $nestyAttributes
 	 * @return 
 	 */
 	public function __construct(Connection $connection, $table, $key = null, $timestamps = null, array $nestyAttributes = array())
@@ -243,7 +243,6 @@ class Worker implements Foreman
 			// top of the trees
 			$subTreeQuery->where(
 				new Expression("`node`.`{$me->key}`"),
-				'=',
 				$key
 			);
 
@@ -288,12 +287,10 @@ class Worker implements Foreman
 			$subTreeQuery
 				->where(
 					new Expression("`node`.`{$me->nestyAttributes['tree']}`"),
-					'=',
 					$tree
 				)
 				->where(
 					new Expression("`parent`.`{$me->nestyAttributes['tree']}`"),
-					'=',
 					$tree
 				);
 
@@ -336,17 +333,14 @@ class Worker implements Foreman
 		$query
 			->where(
 				new Expression("`node`.`{$this->nestyAttributes['tree']}`"),
-				'=',
 				$tree
 			)
 			->where(
 				new Expression("`parent`.`{$this->nestyAttributes['tree']}`"),
-				'=',
 				$tree
 			)
 			->where(
 				new Expression("`sub_parent`.`{$this->nestyAttributes['tree']}`"),
-				'=',
 				$tree
 			);
 
@@ -384,6 +378,373 @@ class Worker implements Foreman
 	public function mapTree(array $nodes, Closure $beforePersist)
 	{
 		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Inserts the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function insertNodeAsFirstChild(Node $node, Node $parent)
+	{
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$result = $this->connection->transaction(function($connection) use ($me, $node, $parent) {
+
+			// Shift all nodes two to the right, where their left
+			// limit is greater than the parent's left limit
+			$query = $connection->table($me->table);
+			$query
+				->where(
+					$me->nestyAttributes['right'],
+					'>',
+					$parent->{$me->nestyAttributes['left']}
+				)
+				->where(
+					$me->nestyAttributes['tree'],
+					$parent->{$me->nestyAttributes['tree']}
+				)
+				->update(array(
+					$me->nestyAttributes['right'] => new Expression("`{$me->nestyAttributes['right']}` + 2"),
+				));
+
+			// And the same with the right
+			$query = $connection->table($me->table);
+			$query
+				->where(
+					$me->nestyAttributes['left'],
+					'>',
+					$parent->{$me->nestyAttributes['left']}
+				)
+				->where(
+					$me->nestyAttributes['tree'],
+					$parent->{$me->nestyAttributes['tree']}
+				)
+				->update(array(
+					$me->nestyAttributes['left'] => new Expression("`{$me->nestyAttributes['left']}` + 2"),
+				));
+
+			// Now, we're going to update our node's
+			// left and right limits, our parent node's
+			// left and right limits (so the objects are)
+			// up to date and insert it in the database
+			$query = $connection->table($me->table);
+			$query
+				->insert($node->toArray());
+
+			// Of course, we manipulate the local objects after the
+			// last query has run. This is to ensure that if an
+			// Exception is thrown, that we don't actually modify
+			// our objects. Clever, right?
+			$node->{$me->nestyAttributes['left']}    = $parent->{$me->nestyAttributes['left']} + 1;
+			$node->{$me->nestyAttributes['right']}   = $parent->{$me->nestyAttributes['left']} + 2;
+			$parent->{$me->nestyAttributes['right']} += 2;
+		});
+
+		// var_dump($result);
+	}
+
+	/**
+	 * Inserts the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function insertNodeAsLastChild(Node $node, Node $parent)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Inserts the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function insertNodeAsPreviousSibling(Node $node, Node $sibling)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Inserts the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function insertNodeAsNextSibling(Node $node, Node $sibling)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Moves the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function moveNodeAsFirstChild(Node $node, Node $parent)
+	{
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$result = $this->connection->transaction(function($connection) use ($me, $node, $parent) {
+
+			// Slide it out of the tree
+			$me->slideNodeOutsideTree($node);
+
+			// Now, let's re-query the database for our
+			// parent item.
+			$parentUpdated = $connection
+			    ->table($me->table)
+			    ->select(array_values($this->nestyAttributes))
+			    ->where($me->key, $parent->{$me->key})
+			    ->first();
+
+			if ($parentUpdated == null) {
+				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
+			}
+
+			// Update our parent object's attributes
+			foreach ($this->nestyAttributes as $attribute) {
+				$parent->{$attribute} = $parentUpdated->{$attribute};
+			}
+
+			// Now we've updated the parent, we'll use
+			// it's new left to slide the node back into
+			// the tree.
+			$this->slideNodeInTree(
+				$node,
+				$parent->{$me->nestyAttributes['left']} + 1
+			);
+		});
+
+		// var_dump($result);
+	}
+
+	/**
+	 * Moves the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	public function moveNodeAsLastChild(Node $node, Node $parent)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Moves the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function moveNodeAsPreviousSibling(Node $node, Node $sibling)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Moves the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $sibling
+	 * @return void
+	 */
+	public function moveNodeAsNextSibling(Node $node, Node $sibling)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
+	 * Grabs a node, and adjusts it (and it's children
+	 * in the database) so they sit outside the hierarchy
+	 * of the tree.
+	 *
+	 * @param  Node  $node
+	 * @return void
+	 */
+	public function slideNodeOutsideTree(Node $node)
+	{
+		// Let's grab the size of the node
+		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
+
+		// Change in position when shifted
+		$delta = 0 - $node->{$this->nestyAttributes['right']};
+
+		// Let's push our node into negative numbers, essentially
+		// fully removing it from the tree.
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->nestyAttributes['left'],
+				'>=',
+				$node->{$this->nestyAttributes['left']}
+			)
+			->where(
+				$this->nestyAttributes['right'],
+				'<=',
+				$node->{$this->nestyAttributes['right']}
+			)
+			->where(
+				$this->nestyAttributes['tree'],
+				$node->{$this->nestyAttributes['tree']}
+			)
+			->update(array(
+				$this->nestyAttributes['left'] => new Expression(sprintf(
+
+					// We just use negative and abs() so
+					// our SQL makes a little more sense.
+					'`%s` - %d',
+					$this->nestyAttributes['left'],
+					abs($delta)
+				)),
+				$this->nestyAttributes['right'] => new Expression(sprintf(
+					'`%s` - %d',
+					$this->nestyAttributes['right'],
+					abs($delta)
+				))
+			));
+
+		// Remove the gap left by the node we've removed
+		$this->gap($node->{$this->nestyAttributes['left']}, -($nodeSize + 1), $node->{$this->nestyAttributes['tree']});
+
+		// Update our node object
+		$node->{$this->nestyAttributes['left']}  += $delta;
+		$node->{$this->nestyAttributes['right']} += $delta;
+	}
+
+	/**
+	 * Slides a node back into the tree structure, positioning
+	 * its left limits at the left limits provided.
+	 *
+	 * @param  Node  $node
+	 * @return void
+	 */
+	public function slideNodeInTree(Node $node, $left)
+	{
+		// Grab our node size
+		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
+
+		// Let's make a gap in the tree
+		// for the size of our node plus 1
+		$this->gap(
+			$left,
+			$nodeSize + 1,
+			$node->{$this->nestyAttributes['tree']}
+		);
+
+		// We have a gap, so let's adjust our left / right
+		// attributes for everybody inside this node
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->nestyAttributes['left'],
+				'>=',
+				0 - $nodeSize
+			)
+			->where(
+				$this->nestyAttributes['left'],
+				'<=',
+				0
+			)
+			->where(
+				$this->nestyAttributes['tree'],
+				$node->{$this->nestyAttributes['tree']}
+			)
+			->update(array(
+				$this->nestyAttributes['left'] => new Expression(sprintf(
+					'`%s` + %d',
+					$this->nestyAttributes['left'],
+					$nodeSize + $left
+				)),
+				$this->nestyAttributes['right'] => new Expression(sprintf(
+					'`%s` + %d',
+					$this->nestyAttributes['right'],
+					$nodeSize + $left
+				))
+			));
+
+		// Update the node object
+		$node->{$this->nestyAttributes['left']}  += $nodeSize + $left;
+		$node->{$this->nestyAttributes['right']} += $nodeSize + $left;
+	}
+
+	/**
+	 * Creates a gap in the tree, starting at a given position,
+	 * for a certain size.
+	 *
+	 * @param  int  $left
+	 * @param  int  $size
+	 * @param  int  $tree
+	 * @return void
+	 */
+	public function gap($left, $size, $tree)
+	{
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->nestyAttributes['left'],
+				'>=',
+				$left
+			)
+			->where(
+				$this->nestyAttributes['tree'],
+				$tree
+			)
+			->update(array(
+				$this->nestyAttributes['left'] => new Expression(sprintf(
+
+					// Just keep the SQL tidy
+					'`%s` %s %d',
+					$this->nestyAttributes['left'],
+					($size >= 0) ? '+' : '-',
+					abs($size)
+				))
+			));
+
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->nestyAttributes['right'],
+				'>=',
+				$left
+			)
+			->where(
+				$this->nestyAttributes['tree'],
+				$tree
+			)
+			->update(array(
+				$this->nestyAttributes['right'] => new Expression(sprintf(
+
+					// Just keep the SQL tidy
+					'`%s` %s %d',
+					$this->nestyAttributes['right'],
+					($size >= 0) ? '+' : '-',
+					abs($size)
+				))
+			));
 	}
 
 	/**

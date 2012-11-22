@@ -104,6 +104,13 @@ abstract class Model extends EloquentModel
 			$depth
 		);
 
+		// If we got an array back, the table has been
+		// corrupted.
+		if (is_array($tree)) {
+			$count = count($tree);
+			throw new \OutOfBoundsException("Invalid tree provided to hydrate children. Tree should be an object, array with [{$count}] items provided. Database hierarchy has been compromised.");
+		}
+
 		// Hydrate the children
 		foreach ($tree->children as $child) {
 			$this->hydrateChildNodeRecursively($this, $child);
@@ -150,8 +157,6 @@ abstract class Model extends EloquentModel
 	 * 2. Unordered List
 	 * 3. Ordered List
 	 * 4. JSON string
-	 * 5. Serialised PHP array
-	 * 6. PHP code - can be eval()'d.
 	 *
 	 * The attribute parameter may either be a string (we'll
 	 * use that model's attribute which matches the attribute),
@@ -236,6 +241,55 @@ abstract class Model extends EloquentModel
 		return parent::setAttribute($key, $value);
 	}
 
+	public function toNode()
+	{
+		return new Node($this->toArray());
+	}
+
+	public function fromNode(Node $node)
+	{
+		// Grab the attributes
+		$attributes = $node->toArray();
+
+		// Because we're the same class as the
+		// model, we can access it's protected
+		// properties. Let's get in now and set
+		// the protected keys
+		$this->attributes = array_merge($this->attributes, $attributes);
+	}
+
+	/**
+	 * Makes this model the first child of the parent
+	 *
+	 * @param   Nesty\Model  $parent
+	 * @return  void
+	 */
+	public function makeFirstChildOf(Model $parent)
+	{
+		// Let's match up trees
+		if ( ! $this->exists) {
+			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
+		} elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']}) {
+			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
+		}
+
+		// Grab node representations of
+		// our model
+		$parentNode = $parent->toNode();
+		$node       = $this->toNode();
+
+		// Call our worker to
+		// insert / move nodes
+		$this->worker->{(($this->exists) ? 'move' : 'insert').'NodeAsFirstChild'}(
+			$node,
+			$parentNode
+		);
+
+		// Synchronise node back in
+		$parent->fromNode($parentNode);
+		$this->fromNode($node);
+	}
+
 	/**
 	 * Takes a Node object and hydrates it's parents' "children"
 	 * property.
@@ -244,24 +298,11 @@ abstract class Model extends EloquentModel
 	 * @param  Nesty\Node   $node
 	 * @return void
 	 */
-	protected function hydrateChildNodeRecursively($parent, Node $node)
+	protected function hydrateChildNodeRecursively(Model $parent, Node $node)
 	{
-		// Grab the attributes
-		$attributes = $node->toArray();
-
-		// Split up the attributes into
-		// reserved and unreserved.
-		$unreserved = array_diff_key($attributes, array_flip($parent->nestyAttributes));
-		$reserved   = array_diff_key($attributes, $unreserved);
-
 		// Create a new model instance
-		$model = new static($unreserved);
-
-		// Because we're the same class as the
-		// model, we can access it's protected
-		// properties. Let's get in now and set
-		// the protected keys
-		$model->attributes = array_merge($model->attributes, $reserved);
+		$model = new static();
+		$model->fromNode($node);
 
 		// Set the parent object
 		$model->parent = $parent;
@@ -269,6 +310,7 @@ abstract class Model extends EloquentModel
 		// Add the child object
 		$parent->children[] = $model;
 
+		// Recursive, baby!
 		foreach ($node->children as $child) {
 			$this->hydrateChildNodeRecursively($model, $child);
 		}

@@ -49,6 +49,17 @@ class Node
 	}
 
 	/**
+	 * Set the array of Node attributes. No checking is done.
+	 *
+	 * @param  array  $attributes
+	 * @return void
+	 */
+	public function setAttributes(array $attributes)
+	{
+		$this->attributes = $attributes;
+	}
+
+	/**
 	 * Convert the Node instance to an array.
 	 *
 	 * @return array
