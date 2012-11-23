@@ -489,6 +489,10 @@ class Worker implements Foreman
 			$node->{$me->nestyAttributes['left']}  = $sibling->{$me->nestyAttributes['left']};
 			$node->{$me->nestyAttributes['right']} = $sibling->{$me->nestyAttributes['left']} + 1;
 
+			// And the sibling node, it's moved two to the right
+			$sibling->{$me->nestyAttributes['left']} += 2;
+			$sibling->{$me->nestyAttributes['right']} += 2;
+
 			// Now, we're going to update our node's
 			// left and right limits, our sibling node's
 			// left and right limits (so the objects are)
@@ -639,7 +643,51 @@ class Worker implements Foreman
 	 */
 	public function moveNodeAsPreviousSibling(Node $node, Node $sibling)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
+
+			// Slide it out of the tree
+			$me->slideNodeOutsideTree($node);
+
+			// Now, let's re-query the database for our
+			// sibling item.
+			$siblingUpdated = $connection
+			    ->table($me->table)
+			    ->select(array_values($this->nestyAttributes))
+			    ->where($me->key, $sibling->{$me->key})
+			    ->first();
+
+			if ($siblingUpdated == null) {
+				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
+			}
+
+			// Update our sibling object's attributes
+			foreach ($this->nestyAttributes as $attribute) {
+				$sibling->{$attribute} = $siblingUpdated->{$attribute};
+			}
+
+			// Now we've updated the sibling, we'll use
+			// it's new left to slide the node back into
+			// the tree.
+			$this->slideNodeInTree(
+				$node,
+				$sibling->{$me->nestyAttributes['left']}
+			);
+
+			// Update the node, slide it
+			$nodeSize = $node->{$me->nestyAttributes['right']} - $node->{$me->nestyAttributes['left']};
+
+			// Update the sibling
+			// @todo, probably force a reload of the sibling. That's
+			// because the node may have been a child of the sibling before
+			// meaning that the sibling will become smaller.
+			$sibling->{$me->nestyAttributes['left']} += $nodeSize + 1;
+			$sibling->{$me->nestyAttributes['right']} += $nodeSize + 1;
+		});
 	}
 
 	/**
@@ -652,7 +700,41 @@ class Worker implements Foreman
 	 */
 	public function moveNodeAsNextSibling(Node $node, Node $sibling)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
+
+			// Slide it out of the tree
+			$me->slideNodeOutsideTree($node);
+
+			// Now, let's re-query the database for our
+			// sibling item.
+			$siblingUpdated = $connection
+			    ->table($me->table)
+			    ->select(array_values($this->nestyAttributes))
+			    ->where($me->key, $sibling->{$me->key})
+			    ->first();
+
+			if ($siblingUpdated == null) {
+				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
+			}
+
+			// Update our sibling object's attributes
+			foreach ($this->nestyAttributes as $attribute) {
+				$sibling->{$attribute} = $siblingUpdated->{$attribute};
+			}
+
+			// Now we've updated the sibling, we'll use
+			// it's new left to slide the node back into
+			// the tree.
+			$this->slideNodeInTree(
+				$node,
+				$sibling->{$me->nestyAttributes['right']} + 1
+			);
+		});
 	}
 
 	/**
