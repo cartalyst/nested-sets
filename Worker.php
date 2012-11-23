@@ -471,7 +471,31 @@ class Worker implements Foreman
 	 */
 	public function insertNodeAsPreviousSibling(Node $node, Node $sibling)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
+
+			// Make a gap for us
+			$this->gap(
+				$sibling->{$me->nestyAttributes['left']},
+				2,
+				$node->{$this->nestyAttributes['tree']}
+			);
+
+			// Update node
+			$node->{$me->nestyAttributes['left']}  = $sibling->{$me->nestyAttributes['left']};
+			$node->{$me->nestyAttributes['right']} = $sibling->{$me->nestyAttributes['left']} + 1;
+
+			// Now, we're going to update our node's
+			// left and right limits, our sibling node's
+			// left and right limits (so the objects are)
+			// up to date and insert it in the database
+			$query = $connection->table($me->table);
+			$query->insert($node->toArray());
+		});
 	}
 
 	/**
@@ -484,7 +508,31 @@ class Worker implements Foreman
 	 */
 	public function insertNodeAsNextSibling(Node $node, Node $sibling)
 	{
-		throw new \RuntimeException("Implement me!");
+		$me = $this;
+
+		// Run the update commands within a database
+		// transaction, so that worst-case, the database
+		// rolls back
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
+
+			// Make a gap for us
+			$this->gap(
+				$sibling->{$me->nestyAttributes['right']} + 1,
+				2,
+				$node->{$this->nestyAttributes['tree']}
+			);
+
+			// Update node
+			$node->{$me->nestyAttributes['left']}  = $sibling->{$me->nestyAttributes['right']} + 1;
+			$node->{$me->nestyAttributes['right']} = $sibling->{$me->nestyAttributes['right']} + 2;
+
+			// Now, we're going to update our node's
+			// left and right limits, our sibling node's
+			// left and right limits (so the objects are)
+			// up to date and insert it in the database
+			$query = $connection->table($me->table);
+			$query->insert($node->toArray());
+		});
 	}
 
 	/**

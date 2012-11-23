@@ -241,11 +241,22 @@ abstract class Model extends EloquentModel
 		return parent::setAttribute($key, $value);
 	}
 
+	/**
+	 * Returns a Node representation of this Nesty model.
+	 *
+	 * @return  Nesty\Node
+	 */
 	public function toNode()
 	{
 		return new Node($this->toArray());
 	}
 
+	/**
+	 * Hydrates this model from a Node.
+	 *
+	 * @param  Nesty\Node  $node
+	 * @return void
+	 */
 	public function fromNode(Node $node)
 	{
 		// Grab the attributes
@@ -324,6 +335,68 @@ abstract class Model extends EloquentModel
 
 		// Synchronise node back in
 		$parent->fromNode($parentNode);
+		$this->fromNode($node);
+
+		// Make sure we are set to exist
+		if ( ! $this->exists) {
+			$this->exists = 1;
+		}
+	}
+
+	public function makePreviousSiblingOf(Model $sibling)
+	{
+		// Let's match up trees
+		if ( ! $this->exists) {
+			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
+		} elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']}) {
+			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
+		}
+
+		// Grab node representations of
+		// our model
+		$siblingNode = $sibling->toNode();
+		$node       = $this->toNode();
+
+		// Call our worker to
+		// insert / move nodes
+		$this->worker->{(($this->exists) ? 'move' : 'insert').'NodeAsPreviousSibling'}(
+			$node,
+			$siblingNode
+		);
+
+		// Synchronise node back in
+		$sibling->fromNode($siblingNode);
+		$this->fromNode($node);
+
+		// Make sure we are set to exist
+		if ( ! $this->exists) {
+			$this->exists = 1;
+		}
+	}
+
+	public function makeNextSiblingOf(Model $sibling)
+	{
+		// Let's match up trees
+		if ( ! $this->exists) {
+			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
+		} elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']}) {
+			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
+		}
+
+		// Grab node representations of
+		// our model
+		$siblingNode = $sibling->toNode();
+		$node       = $this->toNode();
+
+		// Call our worker to
+		// insert / move nodes
+		$this->worker->{(($this->exists) ? 'move' : 'insert').'NodeAsNextSibling'}(
+			$node,
+			$siblingNode
+		);
+
+		// Synchronise node back in
+		$sibling->fromNode($siblingNode);
 		$this->fromNode($node);
 
 		// Make sure we are set to exist
