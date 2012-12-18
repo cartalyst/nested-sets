@@ -75,10 +75,7 @@ abstract class Model extends EloquentModel {
 	 *
 	 * @var array
 	 */
-	protected $dumpFormats = array(
-		'array', 'ul', 'ol', 'json',
-		// 'serialized', 'php',
-	);
+	protected $dumpFormats = array('array', 'ul', 'ol', 'json');
 
 	/**
 	 * Create a new Eloquent model instance.
@@ -396,6 +393,12 @@ abstract class Model extends EloquentModel {
 		}
 	}
 
+	/**
+	 * Makes this model the previous sibling of the given sibling
+	 *
+	 * @param   Nesty\Model  $sibling
+	 * @return  void
+	 */
 	public function makePreviousSiblingOf(Model $sibling)
 	{
 		// Let's match up trees
@@ -431,6 +434,12 @@ abstract class Model extends EloquentModel {
 		}
 	}
 
+	/**
+	 * Makes this model the next sibling of the given sibling
+	 *
+	 * @param   Nesty\Model  $sibling
+	 * @return  void
+	 */
 	public function makeNextSiblingOf(Model $sibling)
 	{
 		// Let's match up trees
