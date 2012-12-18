@@ -397,6 +397,25 @@ class Worker implements Foreman
 		throw new \RuntimeException("Implement me!");
 	}
 
+	public function insertNodeAsRoot(Node $node)
+	{
+		$me = $this;
+
+		$this->connection->transaction(function($connection) use ($me, $node) {
+
+			$node->{$me->nestyAttributes['left']} = 1;
+			$node->{$me->nestyAttributes['right']} = 2;
+
+			$query = $connection->table($me->table);
+			$node->{$me->nestyAttributes['tree']} = $query->max($me->nestyAttributes['tree']) + 1;
+
+			$query = $connection->table($me->table);
+			$query->insert($node->toArray());
+
+			
+		});
+	}
+
 	/**
 	 * Inserts the given node as the first child of
 	 * the parent node. Updates node attributes as well.

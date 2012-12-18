@@ -285,6 +285,22 @@ abstract class Model extends EloquentModel
 		$this->attributes = array_merge($this->attributes, $attributes);
 	}
 
+	public function makeRoot()
+	{
+		// Make our object into a new node
+		$node = $this->toNode();
+
+		// Move to a root object
+		$this->worker->{(($this->exists) ? 'move' : 'insert').'NodeAsRoot'}($node);
+
+		// Update our attributes from the node
+		$this->fromNode($node);
+
+		if ( ! $this->exists) {
+			$this->exists = 1;
+		}
+	}
+
 	/**
 	 * Makes this model the first child of the parent
 	 *
