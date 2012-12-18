@@ -22,8 +22,8 @@ use Closure;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
-abstract class Model extends EloquentModel
-{
+abstract class Model extends EloquentModel {
+
 	/**
 	 * Worker instance. The worker is the
 	 * class that does the magic on the
@@ -122,13 +122,15 @@ abstract class Model extends EloquentModel
 
 		// If we got an array back, the table has been
 		// corrupted.
-		if (is_array($tree)) {
+		if (is_array($tree))
+		{
 			$count = count($tree);
 			throw new \OutOfBoundsException("Invalid tree provided to hydrate children. Tree should be an object, array with [{$count}] items provided. Database hierarchy has been compromised.");
 		}
 
 		// Hydrate the children
-		foreach ($tree->children as $child) {
+		foreach ($tree->children as $child)
+		{
 			$this->hydrateChildNodeRecursively($this, $child);
 		}
 	}
@@ -151,14 +153,16 @@ abstract class Model extends EloquentModel
 	 */
 	public function setChildren($children)
 	{
-		if ( ! is_array($children) or ! $children instanceof EloquentCollection) {
+		if ( ! is_array($children) or ! $children instanceof EloquentCollection)
+		{
 			throw new \UnexpectedValueException("Invalid children type.");
 		}
 
 		$this->children = array();
 
 		// Set the children
-		foreach ($children as $child) {
+		foreach ($children as $child)
+		{
 			$this->children[] = $child;
 		}
 	}
@@ -186,7 +190,8 @@ abstract class Model extends EloquentModel
 	public function dumpChildrenAs($format, $attribute)
 	{
 		// Validate format
-		if ( ! in_array($format, $this->dumpFormats)) {
+		if ( ! in_array($format, $this->dumpFormats))
+		{
 			throw new \UnexpectedValueException("Format [$format] is not a valid format to dump Nesty model.");
 		}
 
@@ -194,23 +199,29 @@ abstract class Model extends EloquentModel
 		$toDump = array();
 
 		// Loop through children
-		foreach ($this->children as $child) {
-
+		foreach ($this->children as $child)
+		{
 			// If we've been given a Closure to
 			// output the attribute
-			if ($attribute instanceof Closure) {
+			if ($attribute instanceof Closure)
+			{
 				$output = $attribute($child);
 
 			// Otherwise, we've been given a string
-			} else {
+			}
+			else
+			{
 				$output = $child->{$attribute};
 			}
 
 			// If there are children, we'll go recursive
 			// and grab an array back
-			if ($child->children) {
+			if ($child->children)
+			{
 				$toDump[$output] = $child->dumpChildrenAs('array', $attribute);
-			} else {
+			}
+			else
+			{
 				$toDump[] = $output;
 			}
 		}
@@ -250,7 +261,8 @@ abstract class Model extends EloquentModel
 	public function setAttribute($key, $value)
 	{
 		// Check that we are allowed to set the attribute.
-		if (in_array($key, $this->nestyAttributes)) {
+		if (in_array($key, $this->nestyAttributes))
+		{
 			throw new \InvalidArgumentException("Key [$key] is reserved by Nesty and cannot be set manually.");
 		}
 
@@ -296,7 +308,8 @@ abstract class Model extends EloquentModel
 		// Update our attributes from the node
 		$this->fromNode($node);
 
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->exists = 1;
 		}
 	}
@@ -310,9 +323,12 @@ abstract class Model extends EloquentModel
 	public function makeFirstChildOf(Model $parent)
 	{
 		// Let's match up trees
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
-		} elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']}) {
+		}
+		elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']})
+		{
 			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
 		}
 
@@ -333,7 +349,8 @@ abstract class Model extends EloquentModel
 		$this->fromNode($node);
 
 		// Make sure we are set to exist
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->exists = 1;
 		}
 	}
@@ -347,9 +364,12 @@ abstract class Model extends EloquentModel
 	public function makeLastChildOf(Model $parent)
 	{
 		// Let's match up trees
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
-		} elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']}) {
+		}
+		elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']})
+		{
 			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
 		}
 
@@ -370,7 +390,8 @@ abstract class Model extends EloquentModel
 		$this->fromNode($node);
 
 		// Make sure we are set to exist
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->exists = 1;
 		}
 	}
@@ -378,9 +399,12 @@ abstract class Model extends EloquentModel
 	public function makePreviousSiblingOf(Model $sibling)
 	{
 		// Let's match up trees
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
-		} elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']}) {
+		}
+		elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']})
+		{
 			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
 		}
 
@@ -401,7 +425,8 @@ abstract class Model extends EloquentModel
 		$this->fromNode($node);
 
 		// Make sure we are set to exist
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->exists = 1;
 		}
 	}
@@ -409,9 +434,12 @@ abstract class Model extends EloquentModel
 	public function makeNextSiblingOf(Model $sibling)
 	{
 		// Let's match up trees
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
-		} elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']}) {
+		}
+		elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']})
+		{
 			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
 		}
 
@@ -432,7 +460,8 @@ abstract class Model extends EloquentModel
 		$this->fromNode($node);
 
 		// Make sure we are set to exist
-		if ( ! $this->exists) {
+		if ( ! $this->exists)
+		{
 			$this->exists = 1;
 		}
 	}
@@ -458,7 +487,8 @@ abstract class Model extends EloquentModel
 		$parent->children[] = $model;
 
 		// Recursive, baby!
-		foreach ($node->children as $child) {
+		foreach ($node->children as $child)
+		{
 			$this->hydrateChildNodeRecursively($model, $child);
 		}
 	}
@@ -507,7 +537,8 @@ abstract class Model extends EloquentModel
 	{
 		$html = '';
 
-		if (count($toDump) == 0) {
+		if (count($toDump) == 0)
+		{
 			return $html;
 		}
 

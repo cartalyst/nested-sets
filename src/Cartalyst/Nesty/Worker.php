@@ -23,8 +23,8 @@ use Illuminate\Database\Query\Expression;
 use Illuminate\Events\Dispatcher as EventDispatcher;
 
 // @todo, add timestamp support
-class Worker implements Foreman
-{
+class Worker implements Foreman {
+
 	/**
 	 * The connection name for the worker.
 	 *
@@ -85,13 +85,18 @@ class Worker implements Foreman
 		$this->table      = $table;
 
 		// Optional parameters
-		if ($key !== null) {
+		if ($key !== null)
+		{
 			$this->key = $key;
 		}
-		if ($timestamps !== null) {
+		
+		if ($timestamps !== null)
+		{
 			$this->timestamps = $timestamps;
 		}
-		if ( ! empty($nestyAttributes)) {
+
+		if ( ! empty($nestyAttributes))
+		{
 			$this->nestyAttributes = $nestyAttributes;
 		}
 	}
@@ -177,6 +182,22 @@ class Worker implements Foreman
 	}
 
 	/**
+	 * Returns all children for the given node in a flat
+	 * array. If the depth is 1 or more, that is how many
+	 * levels of children we recurse through to put into
+	 * the flat array.
+	 *
+	 * @param   int|string  $key
+	 * @param   int  $tree
+	 * @param   int  $depth
+	 * @return  array
+	 */
+	public function childrenNodes($key, $tree, $depth = 0)
+	{
+		throw new \RuntimeException("Implement me!");
+	}
+
+	/**
 	 * Returns a tree for the given node. If the depth
 	 * is 0, we return all children. If the depth is
 	 * 1 or more, that is how many levels of children
@@ -185,6 +206,7 @@ class Worker implements Foreman
 	 * @param   int|string  $key
 	 * @param   int  $tree
 	 * @param   int  $depth
+	 * @return  array
 	 */
 	public function tree($key, $tree, $depth = 0)
 	{
@@ -197,8 +219,6 @@ class Worker implements Foreman
 			new Expression('`node`.*'),
 			new Expression("(count(`parent`.`{$this->key}`) - (`sub_tree`.`depth` + 1)) AS `depth`"),
 		));
-
-		// $query->from("{$this->table} as node");
 
 		// Do an implicit join to create our
 		// parent component
@@ -234,8 +254,8 @@ class Worker implements Foreman
 		$subTreeQuery = $me->connection->table("{$this->table} as node");
 
 		// Now, in a closure we'll build up the sub query
-		$query->join('sub_tree', function($join) use ($me, $grammar, $subTreeQuery, $key, $tree) {
-
+		$query->join('sub_tree', function($join) use ($me, $grammar, $subTreeQuery, $key, $tree)
+		{
 			// Build up our select component
 			$subTreeQuery->select(array(
 				new Expression("`node`.`{$me->key}`"),
@@ -291,10 +311,12 @@ class Worker implements Foreman
 			// builder bug above.
 			// @todo, remove this when the bug is fixed
 			$bindings = $subTreeQuery->getBindings();
-			if (end($bindings) == $whereParam2) {
+			if (end($bindings) == $whereParam2)
+			{
 				array_pop($bindings);
 			}
-			if (end($bindings) == $whereParam1) {
+			if (end($bindings) == $whereParam1)
+			{
 				array_pop($bindings);
 			}
 			$subTreeQuery->setBindings($bindings);
@@ -337,10 +359,12 @@ class Worker implements Foreman
 		// We need to append the bindings into our own
 		// $query->mergeBindings($subTreeQuery);
 		$newBindings = array();
-		foreach ($query->getBindings() as $binding) {
+		foreach ($query->getBindings() as $binding)
+		{
 			$newBindings[] = $binding;
 		}
-		foreach ($subTreeQuery->getBindings() as $binding) {
+		foreach ($subTreeQuery->getBindings() as $binding)
+		{
 			$newBindings[] = $binding;
 		}
 		$query->setBindings($newBindings);
@@ -368,7 +392,8 @@ class Worker implements Foreman
 		);
 
 		// Setup the limit
-		if ($depth) {
+		if ($depth)
+		{
 			$query->having('depth', '<=', intval($depth));
 		}
 
@@ -401,8 +426,8 @@ class Worker implements Foreman
 	{
 		$me = $this;
 
-		$this->connection->transaction(function($connection) use ($me, $node) {
-
+		$this->connection->transaction(function($connection) use ($me, $node)
+		{
 			$node->{$me->nestyAttributes['left']} = 1;
 			$node->{$me->nestyAttributes['right']} = 2;
 
@@ -431,8 +456,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		{
 			// Make a gap for us
 			$this->gap(
 				$parent->{$me->nestyAttributes['left']} + 1,
@@ -471,8 +496,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		{
 			// Make a gap for us
 			$this->gap(
 				$parent->{$me->nestyAttributes['right']},
@@ -511,8 +536,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		{
 			// Make a gap for us
 			$this->gap(
 				$sibling->{$me->nestyAttributes['left']},
@@ -552,8 +577,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		{
 			// Make a gap for us
 			$this->gap(
 				$sibling->{$me->nestyAttributes['right']} + 1,
@@ -589,8 +614,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
 
@@ -602,12 +627,14 @@ class Worker implements Foreman
 			    ->where($me->key, $parent->{$me->key})
 			    ->first();
 
-			if ($parentUpdated == null) {
+			if ($parentUpdated == null)
+			{
 				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
 			}
 
 			// Update our parent object's attributes
-			foreach ($this->nestyAttributes as $attribute) {
+			foreach ($this->nestyAttributes as $attribute)
+			{
 				$parent->{$attribute} = $parentUpdated->{$attribute};
 			}
 
@@ -636,8 +663,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
 
@@ -649,12 +676,14 @@ class Worker implements Foreman
 			    ->where($me->key, $parent->{$me->key})
 			    ->first();
 
-			if ($parentUpdated == null) {
+			if ($parentUpdated == null)
+			{
 				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
 			}
 
 			// Update our parent object's attributes
-			foreach ($this->nestyAttributes as $attribute) {
+			foreach ($this->nestyAttributes as $attribute)
+			{
 				$parent->{$attribute} = $parentUpdated->{$attribute};
 			}
 
@@ -683,8 +712,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
 
@@ -696,12 +725,14 @@ class Worker implements Foreman
 			    ->where($me->key, $sibling->{$me->key})
 			    ->first();
 
-			if ($siblingUpdated == null) {
+			if ($siblingUpdated == null)
+			{
 				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
 			}
 
 			// Update our sibling object's attributes
-			foreach ($this->nestyAttributes as $attribute) {
+			foreach ($this->nestyAttributes as $attribute)
+			{
 				$sibling->{$attribute} = $siblingUpdated->{$attribute};
 			}
 
@@ -740,8 +771,8 @@ class Worker implements Foreman
 		// Run the update commands within a database
 		// transaction, so that worst-case, the database
 		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling) {
-
+		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
 
@@ -753,12 +784,14 @@ class Worker implements Foreman
 			    ->where($me->key, $sibling->{$me->key})
 			    ->first();
 
-			if ($siblingUpdated == null) {
+			if ($siblingUpdated == null)
+			{
 				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
 			}
 
 			// Update our sibling object's attributes
-			foreach ($this->nestyAttributes as $attribute) {
+			foreach ($this->nestyAttributes as $attribute)
+			{
 				$sibling->{$attribute} = $siblingUpdated->{$attribute};
 			}
 
@@ -1009,4 +1042,5 @@ class Worker implements Foreman
 		// to return all the items, just the one.
 		return (count($tree) > 1) ? $tree : reset($tree);
 	}
+
 }

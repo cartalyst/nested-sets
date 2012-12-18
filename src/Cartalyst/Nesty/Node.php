@@ -27,8 +27,8 @@
  *  - depth
  *
  */
-class Node
-{
+class Node {
+
 	/**
 	 * The node's attributes.
 	 *
@@ -129,4 +129,5 @@ class Node
 	{
 		unset($this->attributes[$key]);
 	}
+
 }

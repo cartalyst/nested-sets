@@ -26,8 +26,8 @@ use Closure;
  * third party workers to exist and run
  * on their own database connections.
  */
-interface Foreman
-{
+interface Foreman {
+
 	/**
 	 * Returns all nodes, in a flat array.
 	 *
@@ -91,6 +91,19 @@ interface Foreman
 	public function relativeDepth($key, $parentKey, $tree);
 
 	/**
+	 * Returns all children for the given node in a flat
+	 * array. If the depth is 1 or more, that is how many
+	 * levels of children we recurse through to put into
+	 * the flat array.
+	 *
+	 * @param   int|string  $key
+	 * @param   int  $tree
+	 * @param   int  $depth
+	 * @return  array
+	 */
+	public function childrenNodes($key, $tree, $depth = 0);
+
+	/**
 	 * Returns a tree for the given node. If the depth
 	 * is 0, we return all children. If the depth is
 	 * 1 or more, that is how many levels of children
@@ -99,6 +112,7 @@ interface Foreman
 	 * @param   int|string  $key
 	 * @param   int  $tree
 	 * @param   int  $depth
+	 * @return  array
 	 */
 	public function tree($key, $tree, $depth = 0);
 
