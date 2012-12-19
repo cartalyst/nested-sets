@@ -444,21 +444,58 @@ class Worker implements Foreman {
 			$existingKeys = $query
 			    ->where(
 			    	$me->nestyAttributes['left'],
-			    	'>=',
+			    	'>',
 			    	$parent->{$me->nestyAttributes['left']}
 			    )
 			    ->where(
 			    	$me->nestyAttributes['right'],
-			    	'<=',
+			    	'<',
 			    	$parent->{$me->nestyAttributes['right']}
 			    )
 			    ->get(array($me->key));
+			if ($existingKeys)
+			{
+				$existingKeys = array_map(function($key) use ($me)
+				{
+					return $key->{$me->key};
+				}, $existingKeys);
+			}
 
 			// Now, we'll loop through all of our nodes and
 			// recursively map them
 			foreach ($nodes as $node)
 			{
 				$this->recursivelyMapTree($node, $parent);
+			}
+
+			// Great, if we got this far, we can look
+			// at the keys that were mapped without an
+			// Exception thrown and compare them with
+			// the existing keys.
+			foreach (array_diff($existingKeys, $me->extractKeysFromNodesTree($nodes)) as $key)
+			{
+				// Let's create a node object from the record in
+				// the databse as we're going to manipulate it
+				$databaseItem = $connection->table($me->table)
+				    ->where($me->key, $key)
+				    ->first();
+
+				$node = new Node;
+
+				// $_key is used to no interfere with $key
+				foreach ($databaseItem as $_key => $value)
+				{
+					$node->{$_key} = $value;
+				}
+
+				// Now, we'll slide it out of the tree and
+				// delete it.
+				$me->slideNodeOutsideTree($node);
+
+				// And delete the record in the database
+				$deleted = $connection->table($this->table)
+				    ->where($me->key, $key)
+				    ->delete();
 			}
 		};
 
@@ -470,6 +507,23 @@ class Worker implements Foreman {
 		{
 			$callback($this->connection);
 		}
+	}
+
+	protected function extractKeysFromNodesTree(array &$nodes = array())
+	{
+		$keys = array();
+
+		foreach ($nodes as &$node)
+		{
+			if ($node->children)
+			{
+				$keys = array_merge($keys, $this->extractKeysFromNodesTree($node->children));
+			}
+
+			$keys[] = $node->{$this->key};
+		}
+
+		return $keys;
 	}
 
 	/**
@@ -1162,7 +1216,7 @@ class Worker implements Foreman {
 		{
 			foreach ($existing as $key => $value)
 			{
-				$node->$key = $value;
+				$node->{$key} = $value;
 			}
 
 			$this->moveNodeAsLastChild($node, $parent, false);
