@@ -47,6 +47,13 @@ class Worker implements Foreman {
 	protected $key = 'id';
 
 	/**
+	 * Indicates if the IDs are auto-incrementing.
+	 *
+	 * @var bool
+	 */
+	public $incrementing = true;
+
+	/**
 	 * Indicates if the model should be timestamped.
 	 *
 	 * @var bool
@@ -70,14 +77,15 @@ class Worker implements Foreman {
 	/**
 	 * Create a new Nesty Worker instance.
 	 *
-	 * @param   Illuminate\Database\Connection  $connection
-	 * @param   string  $table
-	 * @param   string  $key
-	 * @param   bool    $timestamps
-	 * @param   array   $nestyAttributes
+	 * @param  Illuminate\Database\Connection  $connection
+	 * @param  string  $table
+	 * @param  string  $key
+	 * @param  bool    $incrementing
+	 * @param  bool    $timestamps
+	 * @param  array   $nestyAttributes
 	 * @return 
 	 */
-	public function __construct(Connection $connection, $table, $key = null, $timestamps = null, array $nestyAttributes = array())
+	public function __construct(Connection $connection, $table, $key = null, $incrementing = null, $timestamps = null, array $nestyAttributes = array())
 	{
 		// Required parameters for a Nesty worker to
 		// be instantiated.
@@ -88,6 +96,11 @@ class Worker implements Foreman {
 		if ($key !== null)
 		{
 			$this->key = $key;
+		}
+
+		if ($incrementing !== null)
+		{
+			$this->incrementing = $incrementing;
 		}
 		
 		if ($timestamps !== null)
@@ -104,8 +117,8 @@ class Worker implements Foreman {
 	/**
 	 * Returns all nodes, in a flat array.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allFlat($tree)
 	{
@@ -115,8 +128,8 @@ class Worker implements Foreman {
 	/**
 	 * Returns all root nodes, in a flat array.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allRoot($tree)
 	{
@@ -128,8 +141,8 @@ class Worker implements Foreman {
 	 * Leaf nodes are nodes which do not have
 	 * any children.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allLeafNodes($tree)
 	{
@@ -141,9 +154,9 @@ class Worker implements Foreman {
 	 * the path is the path and all of it's parents
 	 * up to the root item.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function path($key, $tree)
 	{
@@ -155,9 +168,9 @@ class Worker implements Foreman {
 	 * 0 is a root node, 1 is a root node's direct
 	 * children and so on.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @return  int
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @return int
 	 */
 	public function depth($key, $tree)
 	{
@@ -171,10 +184,10 @@ class Worker implements Foreman {
 	 * item otherwise we cannot find the relative
 	 * depth.
 	 *
-	 * @param   int|string  $key
-	 * @param   int|string  $parentKey
-	 * @param   int  $tree
-	 * @return  int
+	 * @param  int|string  $key
+	 * @param  int|string  $parentKey
+	 * @param  int  $tree
+	 * @return int
 	 */
 	public function relativeDepth($key, $parentKey, $tree)
 	{
@@ -187,10 +200,10 @@ class Worker implements Foreman {
 	 * levels of children we recurse through to put into
 	 * the flat array.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @param   int  $depth
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
 	 */
 	public function childrenNodes($key, $tree, $depth = 0)
 	{
@@ -203,10 +216,10 @@ class Worker implements Foreman {
 	 * 1 or more, that is how many levels of children
 	 * nodes we recurse through.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @param   int  $depth
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
 	 */
 	public function tree($key, $tree, $depth = 0)
 	{
@@ -413,20 +426,64 @@ class Worker implements Foreman {
 	 * to create a whole new tree structure or simply to re-order
 	 * a tree.
 	 *
-	 * @param   array  $nodes
-	 * @param   Closure  $beforePersist
-	 * @return  array
+	 * @param  Node   $parent
+	 * @param  array  $nodes
+	 * @param  bool  $transaction
+	 * @return array
 	 */
-	public function mapTree(array $nodes, Closure $beforePersist)
-	{
-		throw new \RuntimeException("Implement me!");
-	}
-
-	public function insertNodeAsRoot(Node $node)
+	public function mapTree(Node $parent, array $nodes, $transaction = true)
 	{
 		$me = $this;
 
-		$this->connection->transaction(function($connection) use ($me, $node)
+		$callback = function($connection) use ($me, $parent, $nodes)
+		{
+			// Let's find all existing keys for the given parent. This
+			// will allow us to compare what we've mapped with what was
+			// there and delete any orphaned items!
+			$query = $connection->table($me->table);
+			$existingKeys = $query
+			    ->where(
+			    	$me->nestyAttributes['left'],
+			    	'>=',
+			    	$parent->{$me->nestyAttributes['left']}
+			    )
+			    ->where(
+			    	$me->nestyAttributes['right'],
+			    	'<=',
+			    	$parent->{$me->nestyAttributes['right']}
+			    )
+			    ->get(array($me->key));
+
+			// Now, we'll loop through all of our nodes and
+			// recursively map them
+			foreach ($nodes as $node)
+			{
+				$this->recursivelyMapTree($node, $parent);
+			}
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
+	}
+
+	/**
+	 * Makes a new node a root node.
+	 *
+	 * @param  Node  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsRoot(Node $node, $transaction = true)
+	{
+		$me = $this;
+
+		$callback = function($connection) use ($me, $node)
 		{
 			$node->{$me->nestyAttributes['left']} = 1;
 			$node->{$me->nestyAttributes['right']} = 2;
@@ -435,10 +492,28 @@ class Worker implements Foreman {
 			$node->{$me->nestyAttributes['tree']} = $query->max($me->nestyAttributes['tree']) + 1;
 
 			$query = $connection->table($me->table);
-			$query->insert($node->toArray());
-
 			
-		});
+			if ($me->incrementing)
+			{
+				$node->{$me->key} = $query->insertGetId($node->toArray());;
+			}
+			else
+			{
+				$query->insert($node->toArray());
+			}
+		};
+
+		if ($transaction === true)
+		{
+			// Run the update commands within a database
+			// transaction, so that worst-case, the database
+			// rolls back
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -447,16 +522,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsFirstChild(Node $node, Node $parent)
+	public function insertNodeAsFirstChild(Node $node, Node $parent, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		$callback = function($connection) use ($me, $node, $parent)
 		{
 			// Make a gap for us
 			$this->gap(
@@ -474,11 +547,31 @@ class Worker implements Foreman {
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			$query->insert($node->toArray());
+			
+			if ($me->incrementing)
+			{
+				$node->{$me->key} = $query->insertGetId($node->toArray());;
+			}
+			else
+			{
+				$query->insert($node->toArray());
+			}
 
 			// Of course, we manipulate the local parent
 			$parent->{$me->nestyAttributes['right']} += 2;
-		});
+		};
+
+		if ($transaction === true)
+		{
+			// Run the update commands within a database
+			// transaction, so that worst-case, the database
+			// rolls back
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -487,16 +580,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsLastChild(Node $node, Node $parent)
+	public function insertNodeAsLastChild(Node $node, Node $parent, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		$callback = function($connection) use ($me, $node, $parent)
 		{
 			// Make a gap for us
 			$this->gap(
@@ -514,11 +605,31 @@ class Worker implements Foreman {
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			$query->insert($node->toArray());
+			
+			if ($me->incrementing)
+			{
+				$node->{$me->key} = $query->insertGetId($node->toArray());;
+			}
+			else
+			{
+				$query->insert($node->toArray());
+			}
 
 			// Of course, we manipulate the local parent
 			$parent->{$me->nestyAttributes['right']} += 2;
-		});
+		};
+
+		if ($transaction === true)
+		{
+			// Run the update commands within a database
+			// transaction, so that worst-case, the database
+			// rolls back
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -527,16 +638,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsPreviousSibling(Node $node, Node $sibling)
+	public function insertNodeAsPreviousSibling(Node $node, Node $sibling, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		$callback = function($connection) use ($me, $node, $sibling)
 		{
 			// Make a gap for us
 			$this->gap(
@@ -558,8 +667,25 @@ class Worker implements Foreman {
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			$query->insert($node->toArray());
-		});
+			
+			if ($me->incrementing)
+			{
+				$node->{$me->key} = $query->insertGetId($node->toArray());;
+			}
+			else
+			{
+				$query->insert($node->toArray());
+			}
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -568,16 +694,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsNextSibling(Node $node, Node $sibling)
+	public function insertNodeAsNextSibling(Node $node, Node $sibling, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		$callback = function($connection) use ($me, $node, $sibling)
 		{
 			// Make a gap for us
 			$this->gap(
@@ -595,8 +719,25 @@ class Worker implements Foreman {
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			$query->insert($node->toArray());
-		});
+			
+			if ($me->incrementing)
+			{
+				$node->{$me->key} = $query->insertGetId($node->toArray());;
+			}
+			else
+			{
+				$query->insert($node->toArray());
+			}
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -605,16 +746,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsFirstChild(Node $node, Node $parent)
+	public function moveNodeAsFirstChild(Node $node, Node $parent, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		$callback = function($connection) use ($me, $node, $parent)
 		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
@@ -645,7 +784,16 @@ class Worker implements Foreman {
 				$node,
 				$parent->{$me->nestyAttributes['left']} + 1
 			);
-		});
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -654,16 +802,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsLastChild(Node $node, Node $parent)
+	public function moveNodeAsLastChild(Node $node, Node $parent, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $parent)
+		$callback = function($connection) use ($me, $node, $parent)
 		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
@@ -694,7 +840,16 @@ class Worker implements Foreman {
 				$node,
 				$parent->{$me->nestyAttributes['right']}
 			);
-		});
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -703,16 +858,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsPreviousSibling(Node $node, Node $sibling)
+	public function moveNodeAsPreviousSibling(Node $node, Node $sibling, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		$callback = function($connection) use ($me, $node, $sibling)
 		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
@@ -753,7 +906,16 @@ class Worker implements Foreman {
 			// meaning that the sibling will become smaller.
 			$sibling->{$me->nestyAttributes['left']} += $nodeSize + 1;
 			$sibling->{$me->nestyAttributes['right']} += $nodeSize + 1;
-		});
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -762,16 +924,14 @@ class Worker implements Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsNextSibling(Node $node, Node $sibling)
+	public function moveNodeAsNextSibling(Node $node, Node $sibling, $transaction = true)
 	{
 		$me = $this;
 
-		// Run the update commands within a database
-		// transaction, so that worst-case, the database
-		// rolls back
-		$this->connection->transaction(function($connection) use ($me, $node, $sibling)
+		$callback = function($connection) use ($me, $node, $sibling)
 		{
 			// Slide it out of the tree
 			$me->slideNodeOutsideTree($node);
@@ -802,7 +962,16 @@ class Worker implements Foreman {
 				$node,
 				$sibling->{$me->nestyAttributes['right']} + 1
 			);
-		});
+		};
+
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 	/**
@@ -813,7 +982,7 @@ class Worker implements Foreman {
 	 * @param  Node  $node
 	 * @return void
 	 */
-	public function slideNodeOutsideTree(Node $node)
+	protected function slideNodeOutsideTree(Node $node)
 	{
 		// Let's grab the size of the node
 		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
@@ -870,7 +1039,7 @@ class Worker implements Foreman {
 	 * @param  Node  $node
 	 * @return void
 	 */
-	public function slideNodeInTree(Node $node, $left)
+	protected function slideNodeInTree(Node $node, $left)
 	{
 		// Grab our node size
 		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
@@ -923,12 +1092,12 @@ class Worker implements Foreman {
 	 * Creates a gap in the tree, starting at a given position,
 	 * for a certain size.
 	 *
-	 * @param  int  $left
-	 * @param  int  $size
-	 * @param  int  $tree
+	 * @param  int   $left
+	 * @param  int   $size
+	 * @param  int   $tree
 	 * @return void
 	 */
-	public function gap($left, $size, $tree)
+	protected function gap($left, $size, $tree)
 	{
 		$query = $this->connection->table($this->table);
 		$query
@@ -973,6 +1142,44 @@ class Worker implements Foreman {
 					abs($size)
 				))
 			));
+	}
+
+	/**
+	 * Recursively maps a tree to a given parent.
+	 *
+	 * @param  Node  $node
+	 * @param  Node  $parent
+	 * @return void
+	 */
+	protected function recursivelyMapTree(Node $node, Node $parent)
+	{
+		// Firstly, we'll check if our node exists
+		$existing = $this->connection->table($this->table)
+		    ->where($this->key, $node->{$this->key})
+		    ->first();
+
+		if ($existing)
+		{
+			foreach ($existing as $key => $value)
+			{
+				$node->$key = $value;
+			}
+
+			$this->moveNodeAsLastChild($node, $parent, false);
+		}
+		else
+		{
+			$this->insertNodeAsLastChild($node, $parent, false);
+		}
+
+		// Recursive!
+		if ($node->children)
+		{
+			foreach ($node->children as $child)
+			{
+				$this->recursivelyMapTree($child, $node);
+			}
+		}
 	}
 
 	/**

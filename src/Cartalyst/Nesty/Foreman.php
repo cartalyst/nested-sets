@@ -31,16 +31,16 @@ interface Foreman {
 	/**
 	 * Returns all nodes, in a flat array.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allFlat($tree);
 
 	/**
 	 * Returns all root nodes, in a flat array.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allRoot($tree);
 
@@ -49,8 +49,8 @@ interface Foreman {
 	 * Leaf nodes are nodes which do not have
 	 * any children.
 	 *
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function allLeafNodes($tree);
 
@@ -59,9 +59,9 @@ interface Foreman {
 	 * the path is the path and all of it's parents
 	 * up to the root item.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @return array
 	 */
 	public function path($key, $tree);
 
@@ -70,9 +70,9 @@ interface Foreman {
 	 * 0 is a root node, 1 is a root node's direct
 	 * children and so on.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @return  int
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @return int
 	 */
 	public function depth($key, $tree);
 
@@ -83,10 +83,10 @@ interface Foreman {
 	 * item otherwise we cannot find the relative
 	 * depth.
 	 *
-	 * @param   int|string  $key
-	 * @param   int|string  $parentKey
-	 * @param   int  $tree
-	 * @return  int
+	 * @param  int|string  $key
+	 * @param  int|string  $parentKey
+	 * @param  int  $tree
+	 * @return int
 	 */
 	public function relativeDepth($key, $parentKey, $tree);
 
@@ -96,10 +96,10 @@ interface Foreman {
 	 * levels of children we recurse through to put into
 	 * the flat array.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @param   int  $depth
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
 	 */
 	public function childrenNodes($key, $tree, $depth = 0);
 
@@ -109,10 +109,10 @@ interface Foreman {
 	 * 1 or more, that is how many levels of children
 	 * nodes we recurse through.
 	 *
-	 * @param   int|string  $key
-	 * @param   int  $tree
-	 * @param   int  $depth
-	 * @return  array
+	 * @param  int|string  $key
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
 	 */
 	public function tree($key, $tree, $depth = 0);
 
@@ -122,11 +122,21 @@ interface Foreman {
 	 * to create a whole new tree structure or simply to re-order
 	 * a tree.
 	 *
-	 * @param   array  $nodes
-	 * @param   Closure  $beforePersist
-	 * @return  array
+	 * @param  Node   $parent
+	 * @param  array  $nodes
+	 * @param  bool  $transaction
+	 * @return array
 	 */
-	public function mapTree(array $nodes, Closure $beforePersist);
+	public function mapTree(Node $parent, array $nodes, $transaction = true);
+
+	/**
+	 * Makes a new node a root node.
+	 *
+	 * @param  Node  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsRoot(Node $node, $transaction = true);
 
 	/**
 	 * Inserts the given node as the first child of
@@ -134,9 +144,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsFirstChild(Node $node, Node $parent);
+	public function insertNodeAsFirstChild(Node $node, Node $parent, $transaction = true);
 
 	/**
 	 * Inserts the given node as the last child of
@@ -144,9 +155,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsLastChild(Node $node, Node $parent);
+	public function insertNodeAsLastChild(Node $node, Node $parent, $transaction = true);
 
 	/**
 	 * Inserts the given node as the previous sibling of
@@ -154,9 +166,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsPreviousSibling(Node $node, Node $sibling);
+	public function insertNodeAsPreviousSibling(Node $node, Node $sibling, $transaction = true);
 
 	/**
 	 * Inserts the given node as the next sibling of
@@ -164,9 +177,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsNextSibling(Node $node, Node $sibling);
+	public function insertNodeAsNextSibling(Node $node, Node $sibling, $transaction = true);
 
 	/**
 	 * Moves the given node as the first child of
@@ -174,9 +188,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsFirstChild(Node $node, Node $parent);
+	public function moveNodeAsFirstChild(Node $node, Node $parent, $transaction = true);
 
 	/**
 	 * Moves the given node as the last child of
@@ -184,9 +199,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $parent
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsLastChild(Node $node, Node $parent);
+	public function moveNodeAsLastChild(Node $node, Node $parent, $transaction = true);
 
 	/**
 	 * Moves the given node as the previous sibling of
@@ -194,9 +210,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsPreviousSibling(Node $node, Node $sibling);
+	public function moveNodeAsPreviousSibling(Node $node, Node $sibling, $transaction = true);
 
 	/**
 	 * Moves the given node as the next sibling of
@@ -204,9 +221,10 @@ interface Foreman {
 	 *
 	 * @param  Node  $node
 	 * @param  Node  $sibling
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsNextSibling(Node $node, Node $sibling);
+	public function moveNodeAsNextSibling(Node $node, Node $sibling, $transaction = true);
 
 	/**
 	 * Grabs a node, and adjusts it (and it's children
@@ -214,27 +232,30 @@ interface Foreman {
 	 * of the tree.
 	 *
 	 * @param  Node  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function slideNodeOutsideTree(Node $node);
+	// public function slideNodeOutsideTree(Node $node, $transaction = true);
 
 	/**
 	 * Slides a node back into the tree structure, positioning
 	 * its left limits at the left limits provided.
 	 *
 	 * @param  Node  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function slideNodeInTree(Node $node, $left);
+	// public function slideNodeInTree(Node $node, $left, $transaction = true);
 
 	/**
 	 * Creates a gap in the tree, starting at a given position,
 	 * for a certain size.
 	 *
-	 * @param  int  $left
-	 * @param  int  $size
-	 * @param  int  $tree
+	 * @param  int   $left
+	 * @param  int   $size
+	 * @param  int   $tree
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function gap($left, $size, $tree);
+	// public function gap($left, $size, $tree, $transaction = true);
 }

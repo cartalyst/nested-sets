@@ -89,6 +89,7 @@ abstract class Model extends EloquentModel {
 			$this->getConnection(),
 			$this->table,
 			$this->key,
+			$this->incrementing,
 			$this->timestamps,
 			$this->nestyAttributes
 		);
@@ -130,6 +131,26 @@ abstract class Model extends EloquentModel {
 		{
 			$this->hydrateChildNodeRecursively($this, $child);
 		}
+	}
+
+	public function mapChildren(array $children = array())
+	{
+		if ( ! $this->exists)
+		{
+			throw new UnexpectedValueException("Cannot map children to model as it does not exist.");
+		}
+
+		foreach ($children as &$child)
+		{
+			$this->recursivelyToNode($child);
+		}
+
+		$this->worker->mapTree(
+			$this->toNode(),
+			$children
+		);
+
+		die();
 	}
 
 	/**
@@ -180,9 +201,9 @@ abstract class Model extends EloquentModel {
 	 * or a Closure which point we'll pass through the model
 	 * object and require a string back.
 	 *
-	 * @param   string  $format
-	 * @param   string|Closure  $attribute
-	 * @return  mixed
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @return mixed
 	 */
 	public function dumpChildrenAs($format, $attribute)
 	{
@@ -269,7 +290,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Returns a Node representation of this Nesty model.
 	 *
-	 * @return  Nesty\Node
+	 * @return Nesty\Node
 	 */
 	public function toNode()
 	{
@@ -314,8 +335,8 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the first child of the parent
 	 *
-	 * @param   Nesty\Model  $parent
-	 * @return  void
+	 * @param  Nesty\Model  $parent
+	 * @return void
 	 */
 	public function makeFirstChildOf(Model $parent)
 	{
@@ -355,8 +376,8 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the last child of the parent
 	 *
-	 * @param   Nesty\Model  $parent
-	 * @return  void
+	 * @param  Nesty\Model  $parent
+	 * @return void
 	 */
 	public function makeLastChildOf(Model $parent)
 	{
@@ -396,8 +417,8 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the previous sibling of the given sibling
 	 *
-	 * @param   Nesty\Model  $sibling
-	 * @return  void
+	 * @param  Nesty\Model  $sibling
+	 * @return void
 	 */
 	public function makePreviousSiblingOf(Model $sibling)
 	{
@@ -437,8 +458,8 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the next sibling of the given sibling
 	 *
-	 * @param   Nesty\Model  $sibling
-	 * @return  void
+	 * @param  Nesty\Model  $sibling
+	 * @return void
 	 */
 	public function makeNextSiblingOf(Model $sibling)
 	{
@@ -473,6 +494,26 @@ abstract class Model extends EloquentModel {
 		{
 			$this->exists = 1;
 		}
+	}
+
+	/**
+	 * Convert the model instance to an array.
+	 *
+	 * @return array
+	 */
+	public function toArray()
+	{
+		$array = parent::toArray();
+
+		if ($this->children)
+		{
+			foreach ($this->children as $child)
+			{
+				$array['children'][] = $child->toArray();
+			}
+		}
+
+		return $array;
 	}
 
 	/**
@@ -585,6 +626,35 @@ abstract class Model extends EloquentModel {
 	protected function dumpArrayAsJson(array $toDump)
 	{
 		return json_encode($toDump);
+	}
+
+	/**
+	 * Retursively converts the passed child to a Node,
+	 * used before mapping children.
+	 *
+	 * @param  mixed  $child
+	 * @return void
+	 */
+	protected function recursivelyToNode(&$child)
+	{
+		if (isset($child['children']) and is_array($child['children']) and count($child['children']) > 0)
+		{
+			foreach ($child['children'] as &$grandChild)
+			{
+				$this->recursivelyToNode($grandChild);
+			}
+		}
+
+		if ($child instanceof static)
+		{
+			$child = $child->toNode();
+		}
+		elseif (is_array($child))
+		{
+			$child = new Node($child);
+		}
+
+		$child->{$this->nestyAttributes['tree']} = $this->{$this->nestyAttributes['tree']};
 	}
 
 }
