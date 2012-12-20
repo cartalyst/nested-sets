@@ -128,12 +128,27 @@ class Worker implements Foreman {
 	/**
 	 * Returns all root nodes, in a flat array.
 	 *
-	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allRoot($tree)
+	public function allRoot()
 	{
-		throw new \RuntimeException("Implement me!");
+		$rootNodes = array();
+
+		$databaseItems = $this->connection->table($this->table)
+		    ->where($this->nestyAttributes['left'], 1)
+		    ->get();
+
+		foreach ($databaseItems as $item)
+		{
+			$node = new Node;
+			foreach ($item as $key => $value)
+			{
+				$node->{$key} = $value;
+			}
+			$nodes[] = $node;
+		}
+
+		return $nodes;
 	}
 
 	/**
@@ -1214,9 +1229,9 @@ class Worker implements Foreman {
 
 		if ($existing)
 		{
-			foreach ($existing as $key => $value)
+			foreach ($this->nestyAttributes as $attribute)
 			{
-				$node->{$key} = $value;
+				$node->{$attribute} = $existing->{$attribute};
 			}
 
 			$this->moveNodeAsLastChild($node, $parent, false);
@@ -1225,6 +1240,12 @@ class Worker implements Foreman {
 		{
 			$this->insertNodeAsLastChild($node, $parent, false);
 		}
+
+		// Great, let's do one more save now to add
+		// in the rest of our data to the database
+		$this->connection->table($this->table)
+		    ->where($this->key, $node->{$this->key})
+		    ->update(array_diff_key($node->toArray(), array_flip($this->nestyAttributes)));
 
 		// Recursive!
 		if ($node->children)

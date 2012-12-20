@@ -149,8 +149,6 @@ abstract class Model extends EloquentModel {
 			$this->toNode(),
 			$children
 		);
-
-		die();
 	}
 
 	/**
@@ -514,6 +512,26 @@ abstract class Model extends EloquentModel {
 		}
 
 		return $array;
+	}
+
+	/**
+	 * Returns an Eloquent Collection of all root models.
+	 *
+	 * @return  Illuminate\Database\Eloquent\Collection
+	 */
+	public static function allRoot()
+	{
+		$collection = new EloquentCollection;
+		$model      = new static;
+
+		foreach ($model->worker->allRoot() as $node)
+		{
+			$model = new static;
+			$model->fromNode($node);
+			$collection->add($model);
+		}
+
+		return $collection;
 	}
 
 	/**

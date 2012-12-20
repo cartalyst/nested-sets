@@ -39,10 +39,9 @@ interface Foreman {
 	/**
 	 * Returns all root nodes, in a flat array.
 	 *
-	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allRoot($tree);
+	public function allRoot();
 
 	/**
 	 * Finds all leaf nodes, in a flat array.
