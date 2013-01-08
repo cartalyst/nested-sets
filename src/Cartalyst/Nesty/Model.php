@@ -88,7 +88,7 @@ abstract class Model extends EloquentModel {
 		$this->worker = new Worker(
 			$this->getConnection(),
 			$this->table,
-			$this->key,
+			$this->primaryKey,
 			$this->incrementing,
 			$this->timestamps,
 			$this->nestyAttributes
@@ -113,7 +113,7 @@ abstract class Model extends EloquentModel {
 
 		// Grab the tree from the worker
 		$tree = $this->worker->tree(
-			$this->{$this->key},
+			$this->{$this->primaryKey},
 			$this->{$this->nestyAttributes['tree']},
 			$depth
 		);
