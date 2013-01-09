@@ -58,22 +58,22 @@ interface Foreman {
 	 * the path is the path and all of it's parents
 	 * up to the root item.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function path($key, $tree);
+	public function path($primaryKey, $tree);
 
 	/**
 	 * Returns the depth of a node in a tree, where
 	 * 0 is a root node, 1 is a root node's direct
 	 * children and so on.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @return int
 	 */
-	public function depth($key, $tree);
+	public function depth($primaryKey, $tree);
 
 	/**
 	 * Returns the relative depth of a node in a tree,
@@ -82,12 +82,12 @@ interface Foreman {
 	 * item otherwise we cannot find the relative
 	 * depth.
 	 *
-	 * @param  int|string  $key
-	 * @param  int|string  $parentKey
+	 * @param  int|string  $primaryKey
+	 * @param  int|string  $parentPrimaryKey
 	 * @param  int  $tree
 	 * @return int
 	 */
-	public function relativeDepth($key, $parentKey, $tree);
+	public function relativeDepth($primaryKey, $parentPrimaryKey, $tree);
 
 	/**
 	 * Returns all children for the given node in a flat
@@ -95,12 +95,12 @@ interface Foreman {
 	 * levels of children we recurse through to put into
 	 * the flat array.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function childrenNodes($key, $tree, $depth = 0);
+	public function childrenNodes($primaryKey, $tree, $depth = 0);
 
 	/**
 	 * Returns a tree for the given node. If the depth
@@ -108,12 +108,12 @@ interface Foreman {
 	 * 1 or more, that is how many levels of children
 	 * nodes we recurse through.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function tree($key, $tree, $depth = 0);
+	public function tree($primaryKey, $tree, $depth = 0);
 
 	/**
 	 * Maps a tree to the database. We update each items'

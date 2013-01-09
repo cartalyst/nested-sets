@@ -44,7 +44,7 @@ class Worker implements Foreman {
 	 *
 	 * @var string
 	 */
-	protected $key = 'id';
+	protected $primaryKey = 'id';
 
 	/**
 	 * Indicates if the IDs are auto-incrementing.
@@ -79,13 +79,13 @@ class Worker implements Foreman {
 	 *
 	 * @param  Illuminate\Database\Connection  $connection
 	 * @param  string  $table
-	 * @param  string  $key
+	 * @param  string  $primaryKey
 	 * @param  bool    $incrementing
 	 * @param  bool    $timestamps
 	 * @param  array   $nestyAttributes
 	 * @return 
 	 */
-	public function __construct(Connection $connection, $table, $key = null, $incrementing = null, $timestamps = null, array $nestyAttributes = array())
+	public function __construct(Connection $connection, $table, $primaryKey = null, $incrementing = null, $timestamps = null, array $nestyAttributes = array())
 	{
 		// Required parameters for a Nesty worker to
 		// be instantiated.
@@ -93,9 +93,9 @@ class Worker implements Foreman {
 		$this->table      = $table;
 
 		// Optional parameters
-		if ($key !== null)
+		if ($primaryKey !== null)
 		{
-			$this->key = $key;
+			$this->primaryKey = $primaryKey;
 		}
 
 		if ($incrementing !== null)
@@ -169,13 +169,45 @@ class Worker implements Foreman {
 	 * the path is the path and all of it's parents
 	 * up to the root item.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function path($key, $tree)
+	public function path($primaryKey, $tree)
 	{
-		throw new \RuntimeException("Implement me!");
+		$query = $this->connection->table("{$this->table} as node");
+
+		$query->select('parent.*');
+
+		$query->join(
+			"{$this->table} as parent",
+			new Expression("`node`.`{$this->nestyAttributes['left']}`"),
+			'between',
+			new Expression(
+
+				// "AND" has to be capital, otherwise the grammar
+				// class removes it
+				"`parent`.`{$this->nestyAttributes['left']}` AND `parent`.`{$this->nestyAttributes['right']}`"
+			)
+		);
+
+		$query->where("node.{$this->primaryKey}", $primaryKey);
+
+		$query->orderBy("node.{$this->nestyAttributes['left']}");
+
+		$nodes = array();
+
+		foreach ($query->get() as $item)
+		{
+			$node = new Node;
+			foreach ($item as $key => $value)
+			{
+				$node->{$key} = $value;
+			}
+			$nodes[] = $node;
+		}
+
+		return $nodes;
 	}
 
 	/**
@@ -183,11 +215,11 @@ class Worker implements Foreman {
 	 * 0 is a root node, 1 is a root node's direct
 	 * children and so on.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @return int
 	 */
-	public function depth($key, $tree)
+	public function depth($primaryKey, $tree)
 	{
 		throw new \RuntimeException("Implement me!");
 	}
@@ -199,12 +231,12 @@ class Worker implements Foreman {
 	 * item otherwise we cannot find the relative
 	 * depth.
 	 *
-	 * @param  int|string  $key
-	 * @param  int|string  $parentKey
+	 * @param  int|string  $primaryKey
+	 * @param  int|string  $parentPrimaryKey
 	 * @param  int  $tree
 	 * @return int
 	 */
-	public function relativeDepth($key, $parentKey, $tree)
+	public function relativeDepth($primaryKey, $parentPrimaryKey, $tree)
 	{
 		throw new \RuntimeException("Implement me!");
 	}
@@ -215,12 +247,12 @@ class Worker implements Foreman {
 	 * levels of children we recurse through to put into
 	 * the flat array.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function childrenNodes($key, $tree, $depth = 0)
+	public function childrenNodes($primaryKey, $tree, $depth = 0)
 	{
 		throw new \RuntimeException("Implement me!");
 	}
@@ -231,12 +263,12 @@ class Worker implements Foreman {
 	 * 1 or more, that is how many levels of children
 	 * nodes we recurse through.
 	 *
-	 * @param  int|string  $key
+	 * @param  int|string  $primaryKey
 	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function tree($key, $tree, $depth = 0)
+	public function tree($primaryKey, $tree, $depth = 0)
 	{
 		$grammar = $this->connection->getQueryGrammar();
 		$query   = $this->connection->table("{$this->table} as node");
@@ -245,7 +277,7 @@ class Worker implements Foreman {
 		// Build up our select component
 		$query->select(array(
 			new Expression('`node`.*'),
-			new Expression("(count(`parent`.`{$this->key}`) - (`sub_tree`.`depth` + 1)) AS `depth`"),
+			new Expression("(count(`parent`.`{$this->primaryKey}`) - (`sub_tree`.`depth` + 1)) AS `depth`"),
 		));
 
 		// Do an implicit join to create our
@@ -282,12 +314,12 @@ class Worker implements Foreman {
 		$subTreeQuery = $me->connection->table("{$this->table} as node");
 
 		// Now, in a closure we'll build up the sub query
-		$query->join('sub_tree', function($join) use ($me, $grammar, $subTreeQuery, $key, $tree)
+		$query->join('sub_tree', function($join) use ($me, $grammar, $subTreeQuery, $primaryKey, $tree)
 		{
 			// Build up our select component
 			$subTreeQuery->select(array(
-				new Expression("`node`.`{$me->key}`"),
-				new Expression("(count(`parent`.`{$me->key}`) - 1) as `depth`"),
+				new Expression("`node`.`{$me->primaryKey}`"),
+				new Expression("(count(`parent`.`{$me->primaryKey}`) - 1) as `depth`"),
 			));
 
 			// Do an implicit join to create our
@@ -307,8 +339,8 @@ class Worker implements Foreman {
 			// Constrain the key to the key passed for the
 			// top of the trees
 			$subTreeQuery->where(
-				new Expression("`node`.`{$me->key}`"),
-				$key
+				new Expression("`node`.`{$me->primaryKey}`"),
+				$primaryKey
 			);
 
 			// Larvel's query builder doesn't support
@@ -364,7 +396,7 @@ class Worker implements Foreman {
 			// Group by the id, as we're returning
 			// multiple records
 			$subTreeQuery->groupBy(
-				new Expression("`node`.`{$me->key}`")
+				new Expression("`node`.`{$me->primaryKey}`")
 			);
 
 			// Order by the left limit, this will preserve the items
@@ -378,9 +410,9 @@ class Worker implements Foreman {
 
 			// Set the "on" clause
 			$join->on(
-				new Expression("`sub_parent`.`{$me->key}`"),
+				new Expression("`sub_parent`.`{$me->primaryKey}`"),
 				'=',
-				new Expression("`sub_tree`.`{$me->key}`")
+				new Expression("`sub_tree`.`{$me->primaryKey}`")
 			);
 		});
 
@@ -416,7 +448,7 @@ class Worker implements Foreman {
 		// Group by the id, as we're returning
 		// multiple records
 		$query->groupBy(
-			new Expression("`node`.`{$me->key}`")
+			new Expression("`node`.`{$me->primaryKey}`")
 		);
 
 		// Setup the limit
@@ -467,12 +499,12 @@ class Worker implements Foreman {
 			    	'<',
 			    	$parent->{$me->nestyAttributes['right']}
 			    )
-			    ->get(array($me->key));
+			    ->get(array($me->primaryKey));
 			if ($existingKeys)
 			{
-				$existingKeys = array_map(function($key) use ($me)
+				$existingKeys = array_map(function($primaryKey) use ($me)
 				{
-					return $key->{$me->key};
+					return $primaryKey->{$me->primaryKey};
 				}, $existingKeys);
 			}
 
@@ -492,7 +524,7 @@ class Worker implements Foreman {
 				// Let's create a node object from the record in
 				// the databse as we're going to manipulate it
 				$databaseItem = $connection->table($me->table)
-				    ->where($me->key, $key)
+				    ->where($me->primaryKey, $key)
 				    ->first();
 
 				$node = new Node;
@@ -509,7 +541,7 @@ class Worker implements Foreman {
 
 				// And delete the record in the database
 				$deleted = $connection->table($this->table)
-				    ->where($me->key, $key)
+				    ->where($me->primaryKey, $key)
 				    ->delete();
 			}
 		};
@@ -535,7 +567,7 @@ class Worker implements Foreman {
 				$keys = array_merge($keys, $this->extractKeysFromNodesTree($node->children));
 			}
 
-			$keys[] = $node->{$this->key};
+			$keys[] = $node->{$this->primaryKey};
 		}
 
 		return $keys;
@@ -564,7 +596,7 @@ class Worker implements Foreman {
 			
 			if ($me->incrementing)
 			{
-				$node->{$me->key} = $query->insertGetId($node->toArray());;
+				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
 			}
 			else
 			{
@@ -619,7 +651,7 @@ class Worker implements Foreman {
 			
 			if ($me->incrementing)
 			{
-				$node->{$me->key} = $query->insertGetId($node->toArray());;
+				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
 			}
 			else
 			{
@@ -677,7 +709,7 @@ class Worker implements Foreman {
 			
 			if ($me->incrementing)
 			{
-				$node->{$me->key} = $query->insertGetId($node->toArray());;
+				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
 			}
 			else
 			{
@@ -739,7 +771,7 @@ class Worker implements Foreman {
 			
 			if ($me->incrementing)
 			{
-				$node->{$me->key} = $query->insertGetId($node->toArray());;
+				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
 			}
 			else
 			{
@@ -791,7 +823,7 @@ class Worker implements Foreman {
 			
 			if ($me->incrementing)
 			{
-				$node->{$me->key} = $query->insertGetId($node->toArray());;
+				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
 			}
 			else
 			{
@@ -832,12 +864,12 @@ class Worker implements Foreman {
 			$parentUpdated = $connection
 			    ->table($me->table)
 			    ->select(array_values($this->nestyAttributes))
-			    ->where($me->key, $parent->{$me->key})
+			    ->where($me->primaryKey, $parent->{$me->primaryKey})
 			    ->first();
 
 			if ($parentUpdated == null)
 			{
-				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
+				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->primaryKey}}] in [{$me->table}].");
 			}
 
 			// Update our parent object's attributes
@@ -888,12 +920,12 @@ class Worker implements Foreman {
 			$parentUpdated = $connection
 			    ->table($me->table)
 			    ->select(array_values($this->nestyAttributes))
-			    ->where($me->key, $parent->{$me->key})
+			    ->where($me->primaryKey, $parent->{$me->primaryKey})
 			    ->first();
 
 			if ($parentUpdated == null)
 			{
-				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->key}}] in [{$me->table}].");
+				throw new \RuntimeException("Cannot find parent node [{$parent->{$me->primaryKey}}] in [{$me->table}].");
 			}
 
 			// Update our parent object's attributes
@@ -944,12 +976,12 @@ class Worker implements Foreman {
 			$siblingUpdated = $connection
 			    ->table($me->table)
 			    ->select(array_values($this->nestyAttributes))
-			    ->where($me->key, $sibling->{$me->key})
+			    ->where($me->primaryKey, $sibling->{$me->primaryKey})
 			    ->first();
 
 			if ($siblingUpdated == null)
 			{
-				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
+				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->primaryKey}}] in [{$me->table}].");
 			}
 
 			// Update our sibling object's attributes
@@ -1010,12 +1042,12 @@ class Worker implements Foreman {
 			$siblingUpdated = $connection
 			    ->table($me->table)
 			    ->select(array_values($this->nestyAttributes))
-			    ->where($me->key, $sibling->{$me->key})
+			    ->where($me->primaryKey, $sibling->{$me->primaryKey})
 			    ->first();
 
 			if ($siblingUpdated == null)
 			{
-				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->key}}] in [{$me->table}].");
+				throw new \RuntimeException("Cannot find sibling node [{$sibling->{$me->primaryKey}}] in [{$me->table}].");
 			}
 
 			// Update our sibling object's attributes
@@ -1224,7 +1256,7 @@ class Worker implements Foreman {
 	{
 		// Firstly, we'll check if our node exists
 		$existing = $this->connection->table($this->table)
-		    ->where($this->key, $node->{$this->key})
+		    ->where($this->primaryKey, $node->{$this->primaryKey})
 		    ->first();
 
 		if ($existing)
@@ -1244,7 +1276,7 @@ class Worker implements Foreman {
 		// Great, let's do one more save now to add
 		// in the rest of our data to the database
 		$this->connection->table($this->table)
-		    ->where($this->key, $node->{$this->key})
+		    ->where($this->primaryKey, $node->{$this->primaryKey})
 		    ->update(array_diff_key($node->toArray(), array_flip($this->nestyAttributes)));
 
 		// Recursive!

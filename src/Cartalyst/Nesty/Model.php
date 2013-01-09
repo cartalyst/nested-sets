@@ -88,7 +88,7 @@ abstract class Model extends EloquentModel {
 		$this->worker = new Worker(
 			$this->getConnection(),
 			$this->table,
-			$this->key,
+			$this->primaryKey,
 			$this->incrementing,
 			$this->timestamps,
 			$this->nestyAttributes
@@ -113,7 +113,7 @@ abstract class Model extends EloquentModel {
 
 		// Grab the tree from the worker
 		$tree = $this->worker->tree(
-			$this->{$this->key},
+			$this->{$this->primaryKey},
 			$this->{$this->nestyAttributes['tree']},
 			$depth
 		);
@@ -311,6 +311,50 @@ abstract class Model extends EloquentModel {
 		// properties. Let's get in now and set
 		// the protected keys
 		$this->attributes = array_merge($this->attributes, $attributes);
+	}
+
+	/**
+	 * Shows path of the current model in the
+	 * tree, by returning an array of models
+	 * which starting from the root node
+	 * down to this node.
+	 *
+	 * @return array
+	 */
+	public function getPath()
+	{
+		$nodes = $this->worker->path($this->{$this->primaryKey}, $this->{$this->nestyAttributes['tree']});
+
+		$collection = new EloquentCollection;
+
+		foreach ($nodes as $node)
+		{
+			$model = new static;
+			$model->fromNode($node);
+			$collection->add($model);
+		}
+
+		return $collection;
+	}
+
+	/**
+	 * Shows path of the current model in the
+	 * tree, by returning an array of primary
+	 * keys which starting from the root node
+	 * down to this node.
+	 *
+	 * @return array
+	 */
+	public function getPathKeys()
+	{
+		$keys = array();
+
+		foreach ($this->getPath() as $model)
+		{
+			$keys[] = $model->getKey();
+		}
+
+		return $keys;
 	}
 
 	public function makeRoot()
