@@ -17,5 +17,6 @@
         "psr-0": {
             "Cartalyst\\Nesty": "src/"
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
