@@ -30,21 +30,21 @@ class Worker implements Foreman {
 	 *
 	 * @var string
 	 */
-	protected $connection;
+	public $connection;
 
 	/**
 	 * The table associated with the worker.
 	 *
 	 * @var string
 	 */
-	protected $table;
+	public $table;
 
 	/**
 	 * The primary key for the worker.
 	 *
 	 * @var string
 	 */
-	protected $primaryKey = 'id';
+	public $primaryKey = 'id';
 
 	/**
 	 * Indicates if the IDs are auto-incrementing.
@@ -68,7 +68,7 @@ class Worker implements Foreman {
 	 *
 	 * @var array
 	 */
-	protected $nestyAttributes = array(
+	public $nestyAttributes = array(
 		'left'  => 'lft',
 		'right' => 'rgt',
 		'tree'  => 'tree_id',
