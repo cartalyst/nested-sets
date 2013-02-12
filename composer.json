@@ -1,23 +1,44 @@
 {
-    "name": "cartalyst/nested-sets",
-    "description": "PHP 5.3+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
-    "keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
-    "license": "BSD License (3-clause)",
-    "authors": [
-        {
-            "name": "Cartalyst LLC",
-            "email": "ben.corlett@cartalyst.com"
-        }
-    ],
-    "require": {
-        "php": ">=5.3.0",
+	"name": "cartalyst/nested-sets",
+	"description": "PHP 5.3+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
+	"keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
+	"license": "BSD License (3-clause)",
+	"authors": [
+		{
+			"name": "Cartalyst LLC",
+			"email": "help@cartalyst.com"
+		},
+		{
+			"name": "Ben Corlett",
+			"email": "ben.corlett@cartalyst.com",
+			"role": "Developer"
+		},
+		{
+			"name": "Bruno Gaspar",
+			"email": "bruno.gaspar@cartalyst.com",
+			"role": "Developer"
+		},
+		{
+			"name": "Dan Syme",
+			"email": "dan.syme@cartalyst.com",
+			"role": "Creator & Designer"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
 
-        "illuminate/database": "4.0.*"
-    },
-    "autoload": {
-        "psr-0": {
-            "Cartalyst\\NestedSets": "src/"
-        }
-    },
-    "minimum-stability": "dev"
+		"illuminate/database": "4.0.*"
+	},
+	"autoload": {
+		"psr-0": {
+			"Cartalyst\\NestedSets": "src/"
+		}
+	},
+	"extra": {
+		"component": "package",
+		"branch-alias": {
+			"dev-master": "2.0-dev"
+		}
+	},
+	"minimum-stability": "dev"
 }
