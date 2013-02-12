@@ -1,4 +1,4 @@
-<?php namespace Cartalyst\Nesty;
+<?php namespace Cartalyst\NestedSets;
 /**
  * Part of the Platform application.
  *
@@ -19,7 +19,7 @@
  */
 
 /**
- * Object to represent a node on the Nesty system. Each node has
+ * Object to represent a node on the Nested Sets system. Each node has
  * a couple of protected properties that should not be overridden.
  *
  * These are:

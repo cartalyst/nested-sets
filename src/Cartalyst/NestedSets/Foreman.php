@@ -1,4 +1,4 @@
-<?php namespace Cartalyst\Nesty;
+<?php namespace Cartalyst\NestedSets;
 /**
  * Part of the Platform application.
  *
@@ -21,7 +21,7 @@
 use Closure;
 
 /**
- * Nesty workers must implement this
+ * Workers must implement this
  * Foreman interface. We'll allow
  * third party workers to exist and run
  * on their own database connections.

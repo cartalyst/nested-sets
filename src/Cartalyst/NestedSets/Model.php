@@ -1,4 +1,4 @@
-<?php namespace Cartalyst\Nesty;
+<?php namespace Cartalyst\NestedSets;
 /**
  * Part of the Platform application.
  *
@@ -29,7 +29,7 @@ abstract class Model extends EloquentModel {
 	 * class that does the magic on the
 	 * database.
 	 *
-	 * @var Nesty\Worker
+	 * @var Cartalyst\NestedSets\Worker
 	 */
 	protected $worker;
 
@@ -41,7 +41,7 @@ abstract class Model extends EloquentModel {
 	 *
 	 * @var array
 	 */
-	protected $nestyAttributes = array(
+	protected $reservedAttributes = array(
 
 		// The left column limit
 		'left'  => 'lft',
@@ -58,7 +58,7 @@ abstract class Model extends EloquentModel {
 	 * Special reserved property for the parent
 	 * of the model.
 	 *
-	 * @var Nesty\model
+	 * @var Cartalyst\NestedSets\Model
 	 */
 	protected $parent;
 
@@ -91,7 +91,7 @@ abstract class Model extends EloquentModel {
 			$this->primaryKey,
 			$this->incrementing,
 			$this->timestamps,
-			$this->nestyAttributes
+			$this->reservedAttributes
 		);
 
 		return parent::__construct($attributes);
@@ -114,7 +114,7 @@ abstract class Model extends EloquentModel {
 		// Grab the tree from the worker
 		$tree = $this->worker->tree(
 			$this->{$this->primaryKey},
-			$this->{$this->nestyAttributes['tree']},
+			$this->{$this->reservedAttributes['tree']},
 			$depth
 		);
 
@@ -208,7 +208,7 @@ abstract class Model extends EloquentModel {
 		// Validate format
 		if ( ! in_array($format, $this->dumpFormats))
 		{
-			throw new \UnexpectedValueException("Format [$format] is not a valid format to dump Nesty model.");
+			throw new \UnexpectedValueException("Format [$format] is not a valid format to dump Nested Sets model.");
 		}
 
 		// The array of items to dump
@@ -249,7 +249,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Returns the Worker object for the model.
 	 *
-	 * @return Nesty\Worker
+	 * @return Cartalyst\NestedSets\Worker
 	 */
 	public function getWorker()
 	{
@@ -259,7 +259,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Sets the Worker object for the model.
 	 *
-	 * @param  Nesty\Worker  $worker
+	 * @param  Cartalyst\NestedSets\Worker  $worker
 	 * @return void
 	 */
 	public function setWorker(Worker $worker)
@@ -277,18 +277,18 @@ abstract class Model extends EloquentModel {
 	public function setAttribute($key, $value)
 	{
 		// Check that we are allowed to set the attribute.
-		if (in_array($key, $this->nestyAttributes))
+		if (in_array($key, $this->reservedAttributes))
 		{
-			throw new \InvalidArgumentException("Key [$key] is reserved by Nesty and cannot be set manually.");
+			throw new \InvalidArgumentException("Key [$key] is reserved by Nested Sets and cannot be set manually.");
 		}
 
 		return parent::setAttribute($key, $value);
 	}
 
 	/**
-	 * Returns a Node representation of this Nesty model.
+	 * Returns a Node representation of this Nested Sets model.
 	 *
-	 * @return Nesty\Node
+	 * @return Cartalyst\NestedSets\Node
 	 */
 	public function toNode()
 	{
@@ -298,7 +298,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Hydrates this model from a Node.
 	 *
-	 * @param  Nesty\Node  $node
+	 * @param  Cartalyst\NestedSets\Node  $node
 	 * @return void
 	 */
 	public function fromNode(Node $node)
@@ -323,7 +323,7 @@ abstract class Model extends EloquentModel {
 	 */
 	public function getPath()
 	{
-		$nodes = $this->worker->path($this->{$this->primaryKey}, $this->{$this->nestyAttributes['tree']});
+		$nodes = $this->worker->path($this->{$this->primaryKey}, $this->{$this->reservedAttributes['tree']});
 
 		$collection = new EloquentCollection;
 
@@ -377,7 +377,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the first child of the parent
 	 *
-	 * @param  Nesty\Model  $parent
+	 * @param  Cartalyst\NestedSets\Model  $parent
 	 * @return void
 	 */
 	public function makeFirstChildOf(Model $parent)
@@ -385,11 +385,11 @@ abstract class Model extends EloquentModel {
 		// Let's match up trees
 		if ( ! $this->exists)
 		{
-			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
+			$this->attributes[$this->reservedAttributes['tree']] = $parent->{$this->reservedAttributes['tree']};
 		}
-		elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']})
+		elseif ($this->{$this->reservedAttributes['tree']} != $parent->{$this->reservedAttributes['tree']})
 		{
-			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
+			throw new \UnexpectedValueException("Nested Sets model's tree [{$this->{$this->reservedAttributes['tree']}}] does not match the parent tree [{$parent->{$this->reservedAttributes['tree']}}].");
 		}
 
 		// Grab node representations of
@@ -418,7 +418,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the last child of the parent
 	 *
-	 * @param  Nesty\Model  $parent
+	 * @param  Cartalyst\NestedSets\Model  $parent
 	 * @return void
 	 */
 	public function makeLastChildOf(Model $parent)
@@ -426,11 +426,11 @@ abstract class Model extends EloquentModel {
 		// Let's match up trees
 		if ( ! $this->exists)
 		{
-			$this->attributes[$this->nestyAttributes['tree']] = $parent->{$this->nestyAttributes['tree']};
+			$this->attributes[$this->reservedAttributes['tree']] = $parent->{$this->reservedAttributes['tree']};
 		}
-		elseif ($this->{$this->nestyAttributes['tree']} != $parent->{$this->nestyAttributes['tree']})
+		elseif ($this->{$this->reservedAttributes['tree']} != $parent->{$this->reservedAttributes['tree']})
 		{
-			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the parent tree [{$parent->{$this->nestyAttributes['tree']}}].");
+			throw new \UnexpectedValueException("Nested Sets model's tree [{$this->{$this->reservedAttributes['tree']}}] does not match the parent tree [{$parent->{$this->reservedAttributes['tree']}}].");
 		}
 
 		// Grab node representations of
@@ -459,7 +459,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the previous sibling of the given sibling
 	 *
-	 * @param  Nesty\Model  $sibling
+	 * @param  Cartalyst\NestedSets\Model  $sibling
 	 * @return void
 	 */
 	public function makePreviousSiblingOf(Model $sibling)
@@ -467,11 +467,11 @@ abstract class Model extends EloquentModel {
 		// Let's match up trees
 		if ( ! $this->exists)
 		{
-			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
+			$this->attributes[$this->reservedAttributes['tree']] = $sibling->{$this->reservedAttributes['tree']};
 		}
-		elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']})
+		elseif ($this->{$this->reservedAttributes['tree']} != $sibling->{$this->reservedAttributes['tree']})
 		{
-			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
+			throw new \UnexpectedValueException("Nested Sets model's tree [{$this->{$this->reservedAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->reservedAttributes['tree']}}].");
 		}
 
 		// Grab node representations of
@@ -500,7 +500,7 @@ abstract class Model extends EloquentModel {
 	/**
 	 * Makes this model the next sibling of the given sibling
 	 *
-	 * @param  Nesty\Model  $sibling
+	 * @param  Cartalyst\NestedSets\Model  $sibling
 	 * @return void
 	 */
 	public function makeNextSiblingOf(Model $sibling)
@@ -508,11 +508,11 @@ abstract class Model extends EloquentModel {
 		// Let's match up trees
 		if ( ! $this->exists)
 		{
-			$this->attributes[$this->nestyAttributes['tree']] = $sibling->{$this->nestyAttributes['tree']};
+			$this->attributes[$this->reservedAttributes['tree']] = $sibling->{$this->reservedAttributes['tree']};
 		}
-		elseif ($this->{$this->nestyAttributes['tree']} != $sibling->{$this->nestyAttributes['tree']})
+		elseif ($this->{$this->reservedAttributes['tree']} != $sibling->{$this->reservedAttributes['tree']})
 		{
-			throw new \UnexpectedValueException("Nesty model's tree [{$this->{$this->nestyAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->nestyAttributes['tree']}}].");
+			throw new \UnexpectedValueException("Nested Sets model's tree [{$this->{$this->reservedAttributes['tree']}}] does not match the sibling tree [{$sibling->{$this->reservedAttributes['tree']}}].");
 		}
 
 		// Grab node representations of
@@ -582,8 +582,8 @@ abstract class Model extends EloquentModel {
 	 * Takes a Node object and hydrates it's parents' "children"
 	 * property.
 	 *
-	 * @param  Nesty\Model  $parent
-	 * @param  Nesty\Node   $node
+	 * @param  Cartalyst\NestedSets\Model  $parent
+	 * @param  Cartalyst\NestedSets\Node   $node
 	 * @return void
 	 */
 	protected function hydrateChildNodeRecursively(Model $parent, Node $node)
@@ -716,7 +716,7 @@ abstract class Model extends EloquentModel {
 			$child = new Node($child);
 		}
 
-		$child->{$this->nestyAttributes['tree']} = $this->{$this->nestyAttributes['tree']};
+		$child->{$this->reservedAttributes['tree']} = $this->{$this->reservedAttributes['tree']};
 	}
 
 }

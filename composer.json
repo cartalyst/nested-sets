@@ -1,6 +1,6 @@
 {
-    "name": "cartalyst/nesty",
-    "description": "PHP 5.3+ nested sets class utilizing the Modified Preorder Tree Traversal algorithm.",
+    "name": "cartalyst/nested-sets",
+    "description": "PHP 5.3+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
     "keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
     "license": "BSD License (3-clause)",
     "authors": [
@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Cartalyst\\Nesty": "src/"
+            "Cartalyst\\NestedSets": "src/"
         }
     },
     "minimum-stability": "dev"

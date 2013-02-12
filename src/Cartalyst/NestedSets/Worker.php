@@ -1,4 +1,4 @@
-<?php namespace Cartalyst\Nesty;
+<?php namespace Cartalyst\NestedSets;
 /**
  * Part of the Platform application.
  *
@@ -68,26 +68,26 @@ class Worker implements Foreman {
 	 *
 	 * @var array
 	 */
-	public $nestyAttributes = array(
+	public $reservedAttributes = array(
 		'left'  => 'lft',
 		'right' => 'rgt',
 		'tree'  => 'tree_id',
 	);
 
 	/**
-	 * Create a new Nesty Worker instance.
+	 * Create a new Nested Sets Worker instance.
 	 *
 	 * @param  Illuminate\Database\Connection  $connection
 	 * @param  string  $table
 	 * @param  string  $primaryKey
 	 * @param  bool    $incrementing
 	 * @param  bool    $timestamps
-	 * @param  array   $nestyAttributes
-	 * @return 
+	 * @param  array   $reservedAttributes
+	 * @return
 	 */
-	public function __construct(Connection $connection, $table, $primaryKey = null, $incrementing = null, $timestamps = null, array $nestyAttributes = array())
+	public function __construct(Connection $connection, $table, $primaryKey = null, $incrementing = null, $timestamps = null, array $reservedAttributes = array())
 	{
-		// Required parameters for a Nesty worker to
+		// Required parameters for a worker
 		// be instantiated.
 		$this->connection = $connection;
 		$this->table      = $table;
@@ -102,15 +102,15 @@ class Worker implements Foreman {
 		{
 			$this->incrementing = $incrementing;
 		}
-		
+
 		if ($timestamps !== null)
 		{
 			$this->timestamps = $timestamps;
 		}
 
-		if ( ! empty($nestyAttributes))
+		if ( ! empty($reservedAttributes))
 		{
-			$this->nestyAttributes = $nestyAttributes;
+			$this->reservedAttributes = $reservedAttributes;
 		}
 	}
 
@@ -135,7 +135,7 @@ class Worker implements Foreman {
 		$rootNodes = array();
 
 		$databaseItems = $this->connection->table($this->table)
-		    ->where($this->nestyAttributes['left'], 1)
+		    ->where($this->reservedAttributes['left'], 1)
 		    ->get();
 
 		foreach ($databaseItems as $item)
@@ -181,19 +181,19 @@ class Worker implements Foreman {
 
 		$query->join(
 			"{$this->table} as parent",
-			new Expression("`node`.`{$this->nestyAttributes['left']}`"),
+			new Expression("`node`.`{$this->reservedAttributes['left']}`"),
 			'between',
 			new Expression(
 
 				// "AND" has to be capital, otherwise the grammar
 				// class removes it
-				"`parent`.`{$this->nestyAttributes['left']}` AND `parent`.`{$this->nestyAttributes['right']}`"
+				"`parent`.`{$this->reservedAttributes['left']}` AND `parent`.`{$this->reservedAttributes['right']}`"
 			)
 		);
 
 		$query->where("node.{$this->primaryKey}", $primaryKey);
 
-		$query->orderBy("node.{$this->nestyAttributes['left']}");
+		$query->orderBy("node.{$this->reservedAttributes['left']}");
 
 		$nodes = array();
 
@@ -284,26 +284,26 @@ class Worker implements Foreman {
 		// parent component
 		$query->join(
 			"{$this->table} as parent",
-			new Expression("`node`.`{$this->nestyAttributes['left']}`"),
+			new Expression("`node`.`{$this->reservedAttributes['left']}`"),
 			'between',
 			new Expression(
 
 				// "AND" has to be capital, otherwise the grammar
 				// class removes it
-				"`parent`.`{$this->nestyAttributes['left']}` AND `parent`.`{$this->nestyAttributes['right']}`"
+				"`parent`.`{$this->reservedAttributes['left']}` AND `parent`.`{$this->reservedAttributes['right']}`"
 			)
 		);
 
 		// And the same thing with the sub parent
 		$query->join(
 			"{$this->table} as sub_parent",
-			new Expression("`node`.`{$this->nestyAttributes['left']}`"),
+			new Expression("`node`.`{$this->reservedAttributes['left']}`"),
 			'between',
 			new Expression(
 
 				// "AND" has to be capital, otherwise the grammar
 				// class removes it
-				"`sub_parent`.`{$this->nestyAttributes['left']}` AND `sub_parent`.`{$this->nestyAttributes['right']}`"
+				"`sub_parent`.`{$this->reservedAttributes['left']}` AND `sub_parent`.`{$this->reservedAttributes['right']}`"
 			)
 		);
 
@@ -326,13 +326,13 @@ class Worker implements Foreman {
 			// parent component
 			$subTreeQuery->join(
 				"{$me->table} as parent",
-				new Expression("`node`.`{$me->nestyAttributes['left']}`"),
+				new Expression("`node`.`{$me->reservedAttributes['left']}`"),
 				'between',
 				new Expression(
 
 					// "AND" has to be capital, otherwise the grammar
 					// class removes it
-					"`parent`.`{$me->nestyAttributes['left']}` AND `parent`.`{$me->nestyAttributes['right']}`"
+					"`parent`.`{$me->reservedAttributes['left']}` AND `parent`.`{$me->reservedAttributes['right']}`"
 				)
 			);
 
@@ -353,16 +353,16 @@ class Worker implements Foreman {
 			 *
 			 * @todo Check this and remove
 			 */
-			$whereParam1 = new Expression("`parent`.`{$me->nestyAttributes['left']}`");
-			$whereParam2 = new Expression("`parent`.`{$me->nestyAttributes['right']}`");
+			$whereParam1 = new Expression("`parent`.`{$me->reservedAttributes['left']}`");
+			$whereParam2 = new Expression("`parent`.`{$me->reservedAttributes['right']}`");
 			$subTreeQuery
 				->where(
-					new Expression("`node`.`{$me->nestyAttributes['left']}`"),
+					new Expression("`node`.`{$me->reservedAttributes['left']}`"),
 					'>=',
 					$whereParam1
 				)
 				->where(
-					new Expression("`node`.`{$me->nestyAttributes['left']}`"),
+					new Expression("`node`.`{$me->reservedAttributes['left']}`"),
 					'<=',
 					$whereParam2
 				);
@@ -385,11 +385,11 @@ class Worker implements Foreman {
 			// support multiple trees
 			$subTreeQuery
 				->where(
-					new Expression("`node`.`{$me->nestyAttributes['tree']}`"),
+					new Expression("`node`.`{$me->reservedAttributes['tree']}`"),
 					$tree
 				)
 				->where(
-					new Expression("`parent`.`{$me->nestyAttributes['tree']}`"),
+					new Expression("`parent`.`{$me->reservedAttributes['tree']}`"),
 					$tree
 				);
 
@@ -402,7 +402,7 @@ class Worker implements Foreman {
 			// Order by the left limit, this will preserve the items
 			// are in their correct sort order
 			$subTreeQuery->orderBy(
-				new Expression("`node`.`{$me->nestyAttributes['left']}`")
+				new Expression("`node`.`{$me->reservedAttributes['left']}`")
 			);
 
 			// Set the join table to our new sub-query
@@ -433,15 +433,15 @@ class Worker implements Foreman {
 		// support multiple trees
 		$query
 			->where(
-				new Expression("`node`.`{$this->nestyAttributes['tree']}`"),
+				new Expression("`node`.`{$this->reservedAttributes['tree']}`"),
 				$tree
 			)
 			->where(
-				new Expression("`parent`.`{$this->nestyAttributes['tree']}`"),
+				new Expression("`parent`.`{$this->reservedAttributes['tree']}`"),
 				$tree
 			)
 			->where(
-				new Expression("`sub_parent`.`{$this->nestyAttributes['tree']}`"),
+				new Expression("`sub_parent`.`{$this->reservedAttributes['tree']}`"),
 				$tree
 			);
 
@@ -460,7 +460,7 @@ class Worker implements Foreman {
 		// Order by the left limit, this will preserve the items
 		// are in their correct sort order
 		$query->orderBy(
-			new Expression("`node`.`{$this->nestyAttributes['left']}`")
+			new Expression("`node`.`{$this->reservedAttributes['left']}`")
 		);
 
 		// Return the results transformed into a tree.
@@ -490,14 +490,14 @@ class Worker implements Foreman {
 			$query = $connection->table($me->table);
 			$existingKeys = $query
 			    ->where(
-			    	$me->nestyAttributes['left'],
+			    	$me->reservedAttributes['left'],
 			    	'>',
-			    	$parent->{$me->nestyAttributes['left']}
+			    	$parent->{$me->reservedAttributes['left']}
 			    )
 			    ->where(
-			    	$me->nestyAttributes['right'],
+			    	$me->reservedAttributes['right'],
 			    	'<',
-			    	$parent->{$me->nestyAttributes['right']}
+			    	$parent->{$me->reservedAttributes['right']}
 			    )
 			    ->get(array($me->primaryKey));
 			if ($existingKeys)
@@ -586,14 +586,14 @@ class Worker implements Foreman {
 
 		$callback = function($connection) use ($me, $node)
 		{
-			$node->{$me->nestyAttributes['left']} = 1;
-			$node->{$me->nestyAttributes['right']} = 2;
+			$node->{$me->reservedAttributes['left']} = 1;
+			$node->{$me->reservedAttributes['right']} = 2;
 
 			$query = $connection->table($me->table);
-			$node->{$me->nestyAttributes['tree']} = $query->max($me->nestyAttributes['tree']) + 1;
+			$node->{$me->reservedAttributes['tree']} = $query->max($me->reservedAttributes['tree']) + 1;
 
 			$query = $connection->table($me->table);
-			
+
 			if ($me->incrementing)
 			{
 				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
@@ -634,21 +634,21 @@ class Worker implements Foreman {
 		{
 			// Make a gap for us
 			$this->gap(
-				$parent->{$me->nestyAttributes['left']} + 1,
+				$parent->{$me->reservedAttributes['left']} + 1,
 				2,
-				$node->{$this->nestyAttributes['tree']}
+				$node->{$this->reservedAttributes['tree']}
 			);
 
 			// Update node
-			$node->{$me->nestyAttributes['left']}  = $parent->{$me->nestyAttributes['left']} + 1;
-			$node->{$me->nestyAttributes['right']} = $parent->{$me->nestyAttributes['left']} + 2;
+			$node->{$me->reservedAttributes['left']}  = $parent->{$me->reservedAttributes['left']} + 1;
+			$node->{$me->reservedAttributes['right']} = $parent->{$me->reservedAttributes['left']} + 2;
 
 			// Now, we're going to update our node's
 			// left and right limits, our parent node's
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			
+
 			if ($me->incrementing)
 			{
 				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
@@ -659,7 +659,7 @@ class Worker implements Foreman {
 			}
 
 			// Of course, we manipulate the local parent
-			$parent->{$me->nestyAttributes['right']} += 2;
+			$parent->{$me->reservedAttributes['right']} += 2;
 		};
 
 		if ($transaction === true)
@@ -692,21 +692,21 @@ class Worker implements Foreman {
 		{
 			// Make a gap for us
 			$this->gap(
-				$parent->{$me->nestyAttributes['right']},
+				$parent->{$me->reservedAttributes['right']},
 				2,
-				$node->{$this->nestyAttributes['tree']}
+				$node->{$this->reservedAttributes['tree']}
 			);
 
 			// Update node
-			$node->{$me->nestyAttributes['left']}  = $parent->{$me->nestyAttributes['right']};
-			$node->{$me->nestyAttributes['right']} = $parent->{$me->nestyAttributes['right']} + 1;
+			$node->{$me->reservedAttributes['left']}  = $parent->{$me->reservedAttributes['right']};
+			$node->{$me->reservedAttributes['right']} = $parent->{$me->reservedAttributes['right']} + 1;
 
 			// Now, we're going to update our node's
 			// left and right limits, our parent node's
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			
+
 			if ($me->incrementing)
 			{
 				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
@@ -717,7 +717,7 @@ class Worker implements Foreman {
 			}
 
 			// Of course, we manipulate the local parent
-			$parent->{$me->nestyAttributes['right']} += 2;
+			$parent->{$me->reservedAttributes['right']} += 2;
 		};
 
 		if ($transaction === true)
@@ -750,25 +750,25 @@ class Worker implements Foreman {
 		{
 			// Make a gap for us
 			$this->gap(
-				$sibling->{$me->nestyAttributes['left']},
+				$sibling->{$me->reservedAttributes['left']},
 				2,
-				$node->{$this->nestyAttributes['tree']}
+				$node->{$this->reservedAttributes['tree']}
 			);
 
 			// Update node
-			$node->{$me->nestyAttributes['left']}  = $sibling->{$me->nestyAttributes['left']};
-			$node->{$me->nestyAttributes['right']} = $sibling->{$me->nestyAttributes['left']} + 1;
+			$node->{$me->reservedAttributes['left']}  = $sibling->{$me->reservedAttributes['left']};
+			$node->{$me->reservedAttributes['right']} = $sibling->{$me->reservedAttributes['left']} + 1;
 
 			// And the sibling node, it's moved two to the right
-			$sibling->{$me->nestyAttributes['left']} += 2;
-			$sibling->{$me->nestyAttributes['right']} += 2;
+			$sibling->{$me->reservedAttributes['left']} += 2;
+			$sibling->{$me->reservedAttributes['right']} += 2;
 
 			// Now, we're going to update our node's
 			// left and right limits, our sibling node's
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			
+
 			if ($me->incrementing)
 			{
 				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
@@ -806,21 +806,21 @@ class Worker implements Foreman {
 		{
 			// Make a gap for us
 			$this->gap(
-				$sibling->{$me->nestyAttributes['right']} + 1,
+				$sibling->{$me->reservedAttributes['right']} + 1,
 				2,
-				$node->{$this->nestyAttributes['tree']}
+				$node->{$this->reservedAttributes['tree']}
 			);
 
 			// Update node
-			$node->{$me->nestyAttributes['left']}  = $sibling->{$me->nestyAttributes['right']} + 1;
-			$node->{$me->nestyAttributes['right']} = $sibling->{$me->nestyAttributes['right']} + 2;
+			$node->{$me->reservedAttributes['left']}  = $sibling->{$me->reservedAttributes['right']} + 1;
+			$node->{$me->reservedAttributes['right']} = $sibling->{$me->reservedAttributes['right']} + 2;
 
 			// Now, we're going to update our node's
 			// left and right limits, our sibling node's
 			// left and right limits (so the objects are)
 			// up to date and insert it in the database
 			$query = $connection->table($me->table);
-			
+
 			if ($me->incrementing)
 			{
 				$node->{$me->primaryKey} = $query->insertGetId($node->toArray());;
@@ -863,7 +863,7 @@ class Worker implements Foreman {
 			// parent item.
 			$parentUpdated = $connection
 			    ->table($me->table)
-			    ->select(array_values($this->nestyAttributes))
+			    ->select(array_values($this->reservedAttributes))
 			    ->where($me->primaryKey, $parent->{$me->primaryKey})
 			    ->first();
 
@@ -873,7 +873,7 @@ class Worker implements Foreman {
 			}
 
 			// Update our parent object's attributes
-			foreach ($this->nestyAttributes as $attribute)
+			foreach ($this->reservedAttributes as $attribute)
 			{
 				$parent->{$attribute} = $parentUpdated->{$attribute};
 			}
@@ -883,7 +883,7 @@ class Worker implements Foreman {
 			// the tree.
 			$this->slideNodeInTree(
 				$node,
-				$parent->{$me->nestyAttributes['left']} + 1
+				$parent->{$me->reservedAttributes['left']} + 1
 			);
 		};
 
@@ -919,7 +919,7 @@ class Worker implements Foreman {
 			// parent item.
 			$parentUpdated = $connection
 			    ->table($me->table)
-			    ->select(array_values($this->nestyAttributes))
+			    ->select(array_values($this->reservedAttributes))
 			    ->where($me->primaryKey, $parent->{$me->primaryKey})
 			    ->first();
 
@@ -929,7 +929,7 @@ class Worker implements Foreman {
 			}
 
 			// Update our parent object's attributes
-			foreach ($this->nestyAttributes as $attribute)
+			foreach ($this->reservedAttributes as $attribute)
 			{
 				$parent->{$attribute} = $parentUpdated->{$attribute};
 			}
@@ -939,7 +939,7 @@ class Worker implements Foreman {
 			// the tree.
 			$this->slideNodeInTree(
 				$node,
-				$parent->{$me->nestyAttributes['right']}
+				$parent->{$me->reservedAttributes['right']}
 			);
 		};
 
@@ -975,7 +975,7 @@ class Worker implements Foreman {
 			// sibling item.
 			$siblingUpdated = $connection
 			    ->table($me->table)
-			    ->select(array_values($this->nestyAttributes))
+			    ->select(array_values($this->reservedAttributes))
 			    ->where($me->primaryKey, $sibling->{$me->primaryKey})
 			    ->first();
 
@@ -985,7 +985,7 @@ class Worker implements Foreman {
 			}
 
 			// Update our sibling object's attributes
-			foreach ($this->nestyAttributes as $attribute)
+			foreach ($this->reservedAttributes as $attribute)
 			{
 				$sibling->{$attribute} = $siblingUpdated->{$attribute};
 			}
@@ -995,18 +995,18 @@ class Worker implements Foreman {
 			// the tree.
 			$this->slideNodeInTree(
 				$node,
-				$sibling->{$me->nestyAttributes['left']}
+				$sibling->{$me->reservedAttributes['left']}
 			);
 
 			// Update the node, slide it
-			$nodeSize = $node->{$me->nestyAttributes['right']} - $node->{$me->nestyAttributes['left']};
+			$nodeSize = $node->{$me->reservedAttributes['right']} - $node->{$me->reservedAttributes['left']};
 
 			// Update the sibling
 			// @todo, probably force a reload of the sibling. That's
 			// because the node may have been a child of the sibling before
 			// meaning that the sibling will become smaller.
-			$sibling->{$me->nestyAttributes['left']} += $nodeSize + 1;
-			$sibling->{$me->nestyAttributes['right']} += $nodeSize + 1;
+			$sibling->{$me->reservedAttributes['left']} += $nodeSize + 1;
+			$sibling->{$me->reservedAttributes['right']} += $nodeSize + 1;
 		};
 
 		if ($transaction === true)
@@ -1041,7 +1041,7 @@ class Worker implements Foreman {
 			// sibling item.
 			$siblingUpdated = $connection
 			    ->table($me->table)
-			    ->select(array_values($this->nestyAttributes))
+			    ->select(array_values($this->reservedAttributes))
 			    ->where($me->primaryKey, $sibling->{$me->primaryKey})
 			    ->first();
 
@@ -1051,7 +1051,7 @@ class Worker implements Foreman {
 			}
 
 			// Update our sibling object's attributes
-			foreach ($this->nestyAttributes as $attribute)
+			foreach ($this->reservedAttributes as $attribute)
 			{
 				$sibling->{$attribute} = $siblingUpdated->{$attribute};
 			}
@@ -1061,7 +1061,7 @@ class Worker implements Foreman {
 			// the tree.
 			$this->slideNodeInTree(
 				$node,
-				$sibling->{$me->nestyAttributes['right']} + 1
+				$sibling->{$me->reservedAttributes['right']} + 1
 			);
 		};
 
@@ -1086,51 +1086,51 @@ class Worker implements Foreman {
 	protected function slideNodeOutsideTree(Node $node)
 	{
 		// Let's grab the size of the node
-		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
+		$nodeSize = $node->{$this->reservedAttributes['right']} - $node->{$this->reservedAttributes['left']};
 
 		// Change in position when shifted
-		$delta = 0 - $node->{$this->nestyAttributes['right']};
+		$delta = 0 - $node->{$this->reservedAttributes['right']};
 
 		// Let's push our node into negative numbers, essentially
 		// fully removing it from the tree.
 		$query = $this->connection->table($this->table);
 		$query
 			->where(
-				$this->nestyAttributes['left'],
+				$this->reservedAttributes['left'],
 				'>=',
-				$node->{$this->nestyAttributes['left']}
+				$node->{$this->reservedAttributes['left']}
 			)
 			->where(
-				$this->nestyAttributes['right'],
+				$this->reservedAttributes['right'],
 				'<=',
-				$node->{$this->nestyAttributes['right']}
+				$node->{$this->reservedAttributes['right']}
 			)
 			->where(
-				$this->nestyAttributes['tree'],
-				$node->{$this->nestyAttributes['tree']}
+				$this->reservedAttributes['tree'],
+				$node->{$this->reservedAttributes['tree']}
 			)
 			->update(array(
-				$this->nestyAttributes['left'] => new Expression(sprintf(
+				$this->reservedAttributes['left'] => new Expression(sprintf(
 
 					// We just use negative and abs() so
 					// our SQL makes a little more sense.
 					'`%s` - %d',
-					$this->nestyAttributes['left'],
+					$this->reservedAttributes['left'],
 					abs($delta)
 				)),
-				$this->nestyAttributes['right'] => new Expression(sprintf(
+				$this->reservedAttributes['right'] => new Expression(sprintf(
 					'`%s` - %d',
-					$this->nestyAttributes['right'],
+					$this->reservedAttributes['right'],
 					abs($delta)
 				))
 			));
 
 		// Remove the gap left by the node we've removed
-		$this->gap($node->{$this->nestyAttributes['left']}, -($nodeSize + 1), $node->{$this->nestyAttributes['tree']});
+		$this->gap($node->{$this->reservedAttributes['left']}, -($nodeSize + 1), $node->{$this->reservedAttributes['tree']});
 
 		// Update our node object
-		$node->{$this->nestyAttributes['left']}  += $delta;
-		$node->{$this->nestyAttributes['right']} += $delta;
+		$node->{$this->reservedAttributes['left']}  += $delta;
+		$node->{$this->reservedAttributes['right']} += $delta;
 	}
 
 	/**
@@ -1143,14 +1143,14 @@ class Worker implements Foreman {
 	protected function slideNodeInTree(Node $node, $left)
 	{
 		// Grab our node size
-		$nodeSize = $node->{$this->nestyAttributes['right']} - $node->{$this->nestyAttributes['left']};
+		$nodeSize = $node->{$this->reservedAttributes['right']} - $node->{$this->reservedAttributes['left']};
 
 		// Let's make a gap in the tree
 		// for the size of our node plus 1
 		$this->gap(
 			$left,
 			$nodeSize + 1,
-			$node->{$this->nestyAttributes['tree']}
+			$node->{$this->reservedAttributes['tree']}
 		);
 
 		// We have a gap, so let's adjust our left / right
@@ -1158,35 +1158,35 @@ class Worker implements Foreman {
 		$query = $this->connection->table($this->table);
 		$query
 			->where(
-				$this->nestyAttributes['left'],
+				$this->reservedAttributes['left'],
 				'>=',
 				0 - $nodeSize
 			)
 			->where(
-				$this->nestyAttributes['left'],
+				$this->reservedAttributes['left'],
 				'<=',
 				0
 			)
 			->where(
-				$this->nestyAttributes['tree'],
-				$node->{$this->nestyAttributes['tree']}
+				$this->reservedAttributes['tree'],
+				$node->{$this->reservedAttributes['tree']}
 			)
 			->update(array(
-				$this->nestyAttributes['left'] => new Expression(sprintf(
+				$this->reservedAttributes['left'] => new Expression(sprintf(
 					'`%s` + %d',
-					$this->nestyAttributes['left'],
+					$this->reservedAttributes['left'],
 					$nodeSize + $left
 				)),
-				$this->nestyAttributes['right'] => new Expression(sprintf(
+				$this->reservedAttributes['right'] => new Expression(sprintf(
 					'`%s` + %d',
-					$this->nestyAttributes['right'],
+					$this->reservedAttributes['right'],
 					$nodeSize + $left
 				))
 			));
 
 		// Update the node object
-		$node->{$this->nestyAttributes['left']}  += $nodeSize + $left;
-		$node->{$this->nestyAttributes['right']} += $nodeSize + $left;
+		$node->{$this->reservedAttributes['left']}  += $nodeSize + $left;
+		$node->{$this->reservedAttributes['right']} += $nodeSize + $left;
 	}
 
 	/**
@@ -1203,20 +1203,20 @@ class Worker implements Foreman {
 		$query = $this->connection->table($this->table);
 		$query
 			->where(
-				$this->nestyAttributes['left'],
+				$this->reservedAttributes['left'],
 				'>=',
 				$left
 			)
 			->where(
-				$this->nestyAttributes['tree'],
+				$this->reservedAttributes['tree'],
 				$tree
 			)
 			->update(array(
-				$this->nestyAttributes['left'] => new Expression(sprintf(
+				$this->reservedAttributes['left'] => new Expression(sprintf(
 
 					// Just keep the SQL tidy
 					'`%s` %s %d',
-					$this->nestyAttributes['left'],
+					$this->reservedAttributes['left'],
 					($size >= 0) ? '+' : '-',
 					abs($size)
 				))
@@ -1225,20 +1225,20 @@ class Worker implements Foreman {
 		$query = $this->connection->table($this->table);
 		$query
 			->where(
-				$this->nestyAttributes['right'],
+				$this->reservedAttributes['right'],
 				'>=',
 				$left
 			)
 			->where(
-				$this->nestyAttributes['tree'],
+				$this->reservedAttributes['tree'],
 				$tree
 			)
 			->update(array(
-				$this->nestyAttributes['right'] => new Expression(sprintf(
+				$this->reservedAttributes['right'] => new Expression(sprintf(
 
 					// Just keep the SQL tidy
 					'`%s` %s %d',
-					$this->nestyAttributes['right'],
+					$this->reservedAttributes['right'],
 					($size >= 0) ? '+' : '-',
 					abs($size)
 				))
@@ -1261,7 +1261,7 @@ class Worker implements Foreman {
 
 		if ($existing)
 		{
-			foreach ($this->nestyAttributes as $attribute)
+			foreach ($this->reservedAttributes as $attribute)
 			{
 				$node->{$attribute} = $existing->{$attribute};
 			}
@@ -1277,7 +1277,7 @@ class Worker implements Foreman {
 		// in the rest of our data to the database
 		$this->connection->table($this->table)
 		    ->where($this->primaryKey, $node->{$this->primaryKey})
-		    ->update(array_diff_key($node->toArray(), array_flip($this->nestyAttributes)));
+		    ->update(array_diff_key($node->toArray(), array_flip($this->reservedAttributes)));
 
 		// Recursive!
 		if ($node->children)
@@ -1335,7 +1335,7 @@ class Worker implements Foreman {
 			// Stack is empty (we are inspecting the root)
 			if ($l == 0)
 			{
-				// Assigning the root nesty
+				// Assigning the root node
 				$i = count($tree);
 				$tree[$i] = $node;
 				$stack[] = &$tree[$i];
