@@ -694,7 +694,7 @@ class Worker implements Foreman {
 			$me->gap(
 				$parent->{$me->reservedAttributes['right']},
 				2,
-				$node->{$this->reservedAttributes['tree']}
+				$node->{$me->reservedAttributes['tree']}
 			);
 
 			// Update node
