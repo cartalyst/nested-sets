@@ -1076,6 +1076,62 @@ class Worker implements Foreman {
 	}
 
 	/**
+	 * Creates a gap in the tree, starting at a given position,
+	 * for a certain size.
+	 *
+	 * @param  int   $left
+	 * @param  int   $size
+	 * @param  int   $tree
+	 * @return void
+	 */
+	public function gap($left, $size, $tree)
+	{
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->reservedAttributes['left'],
+				'>=',
+				$left
+			)
+			->where(
+				$this->reservedAttributes['tree'],
+				$tree
+			)
+			->update(array(
+				$this->reservedAttributes['left'] => new Expression(sprintf(
+
+					// Just keep the SQL tidy
+					'`%s` %s %d',
+					$this->reservedAttributes['left'],
+					($size >= 0) ? '+' : '-',
+					abs($size)
+				))
+			));
+
+		$query = $this->connection->table($this->table);
+		$query
+			->where(
+				$this->reservedAttributes['right'],
+				'>=',
+				$left
+			)
+			->where(
+				$this->reservedAttributes['tree'],
+				$tree
+			)
+			->update(array(
+				$this->reservedAttributes['right'] => new Expression(sprintf(
+
+					// Just keep the SQL tidy
+					'`%s` %s %d',
+					$this->reservedAttributes['right'],
+					($size >= 0) ? '+' : '-',
+					abs($size)
+				))
+			));
+	}
+
+	/**
 	 * Grabs a node, and adjusts it (and it's children
 	 * in the database) so they sit outside the hierarchy
 	 * of the tree.
@@ -1187,62 +1243,6 @@ class Worker implements Foreman {
 		// Update the node object
 		$node->{$this->reservedAttributes['left']}  += $nodeSize + $left;
 		$node->{$this->reservedAttributes['right']} += $nodeSize + $left;
-	}
-
-	/**
-	 * Creates a gap in the tree, starting at a given position,
-	 * for a certain size.
-	 *
-	 * @param  int   $left
-	 * @param  int   $size
-	 * @param  int   $tree
-	 * @return void
-	 */
-	protected function gap($left, $size, $tree)
-	{
-		$query = $this->connection->table($this->table);
-		$query
-			->where(
-				$this->reservedAttributes['left'],
-				'>=',
-				$left
-			)
-			->where(
-				$this->reservedAttributes['tree'],
-				$tree
-			)
-			->update(array(
-				$this->reservedAttributes['left'] => new Expression(sprintf(
-
-					// Just keep the SQL tidy
-					'`%s` %s %d',
-					$this->reservedAttributes['left'],
-					($size >= 0) ? '+' : '-',
-					abs($size)
-				))
-			));
-
-		$query = $this->connection->table($this->table);
-		$query
-			->where(
-				$this->reservedAttributes['right'],
-				'>=',
-				$left
-			)
-			->where(
-				$this->reservedAttributes['tree'],
-				$tree
-			)
-			->update(array(
-				$this->reservedAttributes['right'] => new Expression(sprintf(
-
-					// Just keep the SQL tidy
-					'`%s` %s %d',
-					$this->reservedAttributes['right'],
-					($size >= 0) ? '+' : '-',
-					abs($size)
-				))
-			));
 	}
 
 	/**
