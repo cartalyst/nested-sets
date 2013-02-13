@@ -691,7 +691,7 @@ class Worker implements Foreman {
 		$callback = function($connection) use ($me, $node, $parent)
 		{
 			// Make a gap for us
-			$this->gap(
+			$me->gap(
 				$parent->{$me->reservedAttributes['right']},
 				2,
 				$node->{$this->reservedAttributes['tree']}
