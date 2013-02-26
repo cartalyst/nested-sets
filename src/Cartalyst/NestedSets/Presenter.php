@@ -1,0 +1,144 @@
+<?php namespace Cartalyst\NestedSets;
+/**
+ * Part of the Nested Sets package.
+ *
+ * NOTICE OF LICENSE
+ *
+ * Licensed under the 3-clause BSD License.
+ *
+ * This source file is subject to the 3-clause BSD License that is
+ * bundled with this package in the LICENSE file.  It is also available at
+ * the following URL: http://www.opensource.org/licenses/BSD-3-Clause
+ *
+ * @package    Nested Sets
+ * @version    2.0.0
+ * @author     Cartalyst LLC
+ * @license    BSD License (3-clause)
+ * @copyright  (c) 2011 - 2013, Cartalyst LLC
+ * @link       http://cartalyst.com
+ */
+
+use Cartalyst\NestedSets\Nodes\NodeInterface;
+use Closure;
+
+class Presenter {
+
+	/**
+	 * The formats in which we can present a node.
+	 *
+	 * @var array
+	 */
+	protected $formats = array('array', 'ul', 'ol', 'json');
+
+	/**
+	 * Presents the node in the given format. If the attribute
+	 * provided is a closure, we will call it, providing every
+	 * single node recursively. You must return a string from
+	 * your closure which will be used as the output for that
+	 * node when presenting.
+	 *
+	 * @param  Cartalyst\Sentry\Nodes\NodeInterface  $node
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @param  int  $depth
+	 * @return mixed
+	 * @todo   Implement depth
+	 */
+	public function presentAs(NodeInterface $node, $format, $attribute, $depth = 0)
+	{
+
+	}
+
+	/**
+	 * Presents the children of the given node in the given
+	 * format. If the attribute provided is a closure, we will
+	 * call it, providing every single node recursively. You
+	 * must return a string from your closure which will be
+	 * used as the output for that node when presenting.
+	 *
+	 * @param  Cartalyst\Sentry\Nodes\NodeInterface  $node
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @param  int  $depth
+	 * @return mixed
+	 * @todo   Implement depth
+	 */
+	public function presentChildrenAs(NodeInterface $node, $format, $attribute, $depth = 0)
+	{
+		$present = array();
+
+		$node->hydrateChildren();
+		foreach ($node->getChildren() as $child)
+		{
+			$extracted = $this->extractPresentable($child, $attribute);
+
+			if ($child->getChildren())
+			{
+				$present[$extracted] = $this->presentChildrenAs($child, 'array', $format, $depth);
+			}
+			else
+			{
+				$present[] = $extracted;
+			}
+		}
+
+		return $this->{'presentArrayAs'.ucfirst($format)}($present);
+	}
+
+	public function extractPresentable(NodeInterface $node, $attribute)
+	{
+		if ($attribute instanceof Closure) return $attribute($node);
+
+		return $node->getAttribute($attribute);
+	}
+
+	public function presentArrayAsArray(array $present)
+	{
+		return $present;
+	}
+
+	public function presentArrayAsUl(array $present)
+	{
+		return $this->presentArrayAsList($present, 'ul');
+	}
+
+	public function presentArrayAsOl(array $present)
+	{
+		return $this->presentArrayAsList($present, 'ol');
+	}
+
+	protected function presentArrayAsList(array $present, $type = 'ul')
+	{
+		$html = '';
+
+		if (count($present) == 0)
+		{
+			return $html;
+		}
+
+		foreach ($present as $key => $value)
+		{
+			// If the value is an array, we will recurse the function so that we can
+			// produce a nested list within the list being built. Of course, nested
+			// lists may exist within nested lists, etc.
+			if (is_array($value))
+			{
+				if (is_int($key))
+				{
+					$html .= $this->presentArrayAsList($value, $type);
+				}
+				else
+				{
+					$html .= '<li>'.$key.$this->presentArrayAsList($value, $type).'</li>';
+				}
+			}
+			else
+			{
+				$html .= '<li>'.htmlentities($value).'</li>';
+			}
+		}
+
+		return '<'.$type.'>'.$html.'</'.$type.'>';
+	}
+
+}
