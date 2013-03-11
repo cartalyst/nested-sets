@@ -143,7 +143,7 @@ class IlluminateWorker implements WorkerInterface {
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
-			->where('node.$keyName', '=', $node->getAttribute($keyName))
+			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->orderBy("node.{$attributes['left']}")
 			->get("parent.$keyName");
 

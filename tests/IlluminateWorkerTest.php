@@ -235,6 +235,30 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertCount(1, $worker->allLeaf(1));
 	}
 
+	public function testPath()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
+		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
+		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
+		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
+
+		$result1 = new StdClass;
+		$result1->id = 3;
+		$result2 = new StdClass;
+		$result2->id = 2;
+		$result3 = new StdClass;
+		$result3->id = 1;
+
+		$query->shouldReceive('get')->with('parent.id')->once()->andReturn(array($result3, $result2, $result1));
+
+		$this->assertCount(3, $path = $worker->path($node));
+		$this->assertEquals('123', implode('', $path));
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');
@@ -248,6 +272,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$node = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface');
 
+		$node->shouldReceive('getKeyName')->andReturn('id');
 		$node->shouldReceive('getTable')->andReturn('categories');
 		$node->shouldReceive('getReservedAttributes')->andReturn(array(
 			'left'  => 'lft',
