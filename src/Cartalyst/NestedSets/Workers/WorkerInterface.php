@@ -28,7 +28,7 @@ interface WorkerInterface {
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allFlat($tree);
+	public function allFlat($tree = null);
 
 	/**
 	 * Returns all root nodes, in a flat array.
@@ -45,18 +45,17 @@ interface WorkerInterface {
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allLeafNodes($tree);
+	public function allLeafNodes($tree = null);
 
 	/**
-	 * Finds the path of a node by the given key.
-	 * the path is the path and all of it's parents
-	 * up to the root item.
+	 * Finds the path of the given node. The path is
+	 * the primary key of the node and all of it's
+	 * parents up to the root item.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $tree
 	 * @return array
 	 */
-	public function path(NodeInterface $node, $tree);
+	public function path(NodeInterface $node);
 
 	/**
 	 * Returns the depth of a node in a tree, where
@@ -78,10 +77,9 @@ interface WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parentNode
-	 * @param  int  $tree
 	 * @return int
 	 */
-	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode, $tree);
+	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode);
 
 	/**
 	 * Returns all children for the given node in a flat
@@ -90,11 +88,10 @@ interface WorkerInterface {
 	 * the flat array.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function childrenNodes(NodeInterface $node, $tree, $depth = 0);
+	public function childrenNodes(NodeInterface $node, $depth = 0);
 
 	/**
 	 * Returns a tree for the given node. If the depth
@@ -103,11 +100,10 @@ interface WorkerInterface {
 	 * nodes we recurse through.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $tree
 	 * @param  int  $depth
 	 * @return array
 	 */
-	public function tree(NodeInterface $node, $tree, $depth = 0);
+	public function tree(NodeInterface $node, $depth = 0);
 
 	/**
 	 * Maps a tree to the database. We update each items'

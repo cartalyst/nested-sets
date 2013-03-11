@@ -43,6 +43,13 @@ interface NodeInterface {
 	public function getTable();
 
 	/**
+	 * Get the primary key for the node.
+	 *
+	 * @return string
+	 */
+	public function getKeyName();
+
+	/**
 	 * Get all of the current attributes on the node.
 	 *
 	 * @return array
@@ -87,5 +94,12 @@ interface NodeInterface {
 	 * @return string
 	 */
 	public function getReservedAttribute($key = null);
+
+	/**
+	 * Finds all nodes in a flat array.
+	 *
+	 * @return array
+	 */
+	public function findAll();
 
 }
