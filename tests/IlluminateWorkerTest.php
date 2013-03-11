@@ -33,6 +33,16 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		m::close();
 	}
 
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testCreatingZeroGap()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->createGap(1, 0, 1);
+	}
+
 	public function testCreatingGap()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
@@ -40,14 +50,32 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
 		$query->shouldReceive('where')->with('lft', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-		$query->shouldReceive('update')->with(array('lft' => 'lft + 2'))->once();
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
+		$query->shouldReceive('update')->with(array('lft' => '"lft" + 2'))->once();
 
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
 		$query->shouldReceive('where')->with('rgt', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-		$query->shouldReceive('update')->with(array('rgt' => 'rgt + 2'))->once();
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
+		$query->shouldReceive('update')->with(array('rgt' => '"rgt" + 2'))->once();
 
 		$worker->createGap(1, 2, 3);
+	}
+
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	public function testRemovingNegativeGap()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker->removeGap(1, -2, 3);
+	}
+
+	public function testRemovingGap()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[createGap]');
+		$worker->shouldReceive('createGap')->with(1, -2, 3);
+		$worker->removeGap(1, 2, 3);
 	}
 
 	protected function getMockConnection()

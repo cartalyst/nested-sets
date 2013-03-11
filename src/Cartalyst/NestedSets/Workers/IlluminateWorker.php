@@ -53,23 +53,64 @@ class IlluminateWorker {
 		$this->baseNode   = $baseNode;
 	}
 
+	/**
+	 * Creates a gap in a tree, starting from the
+	 * left limit with the given size (the size can
+	 * be negative).
+	 *
+	 * @param  int  $left
+	 * @param  int  $size
+	 * @param  int  $tree
+	 * @return void
+	 */
 	public function createGap($left, $size, $tree)
 	{
+		if ($size === 0)
+		{
+			throw new \InvalidArgumentException("Cannot create a gap in tree [$tree] starting from [$left] with a size of [0].");
+		}
+
 		$attributes = $this->getReservedAttributes();
 
 		$this->connection->table($this->getTable())
-		    ->where($attributes['left'], '>=', $left)
-		    ->where($attributes['tree'], '=', $tree)
-		    ->update(array(
-		    	$attributes['left'] => new Expression("{$attributes['left']} + $size"),
-		    ));
+			->where($attributes['left'], '>=', $left)
+			->where($attributes['tree'], '=', $tree)
+			->update(array(
+				$attributes['left'] => new Expression(sprintf(
+					'%s + %d',
+					$this->connection->getQueryGrammar()->wrap($attributes['left']),
+					$size
+				)),
+			));
 
 		$this->connection->table($this->getTable())
-		    ->where($attributes['right'], '>=', $left)
-		    ->where($attributes['tree'], '=', $tree)
-		    ->update(array(
-		    	$attributes['right'] => new Expression("{$attributes['right']} + $size"),
-		    ));
+			->where($attributes['right'], '>=', $left)
+			->where($attributes['tree'], '=', $tree)
+			->update(array(
+				$attributes['right'] => new Expression(sprintf(
+					'%s + %d',
+					$this->connection->getQueryGrammar()->wrap($attributes['right']),
+					$size
+				)),
+			));
+	}
+
+	/**
+	 * Alias to create a negative gap.
+	 *
+	 * @param  int  $start
+	 * @param  int  $size
+	 * @param  int  $tree
+	 * @return void
+	 */
+	public function removeGap($start, $size, $tree)
+	{
+		if ($size < 0)
+		{
+			throw new \InvalidArgumentException("Cannot provide a negative size of [$size] remove a gap. Instead, provide the positive size.");
+		}
+
+		return $this->createGap($start, $size * -1, $tree);
 	}
 
 	public function getBaseNode()
