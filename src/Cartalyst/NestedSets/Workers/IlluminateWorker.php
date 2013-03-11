@@ -72,7 +72,8 @@ class IlluminateWorker {
 
 		$attributes = $this->getReservedAttributes();
 
-		$this->connection->table($this->getTable())
+		$this
+			->connection->table($this->getTable())
 			->where($attributes['left'], '>=', $left)
 			->where($attributes['tree'], '=', $tree)
 			->update(array(
@@ -83,7 +84,8 @@ class IlluminateWorker {
 				)),
 			));
 
-		$this->connection->table($this->getTable())
+		$this
+			->connection->table($this->getTable())
 			->where($attributes['right'], '>=', $left)
 			->where($attributes['tree'], '=', $tree)
 			->update(array(
