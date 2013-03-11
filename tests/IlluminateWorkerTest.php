@@ -146,11 +146,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
 		));
 
+		$worker->shouldReceive('getReservedAttribute')->with('tree')->times(3)->andReturn('tree');
+
 		$node1->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 		$node2->shouldReceive('getAttribute')->with('tree')->once()->andReturn(2);
 		$node3->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
-
-		$worker->shouldReceive('getReservedAttribute')->with('tree')->times(3)->andReturn('tree');
 
 		// For some reason the array_filter appears to not be returning
 		// the same instances of the nodes declated above. Either that,
@@ -158,6 +158,81 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		// @todo, Check this out
 		$this->assertCount(2, $allFlat = $worker->allFlat(1));
 		// $this->assertEquals(array($node1, $node3), $allFlat);
+	}
+
+	public function testAllRoot()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('findAll')->once()->andReturn(array(
+			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node2 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+		));
+
+		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
+
+		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+		$node3->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+
+		$this->assertCount(2, $worker->allRoot());
+	}
+
+	public function testAllLeafWithNoTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('findAll')->once()->andReturn(array(
+			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node2 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+		));
+
+		$worker->shouldReceive('getReservedAttribute')->with('right')->times(3)->andReturn('rgt');
+		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
+
+		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(2);
+		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+
+		$node2->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
+		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+
+		$node3->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
+		$node3->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+
+		$this->assertCount(2, $worker->allLeaf());
+	}
+
+	public function testAllLeafWithTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('findAll')->once()->andReturn(array(
+			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node2 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
+		));
+
+		$worker->shouldReceive('getReservedAttribute')->with('right')->times(3)->andReturn('rgt');
+		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
+		$worker->shouldReceive('getReservedAttribute')->with('tree')->twice()->andReturn('tree');
+
+		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(2);
+		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+		$node1->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+
+		$node2->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
+		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+
+		$node3->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
+		$node3->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+		$node3->shouldReceive('getAttribute')->with('tree')->once()->andReturn(3);
+
+		$this->assertCount(1, $worker->allLeaf(1));
 	}
 
 	protected function getMockConnection()

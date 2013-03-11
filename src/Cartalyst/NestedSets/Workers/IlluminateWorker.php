@@ -100,18 +100,23 @@ class IlluminateWorker implements WorkerInterface {
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allLeafNodes($tree = null)
+	public function allLeaf($tree = null)
 	{
 		$me = $this;
 
 		// Leaf nodes are nodes with no children, therefore the
 		// right limit will be one greater than the left limit.
-		return array_filter($this->baseNode->findAll(), function($node) use ($me)
+		return array_filter($this->baseNode->findAll(), function($node) use ($me, $tree)
 		{
 			$right = $node->getAttribute($me->getReservedAttribute('right'));
 			$left  = $node->getAttribute($me->getReservedAttribute('left'));
+			$size  = $right - $left;
 
-			return ($right - $left == 1);
+			// If we have no tree, simply check the size
+			if ($tree === null) return $size == 1;
+
+			// Otherwise, check our tree constraint matches as well.
+			return ($size == 1 and $node->getAttribute($me->getReservedAttribute('tree')) == $tree);
 		});
 	}
 
@@ -126,16 +131,29 @@ class IlluminateWorker implements WorkerInterface {
 	public function path(NodeInterface $node)
 	{
 		$attributes = $this->getReservedAttributes();
+		$table      = $this->getTable();
+		$keyName    = $this->baseNode->getKeyName();
 
+		// Note, joins currently don't support "between" operators
+		// in the query builder, so we will satisfy half of the
+		// "betweeen" in the join and the other half in a "where"
+		// clause. This will allow us to use the query builder for
+		// it's database agnostic compilation
 		$results = $this
-			->connection->table($this->getTable())
-			->select("parent.{$this->baseNode->getKeyName()}")
-			->
-			->whereBetween($attributes['left'], array(
-				$node->getAttribute($attributes['left']),
-				$node->getAttribute($attributes['right'])
-			))
-			->
+			->connection->table("$table as node")
+			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
+			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->where('node.$keyName', '=', $node->getAttribute($keyName))
+			->orderBy("node.{$attributes['left']}")
+			->get("parent.$keyName");
+
+		// Our results is an array of objects containing the key name
+		// only. We will simplify this by simply returning the key
+		// name so our array is a simple array of primatives.
+		return array_map(function($result) use ($keyName)
+		{
+			return $result->$keyName;
+		}, $results);
 	}
 
 	/**

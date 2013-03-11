@@ -45,7 +45,7 @@ interface WorkerInterface {
 	 * @param  int  $tree
 	 * @return array
 	 */
-	public function allLeafNodes($tree = null);
+	public function allLeaf($tree = null);
 
 	/**
 	 * Finds the path of the given node. The path is
