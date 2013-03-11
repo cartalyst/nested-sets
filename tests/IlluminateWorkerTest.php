@@ -78,6 +78,56 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->removeGap(1, 2, 3);
 	}
 
+	public function testSlidingNodeOutOfTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,removeGap]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$node->shouldReceive('getAttribute')->with('lft')->times(3)->andReturn(2);
+		$query->shouldReceive('where')->with('lft', '>=', 2)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('rgt')->times(3)->andReturn(3);
+		$query->shouldReceive('where')->with('rgt', '<=', 3)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
+		$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
+		$query->shouldReceive('update')->with(array('lft' => '"lft" + -3', 'rgt' => '"rgt" + -3'))->once();
+
+		$worker->shouldReceive('removeGap')->with(2, 2, 1)->once();
+
+		$node->shouldReceive('setAttribute')->with('lft', -1)->once();
+		$node->shouldReceive('setAttribute')->with('rgt', 0)->once();
+
+		$worker->slideNodeOutOfTree($node);
+	}
+
+	public function testSlidingNodeInTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,createGap]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(-1);
+		$query->shouldReceive('where')->with('lft', '>=', -1)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(0);
+		$query->shouldReceive('where')->with('rgt', '<=', 0)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
+		$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
+		$query->shouldReceive('update')->with(array('lft' => '"lft" + 3', 'rgt' => '"rgt" + 3'))->once();
+
+		$worker->shouldReceive('createGap')->with(2, 2, 1)->once();
+
+		$node->shouldReceive('setAttribute')->with('lft', 2)->once();
+		$node->shouldReceive('setAttribute')->with('rgt', 3)->once();
+
+		$worker->slideNodeInTree($node, 2);
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');
