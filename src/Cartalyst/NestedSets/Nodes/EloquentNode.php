@@ -22,4 +22,31 @@ use Illuminate\Database\Eloquent\Model
 
 class EloquentNode extends Model implements NodeInterface {
 
+	/**
+	 * Array of reserved attributes used by
+	 * the node. These attributes cannot be
+	 * set like normal attributes, they are
+	 * reserved for the node and nested set
+	 * workers to use.
+	 *
+	 * @var array
+	 */
+	protected $reservedAttributes = array(
+
+		// The left column limit. "left" is a
+		// reserved word in SQL databases so
+		// we default to "lft" for compatiblity.
+		'left'  => 'lft',
+
+		// The rigth column limit. "right" is a
+		// reserved word in SQL databases so
+		// we default to "rgt" for compatiblity.
+		'right' => 'rgt',
+
+		// The tree that the node is on. This
+		// package supports multiple trees within
+		// the one database.
+		'tree'  => 'tree',
+	);
+
 }

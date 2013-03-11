@@ -36,6 +36,13 @@ interface NodeInterface {
 	public function setChildren(array $children);
 
 	/**
+	 * Get the table associated with the node.
+	 *
+	 * @return string
+	 */
+	public function getTable();
+
+	/**
 	 * Get all of the current attributes on the node.
 	 *
 	 * @return array
@@ -65,5 +72,20 @@ interface NodeInterface {
 	 * @return void
 	 */
 	public function setAttribute($key, $value);
+
+	/**
+	 * Get the reserved attributes.
+	 *
+	 * @return array
+	 */
+	public function getReservedAttributes();
+
+	/**
+	 * Get the name of a reserved attribute.
+	 *
+	 * @param  string  $key
+	 * @return string
+	 */
+	public function getReservedAttribute($key = null);
 
 }

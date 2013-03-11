@@ -83,4 +83,140 @@ interface WorkerInterface {
 	 */
 	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode, $tree);
 
+	/**
+	 * Returns all children for the given node in a flat
+	 * array. If the depth is 1 or more, that is how many
+	 * levels of children we recurse through to put into
+	 * the flat array.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function childrenNodes(NodeInterface $node, $tree, $depth = 0);
+
+	/**
+	 * Returns a tree for the given node. If the depth
+	 * is 0, we return all children. If the depth is
+	 * 1 or more, that is how many levels of children
+	 * nodes we recurse through.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $tree
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function tree(NodeInterface $node, $tree, $depth = 0);
+
+	/**
+	 * Maps a tree to the database. We update each items'
+	 * values as well if they're provided. This can be used
+	 * to create a whole new tree structure or simply to re-order
+	 * a tree.
+	 *
+	 * @param  NodeInterface   $parent
+	 * @param  array  $nodes
+	 * @param  bool  $transaction
+	 * @return array
+	 */
+	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true);
+
+	/**
+	 * Makes a new node a root node.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsRoot(NodeInterface $node, $transaction = true);
+
+	/**
+	 * Inserts the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Inserts the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Inserts the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Inserts the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Moves the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Moves the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Moves the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Moves the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
 }
