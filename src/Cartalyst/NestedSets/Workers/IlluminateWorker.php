@@ -159,15 +159,31 @@ class IlluminateWorker implements WorkerInterface {
 	/**
 	 * Returns the depth of a node in a tree, where
 	 * 0 is a root node, 1 is a root node's direct
-	 * children and so on.
+	 * child and so on.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $tree
 	 * @return int
 	 */
-	public function depth(NodeInterface $node, $tree)
+	public function depth(NodeInterface $node)
 	{
+		$attributes = $this->getReservedAttributes();
+		$table      = $this->getTable();
+		$keyName    = $this->baseNode->getKeyName();
 
+		$result = $this
+			->connection->table("$table as node")
+			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
+			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->where("node.$keyName", '=', $node->getAttribute($keyName))
+			->orderBy("node.{$attributes['left']}")
+			->groupBy("node.{$attributes['left']}")
+			->first(new Expression(sprintf(
+				'(count(%s) - 1) as %s',
+				$this->connection->getQueryGrammar()->wrap('parent.name'),
+				$this->connection->getQueryGrammar()->wrap('depth')
+			)));
+
+		return $result->depth;
 	}
 
 	/**

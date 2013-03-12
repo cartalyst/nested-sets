@@ -259,6 +259,36 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('123', implode('', $path));
 	}
 
+	public function testDepth()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
+		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
+		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
+		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
+		$query->shouldReceive('groupBy')->with('node.lft')->once()->andReturn($query);
+
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.name')->once()->andReturn('"parent"."name"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
+
+		$result = new StdClass;
+		$result->depth = 4;
+
+		// For some reason, unlike other tests, we have to actually ensure the
+		// expression is cast as a string when used in the "select" clause. When
+		// used in "where" clauses, the query builder must cast it as a string
+		// and hence remove the need for us to do it here in our tests.
+		$query->shouldReceive('first')->with(m::on(function($expression)
+		{
+			return ((string) $expression == '(count("parent"."name") - 1) as "depth"');
+		}))->andReturn($result);
+
+		$this->assertEquals(4, $worker->depth($node));
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');

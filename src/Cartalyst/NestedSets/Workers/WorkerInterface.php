@@ -60,13 +60,12 @@ interface WorkerInterface {
 	/**
 	 * Returns the depth of a node in a tree, where
 	 * 0 is a root node, 1 is a root node's direct
-	 * children and so on.
+	 * child and so on.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $tree
 	 * @return int
 	 */
-	public function depth(NodeInterface $node, $tree);
+	public function depth(NodeInterface $node);
 
 	/**
 	 * Returns the relative depth of a node in a tree,
