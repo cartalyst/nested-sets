@@ -406,7 +406,28 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
 	{
+		$table      = $this->getTable();
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $table, $attributes)
+		{
+			// Our left limit will be the same as the (current) right limit
+			//  of the parent node, which will mean we are the last child.
+			$left  = $parent->getAttribute($attributes['right']);
+			$right = $left + 1;
+			$tree  = $parent->getAttribute($attributes['tree']);
+
+			$me->createGap($left, 2, $tree);
+
+			// Update the node instance with our properties
+			$node->setAttribute($attributes['left'], $left);
+			$node->setAttribute($attributes['right'], $right);
+			$node->setAttribute($attributes['tree'], $tree);
+
+			$me->insertNode($node, $connection->table($table));
+
+		}, $transaction);
 	}
 
 	/**
