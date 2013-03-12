@@ -47,13 +47,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('where')->with('lft', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
 		$query->shouldReceive('update')->with(array('lft' => '"lft" + 2'))->once();
 
-		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('where')->with('rgt', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
@@ -84,7 +84,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
-		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$node->shouldReceive('getAttribute')->with('lft')->times(3)->andReturn(2);
 		$query->shouldReceive('where')->with('lft', '>=', 2)->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('rgt')->times(3)->andReturn(3);
@@ -109,7 +109,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
-		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(-1);
 		$query->shouldReceive('where')->with('lft', '>=', -1)->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(0);
@@ -239,7 +239,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
 		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
@@ -263,7 +263,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Eloquent\Builder'));
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
 		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
