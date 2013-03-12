@@ -739,11 +739,6 @@ class IlluminateWorker implements WorkerInterface {
 		$node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
 	}
 
-	public function getBaseNode()
-	{
-		return $this->baseNode;
-	}
-
 	public function getTable()
 	{
 		return $this->baseNode->getTable();
