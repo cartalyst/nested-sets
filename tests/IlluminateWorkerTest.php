@@ -455,6 +455,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$worker->shouldReceive('insertNode')->with($childNode, $query)->once();
 
+			$parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
+			$parentNode->shouldReceive('setAttribute')->with('rgt', 6)->once();
+
 			$callback($connection);
 
 			return true;
@@ -485,6 +488,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
 			$worker->shouldReceive('insertNode')->with($childNode, $query)->once();
+
+			$parentNode->shouldReceive('setAttribute')->with('rgt', 6)->once();
 
 			$callback($connection);
 

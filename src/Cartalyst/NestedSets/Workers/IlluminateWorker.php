@@ -392,6 +392,10 @@ class IlluminateWorker implements WorkerInterface {
 
 			$me->insertNode($node, $connection->table($table));
 
+			// We will update the parent instance so that it's
+			// limits are accurate and it can be used again.
+			$parent->setAttribute($attributes['right'], $parent->getAttribute($attributes['right']) + 2);
+
 		}, $transaction);
 	}
 
@@ -414,7 +418,7 @@ class IlluminateWorker implements WorkerInterface {
 		{
 			// Our left limit will be the same as the (current) right limit
 			//  of the parent node, which will mean we are the last child.
-			$left  = $parent->getAttribute($attributes['right']);
+			$left  = $parentRight = $parent->getAttribute($attributes['right']);
 			$right = $left + 1;
 			$tree  = $parent->getAttribute($attributes['tree']);
 
@@ -426,6 +430,10 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['tree'], $tree);
 
 			$me->insertNode($node, $connection->table($table));
+
+			// We will update the parent instance so that it's
+			// limits are accurate and it can be used again.
+			$parent->setAttribute($attributes['right'], $parentRight + 2);
 
 		}, $transaction);
 	}
