@@ -388,6 +388,61 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->tree($node, 2);
 	}
 
+	public function testInsertNodeAsRootWhereNodeIsNotIncrementing()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($connection, $node)
+		{
+			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+			$query->shouldReceive('max')->with('tree')->once()->andReturn(3);
+
+			$node->shouldReceive('setAttribute')->with('lft', 1)->once();
+			$node->shouldReceive('setAttribute')->with('rgt', 2)->once();
+			$node->shouldReceive('setAttribute')->with('tree', 4)->once();
+
+			$node->shouldReceive('getIncrementing')->once()->andReturn(false);
+			$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
+			$query->shouldReceive('insert')->with($attributes)->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->insertNodeAsRoot($node);
+	}
+
+	public function testInsertNodeAsRootWhereNodeIsIncrementing()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($connection, $node)
+		{
+			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+			$query->shouldReceive('max')->with('tree')->once()->andReturn(3);
+
+			$node->shouldReceive('setAttribute')->with('lft', 1)->once();
+			$node->shouldReceive('setAttribute')->with('rgt', 2)->once();
+			$node->shouldReceive('setAttribute')->with('tree', 4)->once();
+
+			$node->shouldReceive('getIncrementing')->once()->andReturn(true);
+			$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
+			$query->shouldReceive('insertGetId')->with($attributes)->once()->andReturn('bar');
+			$node->shouldReceive('setAttribute')->with('id', 'bar')->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->insertNodeAsRoot($node);
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');

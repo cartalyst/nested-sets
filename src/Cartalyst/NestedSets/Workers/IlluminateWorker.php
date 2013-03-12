@@ -342,7 +342,29 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsRoot(NodeInterface $node, $transaction = true)
 	{
+		$table      = $this->getTable();
+		$keyName    = $this->baseNode->getKeyName();
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->processQuery(function($connection) use ($me, $node, $table, $keyName, $attributes)
+		{
+			$query = $connection->table($table);
+
+			$node->setAttribute($attributes['left'], 1);
+			$node->setAttribute($attributes['right'], 2);
+			$node->setAttribute($attributes['tree'], $query->max($attributes['tree']) + 1);
+
+			if ($node->getIncrementing())
+			{
+				$node->setAttribute($keyName, $query->insertGetId($node->getAttributes()));
+			}
+			else
+			{
+				$query->insert($node->getAttributes());
+			}
+
+		}, $transaction);
 	}
 
 	/**
