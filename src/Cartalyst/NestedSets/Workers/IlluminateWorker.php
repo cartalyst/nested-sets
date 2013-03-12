@@ -22,6 +22,11 @@ use Cartalyst\NestedSets\Nodes\NodeInterface;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Expression;
 
+/**
+ * This class does the MPTT magic which powers nested-sets.
+ * A great resource to learn about MPTT can be found at
+ * http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/
+ */
 class IlluminateWorker implements WorkerInterface {
 
 	/**
