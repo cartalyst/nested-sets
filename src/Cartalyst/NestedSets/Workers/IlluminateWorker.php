@@ -19,6 +19,7 @@
  */
 
 use Cartalyst\NestedSets\Nodes\NodeInterface;
+use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Expression;
 
@@ -652,6 +653,29 @@ class IlluminateWorker implements WorkerInterface {
 	public function getNodeSize(NodeInterface $node)
 	{
 		return $node->getAttribute($node->getReservedAttribute('right')) - $node->getAttribute($node->getReservedAttribute('left'));
+	}
+
+	/**
+	 * Processes a query enclosed in a callback and wraps it in
+	 * a databae transaction if required. The "creating", "updating"
+	 * and "deleting" processes in MPTT require several queries (whereas
+	 * "reading" only takes one query). It is good practice to wrap these
+	 * queries in a transaction so that if just one fails, we can rollback
+	 * tne entire transaction.
+	 *
+	 * @param  Closure  $callback
+	 * @param  bool     $transaction
+	 */
+	public function processQuery(Closure $callback, $transaction = true)
+	{
+		if ($transaction === true)
+		{
+			$this->connection->transaction($callback);
+		}
+		else
+		{
+			$callback($this->connection);
+		}
 	}
 
 }

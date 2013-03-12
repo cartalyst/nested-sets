@@ -128,6 +128,30 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->slideNodeInTree($node, 2);
 	}
 
+	public function testProcessingQueries()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$callback = function(Illuminate\Database\Connection $connection)
+		{
+			$_SERVER['__nested_sets.transaction'] = true;
+		};
+
+		$connection->shouldReceive('transaction')->with(m::on(function($actualCallback) use ($connection, $callback)
+		{
+			if ($actualCallback == $callback) $actualCallback($connection);
+
+			return ($actualCallback instanceof Closure);
+		}))->once();
+
+		$worker->processQuery($callback);
+		$this->assertTrue(isset($_SERVER['__nested_sets.transaction']));
+		unset($_SERVER['__nested_sets.transaction']);
+		$worker->processQuery($callback, false);
+		$this->assertTrue($_SERVER['__nested_sets.transaction']);
+		unset($_SERVER['__nested_sets.transaction']);
+	}
+
 	public function testAllFlatWithNoTree()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
