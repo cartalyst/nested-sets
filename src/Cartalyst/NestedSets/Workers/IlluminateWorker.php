@@ -22,6 +22,7 @@ use Cartalyst\NestedSets\Nodes\NodeInterface;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Expression;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * This class does the MPTT magic which powers nested-sets.
@@ -343,11 +344,10 @@ class IlluminateWorker implements WorkerInterface {
 	public function insertNodeAsRoot(NodeInterface $node, $transaction = true)
 	{
 		$table      = $this->getTable();
-		$keyName    = $this->baseNode->getKeyName();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->processQuery(function($connection) use ($me, $node, $table, $keyName, $attributes)
+		$this->processQuery(function($connection) use ($me, $node, $table, $attributes)
 		{
 			$query = $connection->table($table);
 
@@ -355,14 +355,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], 2);
 			$node->setAttribute($attributes['tree'], $query->max($attributes['tree']) + 1);
 
-			if ($node->getIncrementing())
-			{
-				$node->setAttribute($keyName, $query->insertGetId($node->getAttributes()));
-			}
-			else
-			{
-				$query->insert($node->getAttributes());
-			}
+			$me->insertNode($node, $query);
 
 		}, $transaction);
 	}
@@ -697,6 +690,18 @@ class IlluminateWorker implements WorkerInterface {
 		else
 		{
 			$callback($this->connection);
+		}
+	}
+
+	public function insertNode(NodeInterface $node, QueryBuilder $query)
+	{
+		if ($node->getIncrementing())
+		{
+			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($node->getAttributes()));
+		}
+		else
+		{
+			$query->insert($node->getAttributes());
 		}
 	}
 

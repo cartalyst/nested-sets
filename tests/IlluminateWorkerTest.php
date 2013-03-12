@@ -152,6 +152,25 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		unset($_SERVER['__nested_sets.transaction']);
 	}
 
+	public function testInsertNode()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$query = m::mock('Illuminate\Database\Query\Builder');
+
+		$node1 = $this->getMockNode();
+		$node1->shouldReceive('getIncrementing')->once()->andReturn(true);
+		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
+		$query->shouldReceive('insertGetId')->with($attributes)->once()->andReturn('bar');
+		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
+		$worker->insertNode($node1, $query);
+
+		$node2 = $this->getMockNode();
+		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
+		$node2->shouldReceive('getAttributes')->once()->andReturn($attributes);
+		$query->shouldReceive('insert')->with($attributes)->once();
+		$worker->insertNode($node2, $query);
+	}
+
 	public function testAllFlatWithNoTree()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
@@ -388,12 +407,12 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->tree($node, 2);
 	}
 
-	public function testInsertNodeAsRootWhereNodeIsNotIncrementing()
+	public function testInsertNodeAsRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery,insertNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($connection, $node)
+		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
 			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -403,37 +422,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node->shouldReceive('setAttribute')->with('rgt', 2)->once();
 			$node->shouldReceive('setAttribute')->with('tree', 4)->once();
 
-			$node->shouldReceive('getIncrementing')->once()->andReturn(false);
-			$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
-			$query->shouldReceive('insert')->with($attributes)->once();
-
-			$callback($connection);
-
-			return true;
-		}), true)->once();
-
-		$worker->insertNodeAsRoot($node);
-	}
-
-	public function testInsertNodeAsRootWhereNodeIsIncrementing()
-	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
-
-		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($connection, $node)
-		{
-			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-			$query->shouldReceive('max')->with('tree')->once()->andReturn(3);
-
-			$node->shouldReceive('setAttribute')->with('lft', 1)->once();
-			$node->shouldReceive('setAttribute')->with('rgt', 2)->once();
-			$node->shouldReceive('setAttribute')->with('tree', 4)->once();
-
-			$node->shouldReceive('getIncrementing')->once()->andReturn(true);
-			$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
-			$query->shouldReceive('insertGetId')->with($attributes)->once()->andReturn('bar');
-			$node->shouldReceive('setAttribute')->with('id', 'bar')->once();
+			$worker->shouldReceive('insertNode')->with($node, $query)->once();
 
 			$callback($connection);
 
