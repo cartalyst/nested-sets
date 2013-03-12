@@ -489,7 +489,31 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
 	{
+		$table      = $this->getTable();
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $table, $attributes)
+		{
+			// Our left limit will be one more than the (current) right limit
+			// of the sibling node, which will mean we are the next sibling.
+			// Additionally, because we sit to the right of the child, we do
+			// not have to update the child's properties as none of our queries
+			// will adjust the record it represents in the database.
+			$left  = $sibling->getAttribute($attributes['right']) + 1;
+			$right = $left + 1;
+			$tree  = $sibling->getAttribute($attributes['tree']);
+
+			$me->createGap($left, 2, $tree);
+
+			// Update the node instance with our properties
+			$node->setAttribute($attributes['left'], $left);
+			$node->setAttribute($attributes['right'], $right);
+			$node->setAttribute($attributes['tree'], $tree);
+
+			$me->insertNode($node, $connection->table($table));
+
+		}, $transaction);
 	}
 
 	/**

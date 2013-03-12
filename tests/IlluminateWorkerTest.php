@@ -533,6 +533,36 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->insertNodeAsPreviousSibling($node, $siblingNode);
 	}
 
+	public function testInsertNodeAsNextSibling()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode,createGap]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$siblingNode = $this->getMockNode();
+
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		{
+			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
+			$siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+
+			$worker->shouldReceive('createGap')->with(5, 2, 1)->once();
+
+			$node->shouldReceive('setAttribute')->with('lft', 5)->once();
+			$node->shouldReceive('setAttribute')->with('rgt', 6)->once();
+			$node->shouldReceive('setAttribute')->with('tree', 1)->once();
+
+			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+			$worker->shouldReceive('insertNode')->with($node, $query)->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->insertNodeAsNextSibling($node, $siblingNode);
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');
