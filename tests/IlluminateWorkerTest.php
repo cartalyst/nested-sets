@@ -289,6 +289,81 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(4, $worker->depth($node));
 	}
 
+	public function testTree()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
+		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(3);
+
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
+		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$query->shouldReceive('join')->with('categories as sub_parent', 'node.lft', '>=', 'sub_parent.lft')->once()->andReturn($query);
+		$query->shouldReceive('where')->with('node.lft', '<=', 'sub_parent.rgt')->once()->andReturn($query);
+
+		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
+
+		// We need to mock our sub-query that we put in our join
+		$query->shouldReceive('join')->with('sub_tree', m::on(function($closure) use ($subQuery, $connection)
+		{
+			$join = m::mock('Illuminate\Database\Query\JoinClause');
+
+			$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
+			$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
+
+			$subQuery->shouldReceive('select')->with('node.id', m::on(function($expression)
+			{
+				return ((string) $expression == '(count("parent"."id") - 1) as "depth"');
+			}))->once()->andReturn($subQuery);
+
+			$subQuery->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('where')->with('node.id', '=', 1)->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('whereBetween')->with('node.lft', array('parent.lft', 'parent.rgt'))->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('where')->with('node.tree', '=', 3)->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('where')->with('parent.tree', '=', 3)->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($subQuery);
+			$subQuery->shouldReceive('groupBy')->with('node.id')->once()->andReturn($subQuery);
+
+			$subQuery->shouldReceive('toSql')->once()->andReturn('foo');
+
+			$join->table = 'categories';
+			$connection->getQueryGrammar()->shouldReceive('wrap')->with('categories')->once()->andReturn('"categories"');
+
+			$join->shouldReceive('on')->with('sub_parent.id', '=', 'sub_tree.id')->once();
+
+			// Call our closure
+			$closure($join);
+
+			$this->assertEquals('(foo) as "categories"', $join->table);
+
+			// Our assertions will ensure we catch any errors, safe to
+			// return true here.
+			return true;
+		}))->once();
+
+		$query->shouldReceive('mergeBindings')->with(m::type('Illuminate\Database\Query\Builder'))->once();
+
+		$query->shouldReceive('where')->with('node.tree', '=', 3)->once()->andReturn($query);
+		$query->shouldReceive('where')->with('parent.tree', '=', 3)->once()->andReturn($query);
+		$query->shouldReceive('where')->with('sub_parent.tree', '=', 3)->once()->andReturn($query);
+		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
+		$query->shouldReceive('groupBy')->with('node.id')->once()->andReturn($query);
+		$query->shouldReceive('having')->with('depth', '<=', 2)->once()->andReturn($query);
+
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('sub_tree.depth')->once()->andReturn('"sub_tree"."depth"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
+
+		$query->shouldReceive('get')->with('node.*', m::on(function($expression)
+		{
+			return ((string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"');
+		}))->once();
+
+		$worker->tree($node, 2);
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');

@@ -235,7 +235,85 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function tree(NodeInterface $node, $depth = 0)
 	{
+		$attributes = $this->getReservedAttributes();
+		$table      = $this->getTable();
+		$keyName    = $this->baseNode->getKeyName();
+		$key        = $node->getAttribute($keyName);
+		$tree       = $node->getAttribute($attributes['tree']);
+		$grammar    = $this->connection->getQueryGrammar();
 
+		// We will store a query builder object that we
+		// use throughout the course of this method.
+		$query = $this
+			->connection->table("$table as node")
+			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
+			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->join("$table as sub_parent", "node.{$attributes['left']}", '>=', "sub_parent.{$attributes['left']}")
+			->where("node.{$attributes['left']}", '<=', "sub_parent.{$attributes['right']}");
+
+		// Create a query to select the sub-tree
+		// component of each node. We initialize this
+		// here so that we can take its' bindings and
+		// merge them in.
+		$subQuery = $this->connection->table("$table as node");
+
+		// We now build up the sub-tree component of the
+		// query in a closure which is passed as the condition
+		// an inner join for the main query.
+		$me = $this;
+
+		$query->join('sub_tree', function($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree, $grammar)
+		{
+			$subQuery
+				->select("node.$keyName", new Expression(sprintf(
+					'(count(%s) - 1) as %s',
+					$grammar->wrap("parent.$keyName"),
+					$grammar->wrap('depth')
+				)))
+				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
+				->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+				->where("node.$keyName", '=', $key)
+				->whereBetween("node.{$attributes['left']}", array("parent.{$attributes['left']}", "parent.{$attributes['right']}"))
+				->where("node.{$attributes['tree']}", '=', $tree)
+				->where("parent.{$attributes['tree']}", '=', $tree)
+				->orderBy("node.{$attributes['left']}")
+				->groupBy("node.$keyName");
+
+			// Configure the join from the SQL the query
+			// builder generates.
+			$join->table = new Expression(sprintf(
+				'(%s) as %s',
+				$subQuery->toSql(),
+				$grammar->wrap($join->table)
+			));
+
+			$join->on("sub_parent.$keyName", '=', "sub_tree.$keyName");
+		});
+
+		// Now we have compiled the SQL for our sub query,
+		// we need to merge it's bindings into our main query.
+		$query->mergeBindings($subQuery);
+
+		$query
+			->where("node.{$attributes['tree']}", '=', $tree)
+			->where("parent.{$attributes['tree']}", '=', $tree)
+			->where("sub_parent.{$attributes['tree']}", '=', $tree)
+			->orderBy("node.{$attributes['left']}")
+			->groupBy("node.$keyName");
+
+		// If we have a depth, we need to supply a "having"
+		// clause to the query builder.
+		if ($depth > 0)
+		{
+			$query->having('depth', '<=', $depth);
+		}
+
+		$results = $query->get("node.*", new Expression(sprintf(
+			'(count(%s) - (%s + 1)) as %s',
+			$grammar->wrap("parent.$keyName"),
+			$grammar->wrap('sub_tree.depth'),
+			$grammar->wrap('depth')
+		)));
 	}
 
 	/**
