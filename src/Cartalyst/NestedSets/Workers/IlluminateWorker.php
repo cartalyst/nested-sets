@@ -739,6 +739,11 @@ class IlluminateWorker implements WorkerInterface {
 		$node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
 	}
 
+	/**
+	 * Returns the table associated with the worker.
+	 *
+	 * @return string
+	 */
 	public function getTable()
 	{
 		return $this->baseNode->getTable();
@@ -800,6 +805,14 @@ class IlluminateWorker implements WorkerInterface {
 		}
 	}
 
+	/**
+	 * Inserts a node in the database (on the given query builder
+	 * object) and upates the node's properties if applicable.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Illuminate\Database\Query\Builder  $query
+	 * @return void
+	 */
 	public function insertNode(NodeInterface $node, QueryBuilder $query)
 	{
 		if ($node->getIncrementing())
