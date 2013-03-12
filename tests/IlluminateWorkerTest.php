@@ -271,7 +271,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 		$query->shouldReceive('groupBy')->with('node.lft')->once()->andReturn($query);
 
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.name')->once()->andReturn('"parent"."name"');
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
 		$result = new StdClass;
@@ -283,7 +283,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		// and hence remove the need for us to do it here in our tests.
 		$query->shouldReceive('first')->with(m::on(function($expression)
 		{
-			return ((string) $expression == '(count("parent"."name") - 1) as "depth"');
+			return ((string) $expression == '(count("parent"."id") - 1) as "depth"');
 		}))->andReturn($result);
 
 		$this->assertEquals(4, $worker->depth($node));

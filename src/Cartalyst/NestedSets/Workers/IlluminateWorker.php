@@ -180,7 +180,7 @@ class IlluminateWorker implements WorkerInterface {
 			->groupBy("node.{$attributes['left']}")
 			->first(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
-				$grammar->wrap('parent.name'),
+				$grammar->wrap("parent.$keyName"),
 				$grammar->wrap('depth')
 			)));
 
