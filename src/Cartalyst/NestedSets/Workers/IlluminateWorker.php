@@ -169,6 +169,7 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributes();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
+		$grammar    = $this->connection->getQueryGrammar();
 
 		$result = $this
 			->connection->table("$table as node")
@@ -179,8 +180,8 @@ class IlluminateWorker implements WorkerInterface {
 			->groupBy("node.{$attributes['left']}")
 			->first(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
-				$this->connection->getQueryGrammar()->wrap('parent.name'),
-				$this->connection->getQueryGrammar()->wrap('depth')
+				$grammar->wrap('parent.name'),
+				$grammar->wrap('depth')
 			)));
 
 		return $result->depth;
@@ -447,6 +448,7 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributes();
 		$size       = $this->getNodeSize($node);
 		$delta      = 0 - $node->getAttribute($attributes['right']);
+		$grammar    = $this->connection->getQueryGrammar();
 
 		// There are two steps to this method. We are firstly going
 		// to adjust our node and every child so that our right limit
@@ -459,12 +461,12 @@ class IlluminateWorker implements WorkerInterface {
 			->update(array(
 				$attributes['left'] => new Expression(sprintf(
 					'%s + %d',
-					$this->connection->getQueryGrammar()->wrap($attributes['left']),
+					$grammar->wrap($attributes['left']),
 					$delta
 				)),
 				$attributes['right'] => new Expression(sprintf(
 					'%s + %d',
-					$this->connection->getQueryGrammar()->wrap($attributes['right']),
+					$grammar->wrap($attributes['right']),
 					$delta
 				)),
 			));
@@ -493,6 +495,7 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributes();
 		$size       = $this->getNodeSize($node);
 		$delta      = $size + $left;
+		$grammar    = $this->connection->getQueryGrammar();
 
 		// Reversing the proces of sliding out of a tree, we will
 		// now create a gap for our node to enter at.
@@ -509,12 +512,12 @@ class IlluminateWorker implements WorkerInterface {
 			->update(array(
 				$attributes['left'] => new Expression(sprintf(
 					'%s + %d',
-					$this->connection->getQueryGrammar()->wrap($attributes['left']),
+					$grammar->wrap($attributes['left']),
 					$delta
 				)),
 				$attributes['right'] => new Expression(sprintf(
 					'%s + %d',
-					$this->connection->getQueryGrammar()->wrap($attributes['right']),
+					$grammar->wrap($attributes['right']),
 					$delta
 				)),
 			));
