@@ -50,6 +50,13 @@ interface NodeInterface {
 	public function getKeyName();
 
 	/**
+	 * Get the value indicating whether the IDs are incrementing.
+	 *
+	 * @return bool
+	 */
+	public function getIncrementing();
+
+	/**
 	 * Get all of the current attributes on the node.
 	 *
 	 * @return array
