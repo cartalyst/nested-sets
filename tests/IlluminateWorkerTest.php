@@ -155,20 +155,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	public function testInsertNode()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
-		$query = m::mock('Illuminate\Database\Query\Builder');
+		$connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
 		$node1 = $this->getMockNode();
 		$node1->shouldReceive('getIncrementing')->once()->andReturn(true);
 		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
 		$query->shouldReceive('insertGetId')->with($attributes)->once()->andReturn('bar');
 		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
-		$worker->insertNode($node1, $query);
+		$worker->insertNode($node1);
 
 		$node2 = $this->getMockNode();
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
 		$node2->shouldReceive('getAttributes')->once()->andReturn($attributes);
 		$query->shouldReceive('insert')->with($attributes)->once();
-		$worker->insertNode($node2, $query);
+		$worker->insertNode($node2);
 	}
 
 	public function testAllFlatWithNoTree()
@@ -422,7 +422,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node->shouldReceive('setAttribute')->with('rgt', 2)->once();
 			$node->shouldReceive('setAttribute')->with('tree', 4)->once();
 
-			$worker->shouldReceive('insertNode')->with($node, $query)->once();
+			$worker->shouldReceive('insertNode')->with($node)->once();
 
 			$callback($connection);
 
@@ -451,9 +451,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$childNode->shouldReceive('setAttribute')->with('rgt', 3)->once();
 			$childNode->shouldReceive('setAttribute')->with('tree', 1)->once();
 
-			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-			$worker->shouldReceive('insertNode')->with($childNode, $query)->once();
+			$worker->shouldReceive('insertNode')->with($childNode)->once();
 
 			$parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
 			$parentNode->shouldReceive('setAttribute')->with('rgt', 6)->once();
@@ -485,9 +483,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$childNode->shouldReceive('setAttribute')->with('rgt', 5)->once();
 			$childNode->shouldReceive('setAttribute')->with('tree', 1)->once();
 
-			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-			$worker->shouldReceive('insertNode')->with($childNode, $query)->once();
+			$worker->shouldReceive('insertNode')->with($childNode)->once();
 
 			$parentNode->shouldReceive('setAttribute')->with('rgt', 6)->once();
 
@@ -517,9 +513,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node->shouldReceive('setAttribute')->with('rgt', 3)->once();
 			$node->shouldReceive('setAttribute')->with('tree', 1)->once();
 
-			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-			$worker->shouldReceive('insertNode')->with($node, $query)->once();
+			$worker->shouldReceive('insertNode')->with($node)->once();
 
 			$siblingNode->shouldReceive('setAttribute')->with('lft', 4)->once();
 			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
@@ -551,9 +545,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node->shouldReceive('setAttribute')->with('rgt', 6)->once();
 			$node->shouldReceive('setAttribute')->with('tree', 1)->once();
 
-			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-			$worker->shouldReceive('insertNode')->with($node, $query)->once();
+			$worker->shouldReceive('insertNode')->with($node)->once();
 
 			$callback($connection);
 

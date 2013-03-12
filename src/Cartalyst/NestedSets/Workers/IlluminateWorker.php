@@ -355,7 +355,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], 2);
 			$node->setAttribute($attributes['tree'], $query->max($attributes['tree']) + 1);
 
-			$me->insertNode($node, $query);
+			$me->insertNode($node);
 
 		}, $transaction);
 	}
@@ -371,11 +371,10 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
 	{
-		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			// Our left limit will be one greater than that of the parent
 			// node, which will mean we are the first child.
@@ -390,7 +389,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], $right);
 			$node->setAttribute($attributes['tree'], $tree);
 
-			$me->insertNode($node, $connection->table($table));
+			$me->insertNode($node);
 
 			// We will update the parent instance so that it's
 			// limits are accurate and it can be used again.
@@ -410,11 +409,10 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
 	{
-		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			// Our left limit will be the same as the (current) right limit
 			// of the parent node, which will mean we are the last child.
@@ -429,7 +427,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], $right);
 			$node->setAttribute($attributes['tree'], $tree);
 
-			$me->insertNode($node, $connection->table($table));
+			$me->insertNode($node);
 
 			// We will update the parent instance so that it's
 			// limits are accurate and it can be used again.
@@ -449,11 +447,10 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
 	{
-		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			// Our left limit will be the same as the (current) left limit
 			// of the sibling node, which will mean we are the previous sibling.
@@ -468,7 +465,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], $right);
 			$node->setAttribute($attributes['tree'], $tree);
 
-			$me->insertNode($node, $connection->table($table));
+			$me->insertNode($node);
 
 			// We will update the parent instance so that it's
 			// limits are accurate and it can be used again.
@@ -489,11 +486,10 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
 	{
-		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			// Our left limit will be one more than the (current) right limit
 			// of the sibling node, which will mean we are the next sibling.
@@ -511,7 +507,7 @@ class IlluminateWorker implements WorkerInterface {
 			$node->setAttribute($attributes['right'], $right);
 			$node->setAttribute($attributes['tree'], $tree);
 
-			$me->insertNode($node, $connection->table($table));
+			$me->insertNode($node);
 
 		}, $transaction);
 	}
@@ -813,8 +809,10 @@ class IlluminateWorker implements WorkerInterface {
 	 * @param  Illuminate\Database\Query\Builder  $query
 	 * @return void
 	 */
-	public function insertNode(NodeInterface $node, QueryBuilder $query)
+	public function insertNode(NodeInterface $node)
 	{
+		$query = $this->connection->table($this->getTable());
+
 		if ($node->getIncrementing())
 		{
 			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($node->getAttributes()));
