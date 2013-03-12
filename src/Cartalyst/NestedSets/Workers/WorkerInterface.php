@@ -171,6 +171,15 @@ interface WorkerInterface {
 	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
 
 	/**
+	 * Makes the given node a root node.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsRoot(NodeInterface $node, $transaction = true);
+
+	/**
 	 * Moves the given node as the first child of
 	 * the parent node. Updates node attributes as well.
 	 *
