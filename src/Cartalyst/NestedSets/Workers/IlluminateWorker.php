@@ -417,7 +417,7 @@ class IlluminateWorker implements WorkerInterface {
 		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $table, $attributes)
 		{
 			// Our left limit will be the same as the (current) right limit
-			//  of the parent node, which will mean we are the last child.
+			// of the parent node, which will mean we are the last child.
 			$left  = $parentRight = $parent->getAttribute($attributes['right']);
 			$right = $left + 1;
 			$tree  = $parent->getAttribute($attributes['tree']);
@@ -455,8 +455,8 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $table, $attributes)
 		{
-			// Our left limit will be the same as the (current) right limit
-			// of the parent node, which will mean we are the last child.
+			// Our left limit will be the same as the (current) left limit
+			// of the sibling node, which will mean we are the previous sibling.
 			$left  = $siblingLeft = $sibling->getAttribute($attributes['left']);
 			$right = $left + 1;
 			$tree  = $sibling->getAttribute($attributes['tree']);
