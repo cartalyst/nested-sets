@@ -347,7 +347,7 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->processQuery(function($connection) use ($me, $node, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $table, $attributes)
 		{
 			$query = $connection->table($table);
 
@@ -683,7 +683,7 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
-	 * Processes a query enclosed in a callback and wraps it in
+	 * Runs a query enclosed in a callback and wraps it in
 	 * a databae transaction if required. The "creating", "updating"
 	 * and "deleting" processes in MPTT require several queries (whereas
 	 * "reading" only takes one query). It is good practice to wrap these
@@ -693,7 +693,7 @@ class IlluminateWorker implements WorkerInterface {
 	 * @param  Closure  $callback
 	 * @param  bool     $transaction
 	 */
-	public function processQuery(Closure $callback, $transaction = true)
+	public function dynamicQuery(Closure $callback, $transaction = true)
 	{
 		if ($transaction === true)
 		{

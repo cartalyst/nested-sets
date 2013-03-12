@@ -128,13 +128,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->slideNodeInTree($node, 2);
 	}
 
-	public function testProcessingQueries()
+	public function testTransaction()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$callback = function(Illuminate\Database\Connection $connection)
 		{
-			$_SERVER['__nested_sets.transaction'] = true;
+			$_SERVER['__nested_sets.dynamic_query'] = true;
 		};
 
 		$connection->shouldReceive('transaction')->with(m::on(function($actualCallback) use ($connection, $callback)
@@ -144,12 +144,12 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			return ($actualCallback instanceof Closure);
 		}))->once();
 
-		$worker->processQuery($callback);
-		$this->assertTrue(isset($_SERVER['__nested_sets.transaction']));
-		unset($_SERVER['__nested_sets.transaction']);
-		$worker->processQuery($callback, false);
-		$this->assertTrue($_SERVER['__nested_sets.transaction']);
-		unset($_SERVER['__nested_sets.transaction']);
+		$worker->dynamicQuery($callback);
+		$this->assertTrue(isset($_SERVER['__nested_sets.dynamic_query']));
+		unset($_SERVER['__nested_sets.dynamic_query']);
+		$worker->dynamicQuery($callback, false);
+		$this->assertTrue($_SERVER['__nested_sets.dynamic_query']);
+		unset($_SERVER['__nested_sets.dynamic_query']);
 	}
 
 	public function testInsertNode()
@@ -409,10 +409,10 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[processQuery,insertNode]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('processQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
 			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
