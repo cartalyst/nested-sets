@@ -171,6 +171,43 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->insertNode($node2);
 	}
 
+	/**
+	 * @expectedException RuntimeException
+	 */
+	public function testHydrateNodeForNonExistentNode()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
+		$query->shouldReceive('where')->with('id', '=', 1)->once()->andReturn($query);
+		$query->shouldReceive('first')->with(array('lft', 'rgt', 'tree'))->once()->andReturn(null);
+
+		$worker->hydrateNode($node);
+	}
+
+	public function testHydrateNode()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
+		$query->shouldReceive('where')->with('id', '=', 1)->once()->andReturn($query);
+
+		$result = new StdClass;
+		$result->lft  = 2;
+		$result->rgt  = 3;
+		$result->tree = 4;
+
+		$query->shouldReceive('first')->with(array('lft', 'rgt', 'tree'))->once()->andReturn($result);
+
+		$node->shouldReceive('setAttribute')->with('lft', 2)->once();
+		$node->shouldReceive('setAttribute')->with('rgt', 3)->once();
+		$node->shouldReceive('setAttribute')->with('tree', 4)->once();
+
+		$worker->hydrateNode($node);
+	}
+
 	public function testAllFlatWithNoTree()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());

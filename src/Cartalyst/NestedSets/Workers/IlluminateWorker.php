@@ -823,4 +823,34 @@ class IlluminateWorker implements WorkerInterface {
 		}
 	}
 
+	/**
+	 * Hydrates a node by querying the database for it
+	 * and updating it's attributes from the queried
+	 * record.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function hydrateNode(NodeInterface $node)
+	{
+		$table      = $this->getTable();
+		$attributes = $this->getReservedAttributes();
+		$keyName    = $this->baseNode->getKeyName();
+
+		$result = $this
+			->connection->table("$table")
+			->where($keyName, '=', $key = $node->getAttribute($keyName))
+			->first(array_values($attributes));
+
+		if ($result === null)
+		{
+			throw new \RuntimeException("Attempting to hydrate non-existent node [$key].");
+		}
+
+		foreach ((array) $result as $key => $value)
+		{
+			$node->setAttribute($key, $value);
+		}
+	}
+
 }
