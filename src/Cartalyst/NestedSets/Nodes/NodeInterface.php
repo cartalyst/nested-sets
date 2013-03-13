@@ -36,6 +36,39 @@ interface NodeInterface {
 	public function setChildren(array $children);
 
 	/**
+	 * Clears the children for the model.
+	 *
+	 * @return void
+	 */
+	public function clearChildren();
+
+	/**
+	 * Adds a new child to the node. Node, this
+	 * does not actually set it in the database,
+	 * it merely registers the instance. Used by
+	 * workers when converting flat results to a
+	 * tree.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 * @param  int  $index
+	 * @return void
+	 */
+	public function setChildAtIndex(NodeInterface $child, $index);
+
+	/**
+	 * Adds a new child to the node. Node, this
+	 * does not actually set it in the database,
+	 * it merely registers the instance. Used by
+	 * workers when converting flat results to a
+	 * tree.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 * @param  int  $index
+	 * @return void
+	 */
+	public function getChildAtIndex($index);
+
+	/**
 	 * Get the table associated with the node.
 	 *
 	 * @return string
@@ -108,5 +141,12 @@ interface NodeInterface {
 	 * @return array
 	 */
 	public function findAll();
+
+	/**
+	 * Creates a new instance of this node.
+	 *
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface
+	 */
+	public function createNode();
 
 }

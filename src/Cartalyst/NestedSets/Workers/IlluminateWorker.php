@@ -316,6 +316,8 @@ class IlluminateWorker implements WorkerInterface {
 			$grammar->wrap('sub_tree.depth'),
 			$grammar->wrap('depth')
 		))));
+
+		return $this->flatResultsToTree($results);
 	}
 
 	/**
@@ -813,6 +815,76 @@ class IlluminateWorker implements WorkerInterface {
 		// attributes so they don't have to be hydrated.
 		$node->setAttribute($attributes['left'], $node->getAttribute($attributes['left']) + $delta);
 		$node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
+	}
+
+	/**
+	 * Takes a flat array of results (with a special attribute in
+	 * each result) and trasnforms them to a hierachical tree.
+	 *
+	 * If the tree generated from the results array has a root node,
+	 * the results is an instance of the root node (where the children
+	 * are accessible through getChildren(). Otherwise, an array of
+	 * results are returned).
+	 *
+	 * @param  array   $results
+	 * @param  string  $depthAttribute
+	 * @return mixed
+	 */
+	public function flatResultsToTree(array $results, $depthAttribute = 'depth')
+	{
+		if (count($results) === 0) return array();
+
+		// Tree to return
+		$tree = array();
+
+		// Current stack, used to determine relative
+		// depth to a parent.
+		$stack = array();
+
+		// Variable used to check the size of the current
+		// stack. We use it to determine where to put children
+		// in the hierarchy array.
+		$stackCounter = 0;
+
+		// Loop through the results
+		foreach ($results as $result)
+		{
+			// Create a new node which we will hydrate
+			// with results.
+			$node = $this->baseNode->createNode();
+			$node->setAttributes((array) $result);
+
+			$stackCounter = count($stack);
+
+			// Adjust our stack counter down every time we
+			// find a non-matching parent node.
+			while ($stackCounter > 0 and $stack[$stackCounter - 1]->getAttribute($depthAttribute) >= $node->getAttribute($depthAttribute))
+			{
+				array_pop($stack);
+				$stackCounter--;
+			}
+
+			// If we've crossed off all the non-matching parent
+			// nodes above, we are dealing with a root node and
+			// it should be appended to the main tree.
+			if ($stackCounter === 0)
+			{
+				$i = count($tree);
+				$tree[$i] = $node;
+				$stack[] = &$tree[$i];
+			}
+
+			// Otherwise, we will assign it as a child to the
+			// parent node which is in the main tree by reference.
+			else
+			{
+				$i = count($stack[$stackCounter - 1]->getChildren());
+				$stack[$stackCounter - 1]->setChildAtIndex($node, $i);
+				$stack[] = $node;
+			}
+		}
+
+		return (count($tree) > 1) ? $tree : reset($tree);
 	}
 
 	/**

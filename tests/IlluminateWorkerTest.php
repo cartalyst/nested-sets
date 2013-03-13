@@ -336,7 +336,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('get')->with(array('parent.id'))->once()->andReturn(array($result3, $result2, $result1));
 
 		$this->assertCount(3, $path = $worker->path($node));
-		$this->assertEquals('123', implode('', $path));
+		$this->assertEquals('1,2,3', implode(',', $path));
 	}
 
 	public function testDepth()
@@ -376,7 +376,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testTree()
 	{
-		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[flatResultsToTree]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
 		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(3);
@@ -444,15 +445,96 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$query->shouldReceive('get')->with(m::on(function($select) use ($me)
 		{
-			$this->assertCount(2, $select);
+			$me->assertCount(2, $select);
 			list($first, $expression) = $select;
 			$me->assertEquals('node.*', $first);
 			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
 			return ((string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"');
-		}))->once();
+		}))->once()->andReturn($results = array('foo'));
 
-		$worker->tree($node, 2);
+		$worker->shouldReceive('flatResultsToTree')->with($results)->once()->andReturn('success');
+		$this->assertEquals('success', $worker->tree($node, 2));
+	}
+
+	public function testFlatResultsToTree()
+	{
+		$results = array(
+			array('id' => 1, 'name' => 'Admin',     'lft' => 1, 'rgt' => 14,  'tree' => 1, 'depth' => 0),
+			array('id' => 2, 'name' => 'TVs',       'lft' => 2, 'rgt' => 3,   'tree' => 1, 'depth' => 1),
+			array('id' => 3, 'name' => 'Computers', 'lft' => 4, 'rgt' => 13,  'tree' => 1, 'depth' => 1),
+			array('id' => 4, 'name' => 'Mac',       'lft' => 5, 'rgt' => 10,  'tree' => 1, 'depth' => 2),
+			array('id' => 5, 'name' => 'iMac',      'lft' => 6, 'rgt' => 7,   'tree' => 1, 'depth' => 3),
+			array('id' => 5, 'name' => 'MacBook',   'lft' => 8, 'rgt' => 9,   'tree' => 1, 'depth' => 3),
+			array('id' => 6, 'name' => 'PC',        'lft' => 11, 'rgt' => 12, 'tree' => 1, 'depth' => 2),
+		);
+
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		// We cannot simple use "andReturn(new FlatResultsNode);" because
+		// that returns the same instance every time, so, instead, we will
+		// return a new instance by taking advantage of "andReturnUsing".
+		$me = $this;
+		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
+		{
+			return new FlatResultsNode;
+		});
+
+		$tree = $worker->flatResultsToTree($results);
+		$this->assertInstanceOf('FlatResultsNode', $tree);
+
+		// This is a big nesting loop which manually checks that our
+		// nodes are structured as expected.
+		foreach ($tree->getChildren() as $child)
+		{
+			switch ($child->id)
+			{
+				// TVs
+				case 2:
+					$this->assertEquals('TVs', $child->name);
+
+					$expected = '';
+					$actual = implode(',', array_map(function($grandChild)
+					{
+						return $grandChild->name;
+					}, $child->getChildren()));
+
+					$this->assertEquals($expected, $actual);
+					break;
+
+				// Computers
+				case 3:
+					$this->assertEquals('Computers', $child->name);
+
+					$expected = 'Mac,PC';
+					$actual = implode(',', array_map(function($grandChild) use ($me)
+					{
+						// Inspecting mac, we'll go one level deeper
+						// again and ass
+						if ($grandChild->id == 4)
+						{
+							$expected = 'iMac,MacBook';
+
+							$actual = implode(',', array_map(function($greatGrandChild)
+							{
+								return $greatGrandChild->name;
+							}, $grandChild->getChildren()));
+
+							$me->assertEquals($expected, $actual);
+						}
+
+						return $grandChild->name;
+
+					}, $child->getChildren()));
+
+					$this->assertEquals($expected, $actual);
+					break;
+
+				default:
+					$this->fail("Missing analyzing flat result [{$child->id}].");
+					break;
+			}
+		}
 	}
 
 	public function testInsertNodeAsRoot()
@@ -722,6 +804,27 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node->shouldReceive('getReservedAttribute')->with('tree')->andReturn('tree');
 
 		return $node;
+	}
+
+}
+
+class FlatResultsNode extends Cartalyst\Support\Attributable {
+
+	protected $children = array();
+
+	public function getChildren()
+	{
+		return $this->children;
+	}
+
+	public function setChildAtIndex($child, $index)
+	{
+		$this->children[$index] = $child;
+	}
+
+	public function getChildAtIndex($index)
+	{
+		return (isset($this->children[$index])) ? $this->children[$index] : null;
 	}
 
 }
