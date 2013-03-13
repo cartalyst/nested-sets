@@ -637,7 +637,27 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
 	{
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
+		{
+			$me->slideNodeOutOfTree($node);
+
+			// We will hydrate our sibling node now just
+			// in case the sliding process above messed it's
+			// order up.
+			$me->hydrateNode($sibling);
+
+			$left = $sibling->getAttribute($attributes['right']) + 1;
+			$me->slideNodeInTree($node, $left);
+
+			// And once more we will hydrate the sibling's
+			// attributes again so that the object instance
+			// is in sync with the database
+			$me->hydrateNode($sibling);
+
+		}, $transaction);
 	}
 
 	/**

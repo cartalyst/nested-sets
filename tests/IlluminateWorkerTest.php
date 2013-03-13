@@ -663,6 +663,29 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->moveNodeAsPreviousSibling($node, $siblingNode);
 	}
 
+	public function testMoveNodeAsNextSibling()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$siblingNode = $this->getMockNode();
+
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		{
+			$worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
+			$worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
+
+			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
+			$worker->shouldReceive('slideNodeInTree')->with($node, 4)->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->moveNodeAsNextSibling($node, $siblingNode);
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');
