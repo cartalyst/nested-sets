@@ -368,7 +368,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			list($expression) = $select;
 			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-			return ((string) $expression == '(count("parent"."id") - 1) as "depth"');
+			return (string) $expression == '(count("parent"."id") - 1) as "depth"';
 		}))->andReturn($result);
 
 		$this->assertEquals(4, $worker->depth($node));
