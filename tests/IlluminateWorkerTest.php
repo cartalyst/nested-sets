@@ -391,7 +391,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		// We need to mock our sub-query that we put in our join
 		$me = $this;
-		$query->shouldReceive('join')->with('sub_tree', m::on(function($closure) use ($subQuery, $connection)
+		$query->shouldReceive('join')->with('sub_tree', m::on(function($closure) use ($me, $subQuery, $connection)
 		{
 			$join = m::mock('Illuminate\Database\Query\JoinClause');
 
@@ -422,7 +422,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			// Call our closure
 			$closure($join);
 
-			$this->assertEquals('(foo) as "categories"', $join->table);
+			$me->assertEquals('(foo) as "categories"', $join->table);
 
 			// Our assertions will ensure we catch any errors, safe to
 			// return true here.
