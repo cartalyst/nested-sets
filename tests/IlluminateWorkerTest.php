@@ -333,7 +333,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$result3 = new StdClass;
 		$result3->id = 1;
 
-		$query->shouldReceive('get')->with('parent.id')->once()->andReturn(array($result3, $result2, $result1));
+		$query->shouldReceive('get')->with(array('parent.id'))->once()->andReturn(array($result3, $result2, $result1));
 
 		$this->assertCount(3, $path = $worker->path($node));
 		$this->assertEquals('123', implode('', $path));
@@ -361,8 +361,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		// expression is cast as a string when used in the "select" clause. When
 		// used in "where" clauses, the query builder must cast it as a string
 		// and hence remove the need for us to do it here in our tests.
-		$query->shouldReceive('first')->with(m::on(function($expression)
+		$me = $this;
+		$query->shouldReceive('first')->with(m::on(function($select) use ($me)
 		{
+			$this->assertCount(1, $select);
+			list($expression) = $select;
+			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
+
 			return ((string) $expression == '(count("parent"."id") - 1) as "depth"');
 		}))->andReturn($result);
 
@@ -385,6 +390,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
 
 		// We need to mock our sub-query that we put in our join
+		$me = $this;
 		$query->shouldReceive('join')->with('sub_tree', m::on(function($closure) use ($subQuery, $connection)
 		{
 			$join = m::mock('Illuminate\Database\Query\JoinClause');
@@ -436,8 +442,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('sub_tree.depth')->once()->andReturn('"sub_tree"."depth"');
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
-		$query->shouldReceive('get')->with('node.*', m::on(function($expression)
+		$query->shouldReceive('get')->with(m::on(function($select) use ($me)
 		{
+			$this->assertCount(2, $select);
+			list($first, $expression) = $select;
+			$me->assertEquals('node.*', $first);
+			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
+
 			return ((string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"');
 		}))->once();
 

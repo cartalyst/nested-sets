@@ -152,7 +152,7 @@ class IlluminateWorker implements WorkerInterface {
 			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->orderBy("node.{$attributes['left']}")
-			->get("parent.$keyName");
+			->get(array("parent.$keyName"));
 
 		// Our results is an array of objects containing the key name
 		// only. We will simplify this by simply returning the key
@@ -185,11 +185,11 @@ class IlluminateWorker implements WorkerInterface {
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->orderBy("node.{$attributes['left']}")
 			->groupBy("node.{$attributes['left']}")
-			->first(new Expression(sprintf(
+			->first(array(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
 				$grammar->wrap("parent.$keyName"),
 				$grammar->wrap('depth')
-			)));
+			))));
 
 		return $result->depth;
 	}
@@ -310,12 +310,12 @@ class IlluminateWorker implements WorkerInterface {
 			$query->having('depth', '<=', $depth);
 		}
 
-		$results = $query->get("node.*", new Expression(sprintf(
+		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
 			$grammar->wrap('sub_tree.depth'),
 			$grammar->wrap('depth')
-		)));
+		))));
 	}
 
 	/**
