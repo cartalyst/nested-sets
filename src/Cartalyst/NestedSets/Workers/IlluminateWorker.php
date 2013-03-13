@@ -140,6 +140,7 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributes();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
+		$grammar    = $this->connection->getQueryGrammar();
 
 		// Note, joins currently don't support "between" operators
 		// in the query builder, so we will satisfy half of the
@@ -149,7 +150,7 @@ class IlluminateWorker implements WorkerInterface {
 		$results = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->orderBy("node.{$attributes['left']}")
 			->get(array("parent.$keyName"));
@@ -181,7 +182,7 @@ class IlluminateWorker implements WorkerInterface {
 		$result = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->orderBy("node.{$attributes['left']}")
 			->groupBy("node.{$attributes['left']}")
@@ -249,9 +250,9 @@ class IlluminateWorker implements WorkerInterface {
 		$query = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->join("$table as sub_parent", "node.{$attributes['left']}", '>=', "sub_parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', "sub_parent.{$attributes['right']}");
+			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("sub_parent.{$attributes['right']}")));
 
 		// Create a query to select the sub-tree
 		// component of each node. We initialize this
@@ -273,9 +274,8 @@ class IlluminateWorker implements WorkerInterface {
 					$grammar->wrap('depth')
 				)))
 				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-				->where("node.{$attributes['left']}", '<=', "parent.{$attributes['right']}")
+				->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 				->where("node.$keyName", '=', $key)
-				->whereBetween("node.{$attributes['left']}", array("parent.{$attributes['left']}", "parent.{$attributes['right']}"))
 				->where("node.{$attributes['tree']}", '=', $tree)
 				->where("parent.{$attributes['tree']}", '=', $tree)
 				->orderBy("node.{$attributes['left']}")

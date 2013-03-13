@@ -321,7 +321,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
+		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
+		{
+			return (string) $expression == '"parent"."rgt"';
+		}))->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
@@ -345,7 +349,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
+		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
+		{
+			return (string) $expression == '"parent"."rgt"';
+		}))->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
@@ -384,10 +392,17 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$query->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
+		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
+		{
+			return (string) $expression == '"parent"."rgt"';
+		}))->once()->andReturn($query);
 		$query->shouldReceive('join')->with('categories as sub_parent', 'node.lft', '>=', 'sub_parent.lft')->once()->andReturn($query);
-		$query->shouldReceive('where')->with('node.lft', '<=', 'sub_parent.rgt')->once()->andReturn($query);
-
+		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
+		{
+			return (string) $expression == '"sub_parent"."rgt"';
+		}))->once()->andReturn($query);
+		$connection->getQueryGrammar()->shouldReceive('wrap')->with('sub_parent.rgt')->once()->andReturn('"sub_parent"."rgt"');
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
 
 		// We need to mock our sub-query that we put in our join
@@ -401,13 +416,16 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$subQuery->shouldReceive('select')->with('node.id', m::on(function($expression)
 			{
-				return ((string) $expression == '(count("parent"."id") - 1) as "depth"');
+				return (string) $expression == '(count("parent"."id") - 1) as "depth"';
 			}))->once()->andReturn($subQuery);
 
 			$subQuery->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($subQuery);
-			$subQuery->shouldReceive('where')->with('node.lft', '<=', 'parent.rgt')->once()->andReturn($subQuery);
+			$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
+			$subQuery->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
+			{
+				return (string) $expression == '"parent"."rgt"';
+			}))->once()->andReturn($subQuery);
 			$subQuery->shouldReceive('where')->with('node.id', '=', 1)->once()->andReturn($subQuery);
-			$subQuery->shouldReceive('whereBetween')->with('node.lft', array('parent.lft', 'parent.rgt'))->once()->andReturn($subQuery);
 			$subQuery->shouldReceive('where')->with('node.tree', '=', 3)->once()->andReturn($subQuery);
 			$subQuery->shouldReceive('where')->with('parent.tree', '=', 3)->once()->andReturn($subQuery);
 			$subQuery->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($subQuery);
@@ -450,7 +468,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$me->assertEquals('node.*', $first);
 			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-			return ((string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"');
+			return (string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"';
 		}))->once()->andReturn($results = array('foo'));
 
 		$worker->shouldReceive('flatResultsToTree')->with($results)->once()->andReturn('success');
