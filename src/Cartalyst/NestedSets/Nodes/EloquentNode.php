@@ -18,9 +18,16 @@
  * @link       http://cartalyst.com
  */
 
-use Illuminate\Database\Eloquent\Model
+use Illuminate\Database\Eloquent\Model;
 
 class EloquentNode extends Model implements NodeInterface {
+
+	/**
+	 * Array of children associated with the model.
+	 *
+	 * @var array
+	 */
+	protected $children = array();
 
 	/**
 	 * Array of reserved attributes used by
@@ -48,5 +55,205 @@ class EloquentNode extends Model implements NodeInterface {
 		// the one database.
 		'tree'  => 'tree',
 	);
+
+	/**
+	 * The worker class which the model uses.
+	 *
+	 * @var string
+	 */
+	protected $worker = 'Cartalyst\NestedSets\Workers\IlluminateWorker';
+
+	/**
+	 * Returns the children for the node.
+	 *
+	 * @return array
+	 */
+	public function getChildren()
+	{
+		return $this->children;
+	}
+
+	/**
+	 * Sets the children for the model.
+	 *
+	 * @param  array  $children
+	 * @return void
+	 */
+	public function setChildren(array $children)
+	{
+		$this->children = $children;
+	}
+
+	/**
+	 * Clears the children for the model.
+	 *
+	 * @return void
+	 */
+	public function clearChildren()
+	{
+		$this->children = array();
+	}
+
+	/**
+	 * Sets the child in the children array at
+	 * the given index.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 * @param  int  $index
+	 * @return void
+	 */
+	public function setChildAtIndex(NodeInterface $child, $index)
+	{
+		$this->children[$index] = $child;
+	}
+
+	/**
+	 * Returns the child at the given index. If
+	 * the index does not exist, we return "null"
+	 *
+	 * @param  int  $index
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 */
+	public function getChildAtIndex($index)
+	{
+		return isset($this->children[$index]) ? $this->children[$index] : null;
+	}
+
+	/**
+	 * Get the table associated with the node.
+	 *
+	 * @return string
+	 */
+	public function getTable()
+	{
+		return parent::getTable();
+	}
+
+	/**
+	 * Get the primary key for the node.
+	 *
+	 * @return string
+	 */
+	public function getKeyName()
+	{
+		return parent::getKeyName();
+	}
+
+	/**
+	 * Get the value indicating whether the IDs are incrementing.
+	 *
+	 * @return bool
+	 */
+	public function getIncrementing()
+	{
+		return parent::getIncrementing();
+	}
+
+	/**
+	 * Get all of the current attributes on the node.
+	 *
+	 * @return array
+	 */
+	public function getAttributes()
+	{
+		return parent::getAttributes();
+	}
+
+	/**
+	 * Set all of the current attributes on the node.
+	 *
+	 * @return array
+	 */
+	public function setAttributes(array $attributes)
+	{
+		return parent::setRawAttributes($attributes);
+	}
+
+	/**
+	 * Get an attribute from the model.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function getAttribute($key)
+	{
+		return parent::getAttribute($key);
+	}
+
+	/**
+	 * Set a given attribute on the model.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function setAttribute($key, $value)
+	{
+		return parent::setAttribute($key, $value);
+	}
+
+	/**
+	 * Get the reserved attributes.
+	 *
+	 * @return array
+	 */
+	public function getReservedAttributes()
+	{
+		return $this->reservedAttributes;
+	}
+
+	/**
+	 * Get the name of a reserved attribute.
+	 *
+	 * @param  string  $key
+	 * @return string
+	 */
+	public function getReservedAttribute($key)
+	{
+		return $this->reservedAttributes[$key];
+	}
+
+	/**
+	 * Finds all nodes in a flat array.
+	 *
+	 * @return array
+	 */
+	public function findAll()
+	{
+		return static::all();
+	}
+
+	/**
+	 * Creates a new instance of this node.
+	 *
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface
+	 */
+	public function createNode()
+	{
+		return $this->newInstance();
+	}
+
+	/**
+	 * Creates a worker instance for the model.
+	 *
+	 * @return Cartalyst\NestedSets\Workers\WorkerInterface
+	 */
+	public function createWorker()
+	{
+		$class = '\\'.ltrim($this->worker, '\\');
+
+		return new $class($this->getConnection(), $this);
+	}
+
+	/**
+	 * Sets the wroker to be used by the model.
+	 *
+	 * @param  string  $helper
+	 * @return void
+	 */
+	public function setWorker($worker)
+	{
+		$this->worker = $worker;
+	}
 
 }
