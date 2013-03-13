@@ -1,0 +1,226 @@
+<?php namespace Cartalyst\NestedSets\Workers;
+/**
+ * Part of the Nested Sets package.
+ *
+ * NOTICE OF LICENSE
+ *
+ * Licensed under the 3-clause BSD License.
+ *
+ * This source file is subject to the 3-clause BSD License that is
+ * bundled with this package in the LICENSE file.  It is also available at
+ * the following URL: http://www.opensource.org/licenses/BSD-3-Clause
+ *
+ * @package    Nested Sets
+ * @version    2.0.0
+ * @author     Cartalyst LLC
+ * @license    BSD License (3-clause)
+ * @copyright  (c) 2011 - 2013, Cartalyst LLC
+ * @link       http://cartalyst.com
+ */
+
+use Cartalyst\NestedSets\Nodes\NodeInterface;
+
+interface WorkerInterface {
+
+	/**
+	 * Returns all nodes, in a flat array.
+	 *
+	 * @param  int  $tree
+	 * @return array
+	 */
+	public function allFlat($tree = null);
+
+	/**
+	 * Returns all root nodes, in a flat array.
+	 *
+	 * @return array
+	 */
+	public function allRoot();
+
+	/**
+	 * Finds all leaf nodes, in a flat array.
+	 * Leaf nodes are nodes which do not have
+	 * any children.
+	 *
+	 * @param  int  $tree
+	 * @return array
+	 */
+	public function allLeaf($tree = null);
+
+	/**
+	 * Finds the path of the given node. The path is
+	 * the primary key of the node and all of it's
+	 * parents up to the root item.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return array
+	 */
+	public function path(NodeInterface $node);
+
+	/**
+	 * Returns the depth of a node in a tree, where
+	 * 0 is a root node, 1 is a root node's direct
+	 * child and so on.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return int
+	 */
+	public function depth(NodeInterface $node);
+
+	/**
+	 * Returns the relative depth of a node in a tree,
+	 * relative to the parent provided. The parent
+	 * must in fact be a parent in the path of this
+	 * item otherwise we cannot find the relative
+	 * depth.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parentNode
+	 * @return int
+	 */
+	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode);
+
+	/**
+	 * Returns all children for the given node in a flat
+	 * array. If the depth is 1 or more, that is how many
+	 * levels of children we recurse through to put into
+	 * the flat array.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function childrenNodes(NodeInterface $node, $depth = 0);
+
+	/**
+	 * Returns a tree for the given node. If the depth
+	 * is 0, we return all children. If the depth is
+	 * 1 or more, that is how many levels of children
+	 * nodes we recurse through.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function tree(NodeInterface $node, $depth = 0);
+
+	/**
+	 * Maps a tree to the database. We update each items'
+	 * values as well if they're provided. This can be used
+	 * to create a whole new tree structure or simply to re-order
+	 * a tree.
+	 *
+	 * @param  NodeInterface   $parent
+	 * @param  array  $nodes
+	 * @param  bool  $transaction
+	 * @return array
+	 */
+	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true);
+
+	/**
+	 * Makes a new node a root node.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsRoot(NodeInterface $node, $transaction = true);
+
+	/**
+	 * Inserts the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Inserts the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Inserts the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Inserts the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Makes the given node a root node.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsRoot(NodeInterface $node, $transaction = true);
+
+	/**
+	 * Moves the given node as the first child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Moves the given node as the last child of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $parent
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true);
+
+	/**
+	 * Moves the given node as the previous sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Moves the given node as the next sibling of
+	 * the parent node. Updates node attributes as well.
+	 *
+	 * @param  NodeInterface  $node
+	 * @param  NodeInterface  $sibling
+	 * @param  bool  $transaction
+	 * @return void
+	 */
+	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+}

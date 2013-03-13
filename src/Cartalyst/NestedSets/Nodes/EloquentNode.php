@@ -1,0 +1,259 @@
+<?php namespace Cartalyst\NestedSets\Nodes;
+/**
+ * Part of the Nested Sets package.
+ *
+ * NOTICE OF LICENSE
+ *
+ * Licensed under the 3-clause BSD License.
+ *
+ * This source file is subject to the 3-clause BSD License that is
+ * bundled with this package in the LICENSE file.  It is also available at
+ * the following URL: http://www.opensource.org/licenses/BSD-3-Clause
+ *
+ * @package    Nested Sets
+ * @version    2.0.0
+ * @author     Cartalyst LLC
+ * @license    BSD License (3-clause)
+ * @copyright  (c) 2011 - 2013, Cartalyst LLC
+ * @link       http://cartalyst.com
+ */
+
+use Illuminate\Database\Eloquent\Model;
+
+class EloquentNode extends Model implements NodeInterface {
+
+	/**
+	 * Array of children associated with the model.
+	 *
+	 * @var array
+	 */
+	protected $children = array();
+
+	/**
+	 * Array of reserved attributes used by
+	 * the node. These attributes cannot be
+	 * set like normal attributes, they are
+	 * reserved for the node and nested set
+	 * workers to use.
+	 *
+	 * @var array
+	 */
+	protected $reservedAttributes = array(
+
+		// The left column limit. "left" is a
+		// reserved word in SQL databases so
+		// we default to "lft" for compatiblity.
+		'left'  => 'lft',
+
+		// The rigth column limit. "right" is a
+		// reserved word in SQL databases so
+		// we default to "rgt" for compatiblity.
+		'right' => 'rgt',
+
+		// The tree that the node is on. This
+		// package supports multiple trees within
+		// the one database.
+		'tree'  => 'tree',
+	);
+
+	/**
+	 * The worker class which the model uses.
+	 *
+	 * @var string
+	 */
+	protected $worker = 'Cartalyst\NestedSets\Workers\IlluminateWorker';
+
+	/**
+	 * Returns the children for the node.
+	 *
+	 * @return array
+	 */
+	public function getChildren()
+	{
+		return $this->children;
+	}
+
+	/**
+	 * Sets the children for the model.
+	 *
+	 * @param  array  $children
+	 * @return void
+	 */
+	public function setChildren(array $children)
+	{
+		$this->children = $children;
+	}
+
+	/**
+	 * Clears the children for the model.
+	 *
+	 * @return void
+	 */
+	public function clearChildren()
+	{
+		$this->children = array();
+	}
+
+	/**
+	 * Sets the child in the children array at
+	 * the given index.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 * @param  int  $index
+	 * @return void
+	 */
+	public function setChildAtIndex(NodeInterface $child, $index)
+	{
+		$this->children[$index] = $child;
+	}
+
+	/**
+	 * Returns the child at the given index. If
+	 * the index does not exist, we return "null"
+	 *
+	 * @param  int  $index
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
+	 */
+	public function getChildAtIndex($index)
+	{
+		return isset($this->children[$index]) ? $this->children[$index] : null;
+	}
+
+	/**
+	 * Get the table associated with the node.
+	 *
+	 * @return string
+	 */
+	public function getTable()
+	{
+		return parent::getTable();
+	}
+
+	/**
+	 * Get the primary key for the node.
+	 *
+	 * @return string
+	 */
+	public function getKeyName()
+	{
+		return parent::getKeyName();
+	}
+
+	/**
+	 * Get the value indicating whether the IDs are incrementing.
+	 *
+	 * @return bool
+	 */
+	public function getIncrementing()
+	{
+		return parent::getIncrementing();
+	}
+
+	/**
+	 * Get all of the current attributes on the node.
+	 *
+	 * @return array
+	 */
+	public function getAttributes()
+	{
+		return parent::getAttributes();
+	}
+
+	/**
+	 * Set all of the current attributes on the node.
+	 *
+	 * @return array
+	 */
+	public function setAttributes(array $attributes)
+	{
+		return parent::setRawAttributes($attributes);
+	}
+
+	/**
+	 * Get an attribute from the model.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function getAttribute($key)
+	{
+		return parent::getAttribute($key);
+	}
+
+	/**
+	 * Set a given attribute on the model.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function setAttribute($key, $value)
+	{
+		return parent::setAttribute($key, $value);
+	}
+
+	/**
+	 * Get the reserved attributes.
+	 *
+	 * @return array
+	 */
+	public function getReservedAttributes()
+	{
+		return $this->reservedAttributes;
+	}
+
+	/**
+	 * Get the name of a reserved attribute.
+	 *
+	 * @param  string  $key
+	 * @return string
+	 */
+	public function getReservedAttribute($key)
+	{
+		return $this->reservedAttributes[$key];
+	}
+
+	/**
+	 * Finds all nodes in a flat array.
+	 *
+	 * @return array
+	 */
+	public function findAll()
+	{
+		return static::all();
+	}
+
+	/**
+	 * Creates a new instance of this node.
+	 *
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface
+	 */
+	public function createNode()
+	{
+		return $this->newInstance();
+	}
+
+	/**
+	 * Creates a worker instance for the model.
+	 *
+	 * @return Cartalyst\NestedSets\Workers\WorkerInterface
+	 */
+	public function createWorker()
+	{
+		$class = '\\'.ltrim($this->worker, '\\');
+
+		return new $class($this->getConnection(), $this);
+	}
+
+	/**
+	 * Sets the wroker to be used by the model.
+	 *
+	 * @param  string  $helper
+	 * @return void
+	 */
+	public function setWorker($worker)
+	{
+		$this->worker = $worker;
+	}
+
+}
