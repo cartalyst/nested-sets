@@ -535,7 +535,27 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
 	{
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
+		{
+			$me->slideNodeOutOfTree($node);
+
+			// We will hydrate our parent node now just
+			// in case the sliding process above messed it's
+			// order up.
+			$me->hydrateNode($parent);
+
+			$left = $parent->getAttribute($attributes['left']) + 1;
+			$me->slideNodeInTree($node, $left);
+
+			// And once more we will hydrate the parent's
+			// attributes again so that the object instance
+			// is in sync with the database
+			$me->hydrateNode($parent);
+
+		}, $transaction);
 	}
 
 	/**
