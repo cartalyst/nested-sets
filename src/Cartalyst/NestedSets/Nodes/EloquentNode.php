@@ -18,6 +18,7 @@
  * @link       http://cartalyst.com
  */
 
+use Cartalyst\NestedSets\Presenter;
 use Illuminate\Database\Eloquent\Model;
 
 class EloquentNode extends Model implements NodeInterface {
@@ -62,6 +63,13 @@ class EloquentNode extends Model implements NodeInterface {
 	 * @var string
 	 */
 	protected $worker = 'Cartalyst\NestedSets\Workers\IlluminateWorker';
+
+	/**
+	 * The presenter instance.
+	 *
+	 * @var Cartalyst\Sentry\Presenter
+	 */
+	protected static $presenter;
 
 	/**
 	 * Returns the children for the node.
@@ -328,6 +336,40 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Presents the node in the given format. If the attribute
+	 * provided is a closure, we will call it, providing every
+	 * single node recursively. You must return a string from
+	 * your closure which will be used as the output for that
+	 * node when presenting.
+	 *
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @param  int  $depth
+	 * @return mixed
+	 */
+	public function presentAs($format, $attribute, $depth = 0)
+	{
+		return static::$presenter->presentAs($this, $format, $attribute, $length);
+	}
+
+	/**
+	 * Presents the children of the given node in the given
+	 * format. If the attribute provided is a closure, we will
+	 * call it, providing every single node recursively. You
+	 * must return a string from your closure which will be
+	 * used as the output for that node when presenting.
+	 *
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @param  int  $depth
+	 * @return mixed
+	 */
+	public function prsesentChildrenAs($format, $attribute, $depth = 0)
+	{
+		return static::$presenter->presentChildrenAs($this, $format, $attribute, $length);
+	}
+
+	/**
 	 * Creates a worker instance for the model.
 	 *
 	 * @return Cartalyst\NestedSets\Workers\WorkerInterface
@@ -375,6 +417,37 @@ class EloquentNode extends Model implements NodeInterface {
 		$leaf   = $static->createWorker()->allLeaf($tree);
 
 		return $static->newCollection($leaf);
+	}
+
+	/**
+	 * Sets the presenter to be used by all Eloquent nodes.
+	 *
+	 * @param  Cartalyst\NestedSets\Presenter
+	 * @return void
+	 */
+	public static function setPresenter(Presenter $presenter)
+	{
+		static::$presenter = $presenter;
+	}
+
+	/**
+	 * Gets the presenter used by all Eloquent nodes.
+	 *
+	 * @return Cartalyst\NestedSets\Presenter
+	 */
+	public static function getPresenter()
+	{
+		return static::presenter();
+	}
+
+	/**
+	 * Unsets the presenter instance.
+	 *
+	 * @return void
+	 */
+	public static function unsetPresenter()
+	{
+		static::$presenter = null;
 	}
 
 }
