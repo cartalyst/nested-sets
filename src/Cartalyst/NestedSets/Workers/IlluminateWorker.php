@@ -222,7 +222,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode)
 	{
-
+		throw new \BadMethodCallException(__METHOD__);
 	}
 
 	/**
@@ -237,7 +237,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function childrenNodes(NodeInterface $node, $depth = 0)
 	{
-
+		throw new \BadMethodCallException(__METHOD__);
 	}
 
 	/**
@@ -347,7 +347,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true)
 	{
-
+		throw new \BadMethodCallException(__METHOD__);
 	}
 
 	/**
@@ -537,7 +537,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsRoot(NodeInterface $node, $transaction = true)
 	{
-
+		throw new \BadMethodCallException(__METHOD__);
 	}
 
 	/**
