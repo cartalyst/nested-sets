@@ -2,8 +2,8 @@
 	"name" : "Nested Sets 2",
 	"type" : "Package",
 	"public" : false,
-	"travis" : false,
 	"branch" : "master",
 	"github" : "cartalyst/nested-sets",
-	"apigen" : "#"
+	"travis" : false,
+	"demo" : false
 }
