@@ -350,14 +350,31 @@ class EloquentNode extends Model implements NodeInterface {
 		$this->worker = $worker;
 	}
 
+	/**
+	 * Returns a collection of all root nodes.
+	 *
+	 * @return Illuminate\Database\Eloquent\Collection
+	 */
 	public static function allRoot()
 	{
+		$static = new static;
+		$root   = $static->createWorker()->allRoot();
 
+		return $static->newCollection($root);
 	}
 
-	public static function allLeaf()
+	/**
+	 * Returns a collection of all leaf nodes.
+	 *
+	 * @param  ind  $tree
+	 * @return Illuminate\Database\Eloquent\Collection
+	 */
+	public static function allLeaf($tree = null)
 	{
+		$static = new static;
+		$leaf   = $static->createWorker()->allLeaf($tree);
 
+		return $static->newCollection($leaf);
 	}
 
 }
