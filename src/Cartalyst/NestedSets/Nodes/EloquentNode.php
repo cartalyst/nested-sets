@@ -279,24 +279,52 @@ class EloquentNode extends Model implements NodeInterface {
 		}
 	}
 
+	/**
+	 * Makes the model the first child of the given parent.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $parent
+	 * @return void
+	 */
 	public function makeFirstChildOf(EloquentNode $parent)
 	{
-
+		$method = $this->exists ? 'moveNodeAsFirstChild' : 'insertNodeAsFirstChild';
+		$this->createWorker()->$method($this, $parent);
 	}
 
+	/**
+	 * Makes the model the last child of the given parent.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $parent
+	 * @return void
+	 */
 	public function makeLastChildOf(EloquentNode $parent)
 	{
-
+		$method = $this->exists ? 'moveNodeAsLastChild' : 'insertNodeAsLastChild';
+		$this->createWorker()->$method($this, $parent);
 	}
 
+	/**
+	 * Makes the model the previous sibling of the given sibling.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $sibling
+	 * @return void
+	 */
 	public function makePreviousSiblingOf(EloquentNode $sibling)
 	{
-
+		$method = $this->exists ? 'moveNodeAsPreviousSibling' : 'insertNodeAsPreviousSibling';
+		$this->createWorker()->$method($this, $sibling);
 	}
 
+	/**
+	 * Makes the model the next sibling of the given sibling.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $sibling
+	 * @return void
+	 */
 	public function makeNextSiblingOf(EloquentNode $sibling)
 	{
-
+		$method = $this->exists ? 'moveNodeAsNextSibling' : 'insertNodeAsNextSibling';
+		$this->createWorker()->$method($this, $sibling);
 	}
 
 	/**
