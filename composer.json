@@ -51,6 +51,7 @@
 	"extra": {
 		"component": "package",
 		"versions": {
+			"1": "1.0/master",
 			"2": "master"
 		},
 		"branch-alias": {
