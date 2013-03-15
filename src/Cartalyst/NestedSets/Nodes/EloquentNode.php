@@ -45,7 +45,7 @@ class EloquentNode extends Model implements NodeInterface {
 		// we default to "lft" for compatiblity.
 		'left'  => 'lft',
 
-		// The rigth column limit. "right" is a
+		// The right column limit. "right" is a
 		// reserved word in SQL databases so
 		// we default to "rgt" for compatiblity.
 		'right' => 'rgt',
@@ -234,6 +234,72 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Refreshes the node's attributes from the database.
+	 *
+	 * @return void
+	 */
+	public function refresh()
+	{
+		$this->createWorker()->hydrateNode($this);
+	}
+
+	/**
+	 * Returns if the model is a leaf node or not; whether
+	 * it has children.
+	 *
+	 * @return bool
+	 */
+	public function isLeaf()
+	{
+		return $this->createWorker()->isLeaf($this);
+	}
+
+	/**
+	 * Queries the database for all children for the model.
+	 * Optionally, a depth may be provided.
+	 *
+	 * @return  array
+	 */
+	public function findChildren($depth = 0)
+	{
+		return $this->children = $this->createWorker()->tree($this, $depth);
+	}
+
+	/**
+	 * Makes the model a root node.
+	 *
+	 * @return void
+	 */
+	public function makeRoot()
+	{
+		// @todo Allow existing items to become new root items
+		if ($this->exists)
+		{
+			throw new \RuntimeException("Currently cannot make existing node {$this->getKey()} a root item.");
+		}
+	}
+
+	public function makeFirstChildOf(EloquentNode $parent)
+	{
+
+	}
+
+	public function makeLastChildOf(EloquentNode $parent)
+	{
+
+	}
+
+	public function makePreviousSiblingOf(EloquentNode $sibling)
+	{
+
+	}
+
+	public function makeNextSiblingOf(EloquentNode $sibling)
+	{
+
+	}
+
+	/**
 	 * Creates a worker instance for the model.
 	 *
 	 * @return Cartalyst\NestedSets\Workers\WorkerInterface
@@ -254,6 +320,16 @@ class EloquentNode extends Model implements NodeInterface {
 	public function setWorker($worker)
 	{
 		$this->worker = $worker;
+	}
+
+	public static function allRoot()
+	{
+
+	}
+
+	public static function allLeaf()
+	{
+
 	}
 
 }

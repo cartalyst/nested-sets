@@ -315,6 +315,21 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertCount(1, $worker->allLeaf(1));
 	}
 
+	public function testIsLeaf()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node1 = $this->getMockNode();
+		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(20);
+		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+		$this->assertFalse($worker->isLeaf($node1));
+
+		$node2 = $this->getMockNode();
+		$node2->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(2);
+		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+		$this->assertTrue($worker->isLeaf($node2));
+	}
+
 	public function testPath()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());

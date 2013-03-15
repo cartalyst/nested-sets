@@ -128,6 +128,20 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Returns if the given node is a leaf node (has
+	 * no children).
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return bool
+	 */
+	public function isLeaf(NodeInterface $node)
+	{
+		$attributes = $this->getReservedAttributes();
+
+		return $node->getAttribute($attributes['right']) - $node->getAttribute($attributes['left']) == 1;
+	}
+
+	/**
 	 * Finds the path of the given node. The path is
 	 * the primary key of the node and all of it's
 	 * parents up to the root item.
