@@ -1,4 +1,4 @@
 ## Usage
 
-* [Basic Usage](/nestedsets2/usage)
-* [Advanced Usage](/nestedsets2/usage/advanced)
+* [Basic Usage](/nested-sets-2/usage)
+* [Advanced Usage](/nested-sets-2/usage/advanced)
