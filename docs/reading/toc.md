@@ -1,4 +1,4 @@
-##Reading Nesties
+## Reading
 
-* [children()]("/nested-sets-1/reading/children")
-* [direct_children()]("/nested-sets-1/reading/direct_children")
+* [children()](/nested-sets-1/reading#childrenlimit-false)
+* [direct_children()](/nested-sets-1/reading#direct_children)

@@ -1,13 +1,18 @@
-###from_hierarchy_array($id, $items, $before_root_persist = null, $before_persist = null)
+### Managing Entire Trees.
+
+Nested sets has methods available to help you manage an entire tree, such as
+mapping standard arrays to Nested sets trees.
 
 ----------
 
+#### from_hierarchy_array($id, $items, $before_root_persist = null, $before_persist = null)
+
 This method takes a set of nested arrays that represent the tree structure and maps them to a Nesty tree.
 
-Parameters                       | Type              | Default       | Description      
-:------------------------------- | :-------------:   | :------------ | :---------------  
+Parameters                       | Type              | Default       | Description
+:------------------------------- | :-------------:   | :------------ | :---------------
 `$key`                           | int \| string     |               | Key of the root Nesty object the tree belongs to
-`$items`                         | array             |               | An array of nested hierarchical items 
+`$items`                         | array             |               | An array of nested hierarchical items
 `$before_root_persist`           | Closure           | null          | Closure (`takes` Nesty root object, `returns` Nesty root object) to manipulate object before it's persisted to the database. Returning false means the changes to the root item aren't persisted.
 `$before_item_persist`           | Closure           | null          | Closure (`takes` Nesty item object, `returns` Nesty item object) to manipulate object before it's persisted to the database. Returning false means the changes to the item item aren't persisted.
 
@@ -22,7 +27,7 @@ The function `returns` Nesty (root item in tree) and `throws` NestyException onl
 		'status' => 1,
 	);
 
-#####Database Table:
+##### Database Table:
 
   id        | name      | slug        | status      | lft          | rgt          | tree_id
   :-------- | :-------- | :---------: | :---------: | :---------:  | :---------:  | :------:
@@ -32,7 +37,7 @@ If the primary key isn't provided, a new item will be persisted to the database 
 
 To nest children, you use a key / value declaration within an item, where `children` is the key, and the value is an array containing children items.
 
-####Example
+##### Example:
 
 	$items = array(
 		array(
@@ -53,7 +58,7 @@ To nest children, you use a key / value declaration within an item, where `child
 
 	$tree = Nesty::from_hierarchy_array(1, $items);
 
-#####Database Table:
+##### Database Table:
 
   id        | name      | lft         | rgt         | tree_id
   :-------- | :-------- | :---------: | :---------: | :------:
@@ -62,7 +67,7 @@ To nest children, you use a key / value declaration within an item, where `child
   3         | Ford      | 4           | 5           | 1
   4         | Toyota    | 6           | 7           | 1
 
-####Example
+##### Example:
 
 	// Let's add to the previous setup
 	$items = array(
@@ -101,7 +106,7 @@ To nest children, you use a key / value declaration within an item, where `child
 
 	$tree = Nesty::from_hierarchy_array(1, $items);
 
-#####Database Table:
+##### Database Table:
 
   id        | name      | lft         | rgt         | tree_id
   :-------- | :-------- | :---------: | :---------: | :------:
@@ -116,7 +121,7 @@ To nest children, you use a key / value declaration within an item, where `child
 
 >**Notes:** `from_hierarchy_array()` maps the provided array with the database. This means if you don't provide an entry in the mapped array that exists in the database, it will be deleted from the database. Be wary of this.
 
-####Example
+##### Example:
 
 	// Let's add to the previous setup
 	$items = array(
@@ -173,7 +178,7 @@ To nest children, you use a key / value declaration within an item, where `child
 		return $item;
 	});
 
-#####Database Table:
+##### Database Table:
 
   id        | name        | lft         | rgt         | tree_id
   :-------- | :--------   | :---------: | :---------: | :------:
@@ -184,5 +189,3 @@ To nest children, you use a key / value declaration within an item, where `child
   6         | Bar Camry   | 7           | 8           | 1
   7         | Bar Celica  | 9           | 10          | 1
   8         | Bar Hilux   | 11          | 12          | 1
-
-----------

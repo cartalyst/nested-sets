@@ -2,8 +2,8 @@
 	"name" : "Nested Sets 1",
 	"type" : "Package",
 	"public" : false,
-	"branch" : "master",
-	"github" : "cartalyst/nested-sets/tree/1.0/master",
+	"branch" : "1.0/master",
+	"github" : "cartalyst/nested-sets",
 	"travis" : false,
 	"demo" : false
 }

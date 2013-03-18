@@ -1,6 +1,12 @@
-###children($limit = false)
+### Reading Nested sets.
+
+In the examples shown below, the models used are based on the typical `Model_Car`
+example shown previously, and each example will use the data created from the
+previous examples, as the methods all-in-all help you build a nested sets tree.
 
 ----------
+
+#### children($limit = false)
 
 The `children` method returns an `array` of children Nesty objects for the Nesty object on which this method was called.
 
@@ -12,13 +18,13 @@ The `children` method returns an `array` of children Nesty objects for the Nesty
 > The only reason you wouldn limit the depth of children found is when you know that you will not be going any deeper down the hierarchy tree. This is to simply save on memory usage and the time taken to hydrate the children property of each Nesty object recursively.
 
 
-Parameters                   | Type            | Default       | Description      
-:--------------------------- | :-------------: | :------------ | :---------------  
+Parameters                   | Type            | Default       | Description
+:--------------------------- | :-------------: | :------------ | :---------------
 `$limit`                     | string          | false         | The depth limit of children to hydrate. `false` (default) returns all children.
 `$columns`                   | array           | array('*')    | Array of columns to select for children. Defaults to all columns.
 
 
-###Examples:
+##### Example:
 
 	// Get ford
 	$ford = Model_Car::find(function($query)
@@ -89,3 +95,14 @@ Parameters                   | Type            | Default       | Description
 	)
 
 ----------
+
+#### direct_children()
+
+The `direct_children` method returns an `array` of children Nesty objects for the Nesty object on which this method was called, where the limit for fetching and hydrating children is 1 level deep. This is purely an alias for `children`.
+
+> <strong>**Notes:**</strong> This method should only be called when you know that you will never need to go more than 1 level deep on recursion. See <a href="#get-children">here</a> for more information.                        |
+
+Parameters                   | Type            | Default       | Description
+:--------------------------- | :-------------: | :------------ | :---------------
+`$columns`                   | array           | array('*')    | Array of columns to select for children. Defaults to all columns.
+
