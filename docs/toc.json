@@ -1,0 +1,10 @@
+{
+    "sections" : [
+        "introduction",
+        "configuration",
+        "cud",
+        "debugging",
+        "reading",
+        "managing_trees"
+    ]
+}
