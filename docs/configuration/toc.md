@@ -1,13 +1,8 @@
-##Chapter II
-####Configuring Nesty package
+## Configuration
 
-Nesty has quite a few configuration options out of the box. We allow for setting Table Name, Primary Key, Validation Rules and thier lables, Default Values,...rewrite this
-
-* [Table Name](#table-name "/manuals/nesty/configuration/table-name")
-* [Primary Key](#primary-key "/manuals/nesty/configuration/primary-key")
-* [Validation Rules](#validation-rules "/manuals/nesty/configuration/validation-rules")
-* [Validation Labels](#validation-labels "/manuals/nesty/configuration/validation-labels")
-* [Nesty Columns](#nesty-columns "/manuals/nesty/configuration/nesty-columns")
-* [Nesty Columns](#nesty-columns "/manuals/nesty/configuration/nesty-columns")
-
-----------
+* [Table Name]("/nested-sets-1/configuration/table-name")
+* [Primary Key]("/nested-sets-1/configuration/primary-key")
+* [Validation Rules]("/nested-sets-1/configuration/validation-rules")
+* [Validation Labels]("/nested-sets-1/configuration/validation-labels")
+* [Nesty Columns]("/nested-sets-1/configuration/nesty-columns")
+* [Nesty Columns]("/nested-sets-1/configuration/nesty-columns")
