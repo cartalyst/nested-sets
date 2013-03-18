@@ -1,3 +1,3 @@
 ## Configuration
 
-* [Configure an Eloquent Node](/nestedsets2/configuration)
+* [Configure an Eloquent Node](/nested-sets-2/configuration)
