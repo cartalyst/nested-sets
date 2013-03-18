@@ -1,6 +1,6 @@
 ## Configuration
 
-* [Table Name]("/nested-sets-1/configuration/table-name")
+* [Table Name]("/nested-sets-1/configuration")
 * [Primary Key]("/nested-sets-1/configuration/primary-key")
 * [Validation Rules]("/nested-sets-1/configuration/validation-rules")
 * [Validation Labels]("/nested-sets-1/configuration/validation-labels")

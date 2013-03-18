@@ -1,6 +1,6 @@
 ##CUD
 
-* [root()]("/nested-sets-1/cud/root")
+* [root()]("/nested-sets-1/cud")
 * [first_child_of()]("/nested-sets-1/cud/first_child_of")
 * [last_child_of()]("/nested-sets-1/cud/last_child_of")
 * [previous_sibling_of()]("/nested-sets-1/cud/previous_sibling_of")
