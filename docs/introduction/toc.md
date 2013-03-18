@@ -1,5 +1,5 @@
 ## Introduction
 
-* [Overview](/nestedsets2/introduction)
-* [Download](/nestedsets2/introduction/download)
-* [About Nested Sets](/nestedsets2/introduction/about)
+* [Overview](/nested-sets-2/introduction)
+* [Download](/nested-sets-2/introduction/download)
+* [About Nested Sets](/nested-sets-2/introduction/about)
