@@ -97,7 +97,11 @@ This is quite frankly, disgusting, inefficient code. What would happen if you wa
 
 Dispite it's horrible name, it's actually a beautiful algorithm and is also known as the **Nested Sets Model**. In the Nested Set Model, we can look at our hierarchy in a new way, not as nodes and lines, but as nested containers. Try picturing our electronics categories this way:
 
-![Nested Categories](http://mikehillyer.com/media//nested_categories.png)
+![Nested Categories - Bubble](https://raw.github.com/cartalyst/nested-sets/master/resources/nested-sets-chart-bubble.png?login=bencorlett&token=693c41f1f8e03be38e9e4527cd53d6b5)
+
+We can see from the above diagram how a parent category contains it's children, and they contain their children and so on. YOu may also notice the pattern with the numbering for the `lft` and `rgt` limits, where each child's `lft` limiit is one greater than it's parent. The same category structure can be represented as a tree:
+
+![Nested Categories - Tree](https://raw.github.com/cartalyst/nested-sets/master/resources/nested-sets-chart-tree.png?login=bencorlett&token=09fe2749898d036012e79a6eacdbf28c)
 
 You can read up on the Nested Sets Model over at [this blog post by Mike Hillyer](http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/). It's a great read.
 
