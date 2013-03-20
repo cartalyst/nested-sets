@@ -1,6 +1,6 @@
 {
 	"name" : "Nested Sets 2",
-	"type" : "Package",
+	"type" : "package",
 	"public" : false,
 	"branch" : "master",
 	"github" : "cartalyst/nested-sets",
