@@ -237,21 +237,6 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function childrenNodes(NodeInterface $node, $depth = 0)
 	{
-		throw new \BadMethodCallException(__METHOD__);
-	}
-
-	/**
-	 * Returns a tree for the given node. If the depth
-	 * is 0, we return all children. If the depth is
-	 * 1 or more, that is how many levels of children
-	 * nodes we recurse through.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  int  $depth
-	 * @return array
-	 */
-	public function tree(NodeInterface $node, $depth = 0)
-	{
 		$attributes = $this->getReservedAttributes();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
@@ -324,12 +309,27 @@ class IlluminateWorker implements WorkerInterface {
 			$query->having('depth', '<=', $depth);
 		}
 
-		$results = $query->get(array("node.*", new Expression(sprintf(
+		return $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
 			$grammar->wrap('sub_tree.depth'),
 			$grammar->wrap('depth')
 		))));
+	}
+
+	/**
+	 * Returns a tree for the given node. If the depth
+	 * is 0, we return all children. If the depth is
+	 * 1 or more, that is how many levels of children
+	 * nodes we recurse through.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function tree(NodeInterface $node, $depth = 0)
+	{
+		$results = $this->childrenNodes($node, $depth);
 
 		return $this->flatResultsToTree($results);
 	}
@@ -347,7 +347,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true)
 	{
-		throw new \BadMethodCallException(__METHOD__);
+
 	}
 
 	/**

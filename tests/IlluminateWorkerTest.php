@@ -397,10 +397,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(4, $worker->depth($node));
 	}
 
-	public function testTree()
+	public function testChildrenNodes()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[flatResultsToTree]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
 		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(3);
@@ -486,8 +485,18 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			return (string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"';
 		}))->once()->andReturn($results = array('foo'));
 
-		$worker->shouldReceive('flatResultsToTree')->with($results)->once()->andReturn('success');
-		$this->assertEquals('success', $worker->tree($node, 2));
+		$this->assertEquals($results, $worker->childrenNodes($node, 2));
+	}
+
+	public function testTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatResultsToTree]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('childrenNodes')->with($node, $depth = 2)->andReturn($results = array('foo'));
+		$worker->shouldReceive('flatResultsToTree')->with($results)->andReturn('success');
+
+		$this->assertEquals('success', $worker->tree($node, $depth));
 	}
 
 	public function testFlatResultsToTree()

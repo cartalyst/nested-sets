@@ -55,6 +55,13 @@ class EloquentNode extends Model implements NodeInterface {
 		// package supports multiple trees within
 		// the one database.
 		'tree'  => 'tree',
+
+		// Attribute used for the depth of the
+		// node when creating hierarchical trees.
+		// Note: This attribute should NOT exist
+		// in your database, it's reserved for
+		// processing only.
+		'depth' => 'depth',
 	);
 
 	/**
