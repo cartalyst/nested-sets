@@ -243,6 +243,7 @@ class IlluminateWorker implements WorkerInterface {
 		$key        = $node->getAttribute($keyName);
 		$tree       = $node->getAttribute($attributes['tree']);
 		$grammar    = $this->connection->getQueryGrammar();
+		$nodes      = array();
 
 		// We will store a query builder object that we
 		// use throughout the course of this method.
@@ -309,12 +310,19 @@ class IlluminateWorker implements WorkerInterface {
 			$query->having('depth', '<=', $depth);
 		}
 
-		return $query->get(array("node.*", new Expression(sprintf(
+		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
 			$grammar->wrap('sub_tree.depth'),
 			$grammar->wrap('depth')
 		))));
+
+		foreach ($results as $result)
+		{
+			$nodes[] = $this->createNode($result);
+		}
+
+		return $nodes;
 	}
 
 	/**
@@ -329,9 +337,9 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function tree(NodeInterface $node, $depth = 0)
 	{
-		$results = $this->childrenNodes($node, $depth);
+		$nodes = $this->childrenNodes($node, $depth);
 
-		return $this->flatResultsToTree($results);
+		return $this->flatNodesToTree($nodes);
 	}
 
 	/**
@@ -347,7 +355,16 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true)
 	{
+		$table      = $this->getTable();
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
 
+		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes)
+		{
+			// $existingKeys = array_walk(array, funcname)
+			// $me->childrenNodes($parent)
+
+		}, $transaction);
 	}
 
 	/**
@@ -832,21 +849,20 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
-	 * Takes a flat array of results (with a special attribute in
-	 * each result) and trasnforms them to a hierachical tree.
+	 * Takes a flat array of nodes and trasnforms them to a hierachical tree.
 	 *
 	 * If the tree generated from the results array has a root node,
 	 * the results is an instance of the root node (where the children
 	 * are accessible through getChildren(). Otherwise, an array of
 	 * results are returned).
 	 *
-	 * @param  array   $results
+	 * @param  array   $nodes
 	 * @param  string  $depthAttribute
 	 * @return mixed
 	 */
-	public function flatResultsToTree(array $results, $depthAttribute = 'depth')
+	public function flatNodesToTree(array $nodes, $depthAttribute = 'depth')
 	{
-		if (count($results) === 0) return array();
+		if (count($nodes) === 0) return array();
 
 		// Tree to return
 		$tree = array();
@@ -861,13 +877,8 @@ class IlluminateWorker implements WorkerInterface {
 		$stackCounter = 0;
 
 		// Loop through the results
-		foreach ($results as $result)
+		foreach ($nodes as $node)
 		{
-			// Create a new node which we will hydrate
-			// with results.
-			$node = $this->baseNode->createNode();
-			$node->setAttributes((array) $result);
-
 			$stackCounter = count($stack);
 
 			// Adjust our stack counter down every time we
@@ -987,6 +998,22 @@ class IlluminateWorker implements WorkerInterface {
 		{
 			$query->insert($node->getAttributes());
 		}
+	}
+
+	/**
+	 * Creates a node with the given attributes.
+	 *
+	 * @param  mixed  $attributes
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 */
+	public function createNode($attributes = array())
+	{
+		// Create a new node which we will hydrate
+		// with results.
+		$node = $this->baseNode->createNode();
+		$node->setAttributes((array) $attributes);
+
+		return $node;
 	}
 
 	/**

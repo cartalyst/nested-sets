@@ -483,25 +483,31 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
 			return (string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"';
-		}))->once()->andReturn($results = array('foo'));
+		}))->once()->andReturn(array('foo'));
 
-		$this->assertEquals($results, $worker->childrenNodes($node, 2));
+		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
+		{
+			return new FlatResultsNode;
+		});
+
+		$this->assertCount(1, $results = $worker->childrenNodes($node, 2));
+		$this->assertInstanceOf('FlatResultsNode', reset($results));
 	}
 
 	public function testTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatResultsToTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatNodesToTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$worker->shouldReceive('childrenNodes')->with($node, $depth = 2)->andReturn($results = array('foo'));
-		$worker->shouldReceive('flatResultsToTree')->with($results)->andReturn('success');
+		$worker->shouldReceive('flatNodesToTree')->with($results)->andReturn('success');
 
 		$this->assertEquals('success', $worker->tree($node, $depth));
 	}
 
-	public function testFlatResultsToTree()
+	public function testflatNodesToTree()
 	{
-		$results = array(
+		$resultsArray = array(
 			array('id' => 1, 'name' => 'Admin',     'lft' => 1, 'rgt' => 14,  'tree' => 1, 'depth' => 0),
 			array('id' => 2, 'name' => 'TVs',       'lft' => 2, 'rgt' => 3,   'tree' => 1, 'depth' => 1),
 			array('id' => 3, 'name' => 'Computers', 'lft' => 4, 'rgt' => 13,  'tree' => 1, 'depth' => 1),
@@ -511,18 +517,21 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			array('id' => 6, 'name' => 'PC',        'lft' => 11, 'rgt' => 12, 'tree' => 1, 'depth' => 2),
 		);
 
+		foreach ($resultsArray as $result)
+		{
+			$node = new FlatResultsNode;
+			$node->setAttributes((array) $result);
+			$nodes[] = $node;
+		}
+
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		// We cannot simple use "andReturn(new FlatResultsNode);" because
 		// that returns the same instance every time, so, instead, we will
 		// return a new instance by taking advantage of "andReturnUsing".
 		$me = $this;
-		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
-		{
-			return new FlatResultsNode;
-		});
 
-		$tree = $worker->flatResultsToTree($results);
+		$tree = $worker->flatNodesToTree($nodes);
 		$this->assertInstanceOf('FlatResultsNode', $tree);
 
 		// This is a big nesting loop which manually checks that our
