@@ -517,6 +517,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			array('id' => 6, 'name' => 'PC',        'lft' => 11, 'rgt' => 12, 'tree' => 1, 'depth' => 2),
 		);
 
+		$nodes = array();
+
 		foreach ($resultsArray as $result)
 		{
 			$node = new FlatResultsNode;
