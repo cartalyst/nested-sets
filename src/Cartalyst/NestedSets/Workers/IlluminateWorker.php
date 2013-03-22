@@ -357,12 +357,21 @@ class IlluminateWorker implements WorkerInterface {
 	{
 		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
+		$keyName    = $this->baseNode->getKeyName();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName)
 		{
-			// $existingKeys = array_walk(array, funcname)
-			// $me->childrenNodes($parent)
+			// Get the existing keys
+			$existingKeys = array_map(function($node) use ($keyName)
+			{
+				return $node->getAttribute($keyName);
+			}, $me->childrenNodes($parent));
+
+			foreach ($nodes as $node)
+			{
+				$this->recursivelyMapNode($node, $parent, $existingKeys);
+			}
 
 		}, $transaction);
 	}
@@ -913,6 +922,69 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Recursively maps a node by making the node the last child of the
+	 * given parent. It is recursive by looping through the node's children
+	 * and invoking this same method for each one of the node's children,
+	 * presenting the node as the parent.
+	 *
+	 * @param  mixed  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+	 * @param  array  $existingKeys
+	 * @return void
+	 */
+	public function recursivelyMapNode($node, NodeInterface $parent, array &$existingKeys = array())
+	{
+		// We will accept arrays and StdClass objects
+		// as parameters, as this method is typically
+		// used for mapping arrays into the tree.
+		if ( ! $node instanceof NodeInterface) $node = $this->createNode($node);
+
+		$keyName = $this->baseNode->getKeyName();
+		$key     = $node->getAttribute($keyName);
+
+		// Check if we have a key for the node and it exists in the database
+		// table.
+		if ($key and ($index = array_search($key, $existingKeys)) !== false)
+		{
+			// We will move the node to be the last child of the parent (which
+			// will keep it's order consistent to the order which it was
+			// in the array).
+			$this->moveNodeAsLastChild($node, $parent, false);
+
+			// We will update the node. Moving nodes around only updates the
+			// appropriate attributes on the database table. This will ensure
+			// that all of the attributes passed to the mapping operation have
+			// been updated.
+			$this->updateNode($node);
+
+			// We will unset the existing key now as this will allow
+			// us to compare what keys are left at the end of the recursive
+			// operation and those keys will be for the nodes which do
+			// not exist now.
+			unset($existingKeys[$index]);
+		}
+		else
+		{
+			// When inserting new nodes as children, all of their attributes
+			// are mapped to the database (thus saving multiple queries on that
+			// operation, where all attributes should be saved [as opposed to
+			// sliding existing nodes around]). This makes our operation here
+			// extremely simple.
+			$this->insertNodeAsLastChild($node, $parent, false);
+		}
+
+		// Now, we will look to see if the node
+		// has children, and if it does, we will loop
+		// through each child and call this same method
+		// recursively, presenting each child as the
+		// node and this node as the parent.
+		foreach ($node->getChildren() as $child)
+		{
+			$this->recursivelyMapNode($child, $node, $existingKeys);
+		}
+	}
+
+	/**
 	 * Returns the table associated with the worker.
 	 *
 	 * @return string
@@ -979,8 +1051,8 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
-	 * Inserts a node in the database (on the given query builder
-	 * object) and upates the node's properties if applicable.
+	 * Inserts a node in the database and upates the node's
+	 * properties if applicable.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Illuminate\Database\Query\Builder  $query
@@ -1001,6 +1073,20 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Updates the given node in the database
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Illuminate\Database\Query\Builder  $query
+	 * @return void
+	 */
+	public function updateNode(NodeInterface $node)
+	{
+		$query = $this->connection->table($this->getTable());
+
+		$query->update($node->getAttributes());
+	}
+
+	/**
 	 * Creates a node with the given attributes.
 	 *
 	 * @param  mixed  $attributes
@@ -1008,10 +1094,21 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function createNode($attributes = array())
 	{
+		$attributes = (array) $attributes;
+
+		// Prepare the node's children
+		$children   = array();
+		if (isset($attributes['children']))
+		{
+			$children = $attributes['children'];
+			unset($attributes['children']);
+		}
+
 		// Create a new node which we will hydrate
 		// with results.
 		$node = $this->baseNode->createNode();
-		$node->setAttributes((array) $attributes);
+		$node->setAttributes($attributes);
+		$node->setChildren($children);
 
 		return $node;
 	}

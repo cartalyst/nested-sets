@@ -24,6 +24,16 @@ use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
 class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	/**
+	 * Setup resources and dependencies.
+	 *
+	 * @return void
+	 */
+	public static function setUpBeforeClass()
+	{
+		require_once __DIR__.'/stubs/NodeStub.php';
+	}
+
+	/**
 	 * Close mockery.
 	 *
 	 * @return void
@@ -487,11 +497,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
 		{
-			return new FlatResultsNode;
+			return new NodeStub;
 		});
 
 		$this->assertCount(1, $results = $worker->childrenNodes($node, 2));
-		$this->assertInstanceOf('FlatResultsNode', reset($results));
+		$this->assertInstanceOf('NodeStub', reset($results));
 	}
 
 	public function testTree()
@@ -505,7 +515,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('success', $worker->tree($node, $depth));
 	}
 
-	public function testflatNodesToTree()
+	public function testFlatNodesToTree()
 	{
 		$resultsArray = array(
 			array('id' => 1, 'name' => 'Admin',     'lft' => 1, 'rgt' => 14,  'tree' => 1, 'depth' => 0),
@@ -521,20 +531,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		foreach ($resultsArray as $result)
 		{
-			$node = new FlatResultsNode;
+			$node = new NodeStub;
 			$node->setAttributes((array) $result);
 			$nodes[] = $node;
 		}
 
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		// We cannot simple use "andReturn(new FlatResultsNode);" because
+		// We cannot simple use "andReturn(new NodeStub);" because
 		// that returns the same instance every time, so, instead, we will
 		// return a new instance by taking advantage of "andReturnUsing".
 		$me = $this;
 
 		$tree = $worker->flatNodesToTree($nodes);
-		$this->assertInstanceOf('FlatResultsNode', $tree);
+		$this->assertInstanceOf('NodeStub', $tree);
 
 		// This is a big nesting loop which manually checks that our
 		// nodes are structured as expected.
@@ -588,6 +598,95 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 					break;
 			}
 		}
+	}
+
+	public function testMapTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$parentNode = $this->getMockNode();
+
+		$nodes = array(
+			array('id' => 1, 'name' => 'Foo'),
+			array('name' => 'Bar'),
+		);
+
+		$existingNodes = array(
+			$existingNode1 = $this->getMockNode(),
+			$existingNode2 = $this->getMockNode(),
+		);
+		$existingNode1->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
+		$existingNode2->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
+
+		$me = $this;
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
+		{
+			$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
+
+			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, array(1, 2))->once();
+			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, array(1, 2))->once();
+
+			$callback($connection);
+
+			return true;
+
+		}), true)->once();
+
+		$worker->mapTree($parentNode, $nodes);
+	}
+
+	public function testRecursivelyMapTree()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$parentNode   = $this->getMockNode();
+		$existingKeys = array(1, 2, 3);
+
+		// Existing node
+		$childNode1 = $this->getMockNode();
+		$childNode1->shouldReceive('getChildren')->once()->andReturn(array());
+		$childNode1->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
+		$worker->shouldReceive('moveNodeAsLastChild')->with($childNode1, $parentNode, false)->once();
+		$worker->shouldReceive('updateNode')->with($childNode1)->once();
+		$worker->recursivelyMapNode($childNode1, $parentNode, $existingKeys);
+		$this->assertEquals(array(1, 3), array_values($existingKeys));
+
+		// New node with key
+		$childNode2 = $this->getMockNode();
+		$childNode2->shouldReceive('getChildren')->once()->andReturn(array());
+		$childNode2->shouldReceive('getAttribute')->with('id')->once()->andReturn(4);
+		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode2, $parentNode, false)->once();
+		$worker->recursivelyMapNode($childNode2, $parentNode, $existingKeys);
+		$this->assertEquals(array(1, 3), array_values($existingKeys));
+
+		// New node without key
+		$childNode3 = $this->getMockNode();
+		$childNode3->shouldReceive('getChildren')->once()->andReturn(array());
+		$childNode3->shouldReceive('getAttribute')->with('id')->once();
+		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode3, $parentNode, false)->once();
+		$worker->recursivelyMapNode($childNode3, $parentNode, $existingKeys);
+		$this->assertEquals(array(1, 3), array_values($existingKeys));
+
+		// Array-based node, also tests
+		// "recursive-ness"
+		$nodeArray = array('id' => 3, 'name' => 'Foo', 'children' => array(array('name' => 'Bar')));
+		$node->shouldReceive('createNode')->twice()->andReturnUsing(function()
+		{
+			return new NodeStub;
+		});
+
+		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck = m::on(function($node)
+		{
+			return $node->getAttributes() == array('id' => 3, 'name' => 'Foo');
+		}), $parentNode, false)->once();
+		$worker->shouldReceive('updateNode')->with($nodeStubCheck)->once();
+
+		$worker->shouldReceive('insertNodeAsLastChild')->with(m::on(function($node)
+		{
+			return $node->getAttributes() == array('name' => 'Bar');
+		}), $nodeStubCheck, false)->once();
+		$worker->recursivelyMapNode($nodeArray, $parentNode, $existingKeys);
 	}
 
 	public function testInsertNodeAsRoot()
@@ -857,27 +956,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node->shouldReceive('getReservedAttribute')->with('tree')->andReturn('tree');
 
 		return $node;
-	}
-
-}
-
-class FlatResultsNode extends Cartalyst\Support\Attributable {
-
-	protected $children = array();
-
-	public function getChildren()
-	{
-		return $this->children;
-	}
-
-	public function setChildAtIndex($child, $index)
-	{
-		$this->children[$index] = $child;
-	}
-
-	public function getChildAtIndex($index)
-	{
-		return (isset($this->children[$index])) ? $this->children[$index] : null;
 	}
 
 }
