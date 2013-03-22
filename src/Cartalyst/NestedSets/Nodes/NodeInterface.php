@@ -92,7 +92,8 @@ interface NodeInterface {
 	/**
 	 * Set all of the current attributes on the node.
 	 *
-	 * @return array
+	 * @param  array  $attributes
+	 * @return void
 	 */
 	public function setAttributes(array $attributes);
 
