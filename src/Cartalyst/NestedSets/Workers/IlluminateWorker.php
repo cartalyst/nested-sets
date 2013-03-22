@@ -365,17 +365,13 @@ class IlluminateWorker implements WorkerInterface {
 			// Get the existing keys
 			$existingKeys = array_map(function($node) use ($keyName)
 			{
-				return $child->getAttribute($keyName);
+				return $node->getAttribute($keyName);
 			}, $me->childrenNodes($parent));
 
 			foreach ($nodes as $node)
 			{
 				$this->recursivelyMapNode($node, $parent, $existingKeys);
 			}
-
-
-			// $existingKeys = array_walk(array, funcname)
-			// $me->childrenNodes($parent)
 
 		}, $transaction);
 	}
@@ -944,8 +940,11 @@ class IlluminateWorker implements WorkerInterface {
 		if ( ! $node instanceof NodeInterface) $node = $this->createNode($node);
 
 		$keyName = $this->baseNode->getKeyName();
+		$key     = $node->getAttribute($keyName);
 
-		if (($index = array_search($node->getAttribute($keyName), $existingKeys)) !== false)
+		// Check if we have a key for the node and it exists in the database
+		// table.
+		if ($key and ($index = array_search($key, $existingKeys)) !== false)
 		{
 			// We will move the node to be the last child of the parent (which
 			// will keep it's order consistent to the order which it was
