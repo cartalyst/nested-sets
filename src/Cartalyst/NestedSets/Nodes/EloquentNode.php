@@ -344,6 +344,18 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Maps a tree of either nodes, arrays of StdClass objects to
+	 * the hierarchy array.
+	 *
+	 * @param  mixed  $nodes
+	 * @return void
+	 */
+	public function mapTree($nodes)
+	{
+		$this->createWorker()->mapTree($this, $nodes);
+	}
+
+	/**
 	 * Presents the node in the given format. If the attribute
 	 * provided is a closure, we will call it, providing every
 	 * single node recursively. You must return a string from
