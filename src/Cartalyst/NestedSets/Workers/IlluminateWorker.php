@@ -1099,7 +1099,11 @@ class IlluminateWorker implements WorkerInterface {
 
 		// Prepare the node's children
 		$children   = array();
-		if (isset($attributes['children'])) $children = $attributes['children'];
+		if (isset($attributes['children']))
+		{
+			$children = $attributes['children'];
+			unset($attributes['children']);
+		}
 
 		// Create a new node which we will hydrate
 		// with results.
