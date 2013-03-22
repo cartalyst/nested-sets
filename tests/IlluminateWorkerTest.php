@@ -24,6 +24,16 @@ use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
 class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	/**
+	 * Setup resources and dependencies.
+	 *
+	 * @return void
+	 */
+	public static function setUpBeforeClass()
+	{
+		require_once __DIR__.'/stubs/NodeStub.php';
+	}
+
+	/**
 	 * Close mockery.
 	 *
 	 * @return void
@@ -487,11 +497,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
 		{
-			return new FlatResultsNode;
+			return new NodeStub;
 		});
 
 		$this->assertCount(1, $results = $worker->childrenNodes($node, 2));
-		$this->assertInstanceOf('FlatResultsNode', reset($results));
+		$this->assertInstanceOf('NodeStub', reset($results));
 	}
 
 	public function testTree()
@@ -521,20 +531,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		foreach ($resultsArray as $result)
 		{
-			$node = new FlatResultsNode;
+			$node = new NodeStub;
 			$node->setAttributes((array) $result);
 			$nodes[] = $node;
 		}
 
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		// We cannot simple use "andReturn(new FlatResultsNode);" because
+		// We cannot simple use "andReturn(new NodeStub);" because
 		// that returns the same instance every time, so, instead, we will
 		// return a new instance by taking advantage of "andReturnUsing".
 		$me = $this;
 
 		$tree = $worker->flatNodesToTree($nodes);
-		$this->assertInstanceOf('FlatResultsNode', $tree);
+		$this->assertInstanceOf('NodeStub', $tree);
 
 		// This is a big nesting loop which manually checks that our
 		// nodes are structured as expected.
@@ -857,27 +867,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node->shouldReceive('getReservedAttribute')->with('tree')->andReturn('tree');
 
 		return $node;
-	}
-
-}
-
-class FlatResultsNode extends Cartalyst\Support\Attributable {
-
-	protected $children = array();
-
-	public function getChildren()
-	{
-		return $this->children;
-	}
-
-	public function setChildAtIndex($child, $index)
-	{
-		$this->children[$index] = $child;
-	}
-
-	public function getChildAtIndex($index)
-	{
-		return (isset($this->children[$index])) ? $this->children[$index] : null;
 	}
 
 }
