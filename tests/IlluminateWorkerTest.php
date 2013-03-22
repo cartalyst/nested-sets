@@ -515,7 +515,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('success', $worker->tree($node, $depth));
 	}
 
-	public function testflatNodesToTree()
+	public function testFlatNodesToTree()
 	{
 		$resultsArray = array(
 			array('id' => 1, 'name' => 'Admin',     'lft' => 1, 'rgt' => 14,  'tree' => 1, 'depth' => 0),
