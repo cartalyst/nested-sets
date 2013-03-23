@@ -1,13 +1,14 @@
 ### Download
 
-You have three options to download Nested Sets 2:
+You have two options to download Nested Sets 2:
 
 * Download with [Composer](http://getcomposer.org)
 * Download from GitHub
 	* Download the `.zip` file
 	* Clone the repository
 
-<p></p>
+> **Note:** To download you need to have valid a Cartalyst.com subscription.
+Click [here](https://www.cartalyst.com/pricing) to obtain your subscription.
 
 ----------
 
