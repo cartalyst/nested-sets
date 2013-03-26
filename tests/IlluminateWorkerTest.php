@@ -474,6 +474,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$query->shouldReceive('mergeBindings')->with(m::type('Illuminate\Database\Query\Builder'))->once();
 
+		$query->shouldReceive('where')->with('node.id', '!=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('node.tree', '=', 3)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('parent.tree', '=', 3)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('sub_parent.tree', '=', 3)->once()->andReturn($query);

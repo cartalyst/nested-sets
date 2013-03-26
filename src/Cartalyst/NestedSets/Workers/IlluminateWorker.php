@@ -297,6 +297,7 @@ class IlluminateWorker implements WorkerInterface {
 		$query->mergeBindings($subQuery);
 
 		$query
+			->where("node.{$keyName}", '!=', $key)
 			->where("node.{$attributes['tree']}", '=', $tree)
 			->where("parent.{$attributes['tree']}", '=', $tree)
 			->where("sub_parent.{$attributes['tree']}", '=', $tree)
