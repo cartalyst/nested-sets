@@ -271,6 +271,16 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Returns the path of the node.
+	 *
+	 * @return array
+	 */
+	public function getPath()
+	{
+		return $this->createWorker()->path($this);
+	}
+
+	/**
 	 * Queries the database for all children for the model.
 	 * Optionally, a depth may be provided.
 	 *
