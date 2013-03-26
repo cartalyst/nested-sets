@@ -46,7 +46,7 @@ class Presenter {
 	 */
 	public function presentAs(NodeInterface $node, $format, $attribute, $depth = 0)
 	{
-
+		throw new \BadMethodCallException(__METHOD__);
 	}
 
 	/**

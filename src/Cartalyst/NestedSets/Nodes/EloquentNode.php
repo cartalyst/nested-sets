@@ -293,6 +293,8 @@ class EloquentNode extends Model implements NodeInterface {
 		{
 			throw new \RuntimeException("Currently cannot make existing node {$this->getKey()} a root item.");
 		}
+
+		$this->createWorker()->insertNodeAsRoot($this);
 	}
 
 	/**
@@ -369,7 +371,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function presentAs($format, $attribute, $depth = 0)
 	{
-		return static::$presenter->presentAs($this, $format, $attribute, $length);
+		return static::$presenter->presentAs($this, $format, $attribute, $depth);
 	}
 
 	/**
@@ -386,7 +388,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function prsesentChildrenAs($format, $attribute, $depth = 0)
 	{
-		return static::$presenter->presentChildrenAs($this, $format, $attribute, $length);
+		return static::$presenter->presentChildrenAs($this, $format, $attribute, $depth);
 	}
 
 	/**
