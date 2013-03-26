@@ -384,7 +384,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 * @param  int  $depth
 	 * @return mixed
 	 */
-	public function prsesentChildrenAs($format, $attribute, $depth = 0)
+	public function presentChildrenAs($format, $attribute, $depth = 0)
 	{
 		return static::$presenter->presentChildrenAs($this, $format, $attribute, $length);
 	}
