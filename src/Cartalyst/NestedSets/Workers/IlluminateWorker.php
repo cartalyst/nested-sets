@@ -1141,8 +1141,8 @@ class IlluminateWorker implements WorkerInterface {
 
 	/**
 	 * Hydrates a node by querying the database for it
-	 * and updating it's attributes from the queried
-	 * record.
+	 * and updating it's reserved attributes from the
+	 * queried record.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @return void
@@ -1163,7 +1163,11 @@ class IlluminateWorker implements WorkerInterface {
 			throw new \RuntimeException("Attempting to hydrate non-existent node [$key].");
 		}
 
-		foreach ((array) $result as $key => $value)
+		// We only want to update the attributes which
+		// affect nested sets.
+		$attributes = array_intersect_key((array) $result, array_flip($attributes));
+
+		foreach ($attributes as $key => $value)
 		{
 			$node->setAttribute($key, $value);
 		}

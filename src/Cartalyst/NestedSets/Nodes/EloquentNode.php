@@ -250,7 +250,7 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
-	 * Refreshes the node's attributes from the database.
+	 * Refreshes the node's reserved attributes from the database.
 	 *
 	 * @return void
 	 */
