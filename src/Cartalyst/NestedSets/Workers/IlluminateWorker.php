@@ -349,8 +349,6 @@ class IlluminateWorker implements WorkerInterface {
 		$left       = $node->getAttribute($attributes['left']);
 
 		return ($right - $left - 1) / 2;
-
-		// return ( / 2) - 1;
 	}
 
 	/**
@@ -398,7 +396,7 @@ class IlluminateWorker implements WorkerInterface {
 
 			foreach ($nodes as $node)
 			{
-				$this->recursivelyMapNode($node, $parent, $existingKeys);
+				$me->recursivelyMapNode($node, $parent, $existingKeys);
 			}
 
 		}, $transaction);

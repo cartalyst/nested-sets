@@ -397,7 +397,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$me = $this;
 		$query->shouldReceive('first')->with(m::on(function($select) use ($me)
 		{
-			$this->assertCount(1, $select);
+			$me->assertCount(1, $select);
 			list($expression) = $select;
 			$me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
