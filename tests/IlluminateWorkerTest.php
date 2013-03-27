@@ -512,9 +512,25 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$worker->shouldReceive('childrenNodes')->with($node1 = $this->getMockNode(), 1)->once()->andReturn(array('foo', 'bar'));
 		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
+		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 
 		$this->assertEquals(2, $worker->childrenCount($node1, 1));
 		$this->assertEquals(3, $worker->childrenCount($node1));
+
+		$node2 = $this->getMockNode();
+		$node2->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
+		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+		$this->assertEquals(0, $worker->childrenCount($node2));
+
+		$node3 = $this->getMockNode();
+		$node3->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(20);
+		$node3->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
+		$this->assertEquals(8, $worker->childrenCount($node3));
+
+		$node4 = $this->getMockNode();
+		$node4->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
+		$node4->shouldReceive('getAttribute')->with('lft')->once()->andReturn(5);
+		$this->assertEquals(1, $worker->childrenCount($node4));
 	}
 
 	public function testTree()

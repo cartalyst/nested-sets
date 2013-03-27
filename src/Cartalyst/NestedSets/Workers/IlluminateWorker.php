@@ -345,8 +345,12 @@ class IlluminateWorker implements WorkerInterface {
 		}
 
 		$attributes = $this->getReservedAttributes();
+		$right      = $node->getAttribute($attributes['right']);
+		$left       = $node->getAttribute($attributes['left']);
 
-		return ($node->getAttribute($attributes['right']) / 2) - 1;
+		return ($right - $left - 1) / 2;
+
+		// return ( / 2) - 1;
 	}
 
 	/**
