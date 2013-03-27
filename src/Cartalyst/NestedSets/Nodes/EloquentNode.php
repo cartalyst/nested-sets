@@ -205,7 +205,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function setAttribute($key, $value)
 	{
-		return parent::setAttribute($key, $value);
+		parent::setAttribute($key, $value);
 	}
 
 	/**
