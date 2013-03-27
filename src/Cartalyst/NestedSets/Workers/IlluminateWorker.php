@@ -972,6 +972,11 @@ class IlluminateWorker implements WorkerInterface {
 		// table.
 		if ($key and ($index = array_search($key, $existingKeys)) !== false)
 		{
+			// Either the person will not have passed through the reserved
+			// attributes or if they have, we want to make sure we reset
+			// them here so our queries work nicely.
+			$this->hydrateNode($node);
+
 			// We will move the node to be the last child of the parent (which
 			// will keep it's order consistent to the order which it was
 			// in the array).

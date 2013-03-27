@@ -665,9 +665,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->mapTree($parentNode, $nodes);
 	}
 
-	public function testRecursivelyMapTree()
+	public function testRecursivelyMapNode()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[hydrateNode,insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 		$parentNode   = $this->getMockNode();
 		$existingKeys = array(1, 2, 3);
@@ -676,6 +676,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$childNode1 = $this->getMockNode();
 		$childNode1->shouldReceive('getChildren')->once()->andReturn(array());
 		$childNode1->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
+		$worker->shouldReceive('hydrateNode')->with($childNode1)->once();
 		$worker->shouldReceive('moveNodeAsLastChild')->with($childNode1, $parentNode, false)->once();
 		$worker->shouldReceive('updateNode')->with($childNode1)->once();
 		$worker->recursivelyMapNode($childNode1, $parentNode, $existingKeys);
@@ -705,10 +706,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			return new NodeStub;
 		});
 
-		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck = m::on(function($node)
+		$worker->shouldReceive('hydrateNode')->with($nodeStubCheck = m::on(function($node)
 		{
 			return $node->getAttributes() == array('id' => 3, 'name' => 'Foo');
-		}), $parentNode, false)->once();
+		}))->once();
+		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck, $parentNode, false)->once();
 		$worker->shouldReceive('updateNode')->with($nodeStubCheck)->once();
 
 		$worker->shouldReceive('insertNodeAsLastChild')->with(m::on(function($node)
