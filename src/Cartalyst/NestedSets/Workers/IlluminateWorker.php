@@ -1099,17 +1099,20 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
-	 * Updates the given node in the database
+	 * Updates the given node in the database.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  Illuminate\Database\Query\Builder  $query
 	 * @return void
 	 */
 	public function updateNode(NodeInterface $node)
 	{
-		$query = $this->connection->table($this->getTable());
+		$keyName = $this->baseNode->getKeyName();
+		$key     = $node->getAttribute($keyName);
 
-		$query->update($node->getAttributes());
+		$this
+			->connection->table($this->getTable())
+			->where($keyName, '=', $key)
+			->update($node->getAttributes());
 	}
 
 	/**
