@@ -505,6 +505,18 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertInstanceOf('NodeStub', reset($results));
 	}
 
+	public function testChildrenCount()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('childrenNodes')->with($node1 = $this->getMockNode(), 1)->once()->andReturn(array('foo', 'bar'));
+		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
+
+		$this->assertEquals(2, $worker->childrenCount($node1, 1));
+		$this->assertEquals(3, $worker->childrenCount($node1));
+	}
+
 	public function testTree()
 	{
 		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatNodesToTree]');

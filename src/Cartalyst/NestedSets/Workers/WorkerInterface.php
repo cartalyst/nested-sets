@@ -102,6 +102,16 @@ interface WorkerInterface {
 	public function childrenNodes(NodeInterface $node, $depth = 0);
 
 	/**
+	 * Returns the count of the children for the given node, with an
+	 * optional depth limit.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $depth
+	 * @return int
+	 */
+	public function childrenCount(NodeInterface $node, $depth = 0);
+
+	/**
 	 * Returns a tree for the given node. If the depth
 	 * is 0, we return all children. If the depth is
 	 * 1 or more, that is how many levels of children

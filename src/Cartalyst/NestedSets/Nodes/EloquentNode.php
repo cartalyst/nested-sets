@@ -236,7 +236,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function findAll()
 	{
-		return static::all();
+		return static::all()->all();
 	}
 
 	/**
@@ -281,9 +281,21 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Returns the cound of children for the model.
+	 *
+	 * @param  int  $depth
+	 * @return int
+	 */
+	public function getChildrenCount($depth = 0)
+	{
+		return $this->createWorker()->childrenCount($this, $depth);
+	}
+
+	/**
 	 * Queries the database for all children for the model.
 	 * Optionally, a depth may be provided.
 	 *
+	 * @param   int  $depth
 	 * @return  array
 	 */
 	public function findChildren($depth = 0)

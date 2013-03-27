@@ -327,6 +327,29 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Returns the count of the children for the given node, with an
+	 * optional depth limit.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  int  $depth
+	 * @return int
+	 */
+	public function childrenCount(NodeInterface $node, $depth = 0)
+	{
+		// We will only use our complex query if the depth
+		// is being limited. Otherwise, we can save on some
+		// overhead.
+		if ($depth > 0)
+		{
+			return count($this->childrenNodes($node, $depth));
+		}
+
+		$attributes = $this->getReservedAttributes();
+
+		return ($node->getAttribute($attributes['right']) / 2) - 1;
+	}
+
+	/**
 	 * Returns a tree for the given node. If the depth
 	 * is 0, we return all children. If the depth is
 	 * 1 or more, that is how many levels of children
