@@ -36,8 +36,6 @@
 	"require-dev": {
 		"mockery/mockery": "0.7.2",
 
-		"cartalyst/support": "1.0.*",
-
 		"illuminate/database": "4.0.*"
 	},
 	"suggest": {
