@@ -37,7 +37,7 @@ class Presenter {
 	 * your closure which will be used as the output for that
 	 * node when presenting.
 	 *
-	 * @param  Cartalyst\Sentry\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  string  $format
 	 * @param  string|Closure  $attribute
 	 * @param  int  $depth
@@ -56,7 +56,7 @@ class Presenter {
 	 * must return a string from your closure which will be
 	 * used as the output for that node when presenting.
 	 *
-	 * @param  Cartalyst\Sentry\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  string  $format
 	 * @param  string|Closure  $attribute
 	 * @param  int  $depth

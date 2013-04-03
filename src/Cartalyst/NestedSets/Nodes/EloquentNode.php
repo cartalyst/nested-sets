@@ -74,7 +74,7 @@ class EloquentNode extends Model implements NodeInterface {
 	/**
 	 * The presenter instance.
 	 *
-	 * @var Cartalyst\Sentry\Presenter
+	 * @var Cartalyst\NestedSets\Presenter
 	 */
 	protected static $presenter;
 

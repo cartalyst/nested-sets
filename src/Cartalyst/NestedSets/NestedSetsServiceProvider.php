@@ -1,6 +1,6 @@
-<?php namespace Cartalyst\Sentry;
+<?php namespace Cartalyst\NestedSets;
 /**
- * Part of the Sentry package.
+ * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
  *
@@ -10,7 +10,7 @@
  * bundled with this package in the LICENSE file.  It is also available at
  * the following URL: http://www.opensource.org/licenses/BSD-3-Clause
  *
- * @package    Sentry
+ * @package    Nested Sets
  * @version    2.0.0
  * @author     Cartalyst LLC
  * @license    BSD License (3-clause)
@@ -21,7 +21,7 @@
 use Cartalyst\NestedSets\Nodes\EloquentNode;
 use Illuminate\Support\ServiceProvider;
 
-class SentryServiceProvider extends ServiceProvider {
+class NestedSetsServiceProvider extends ServiceProvider {
 
 	/**
 	 * Boot the service provider.
@@ -44,11 +44,11 @@ class SentryServiceProvider extends ServiceProvider {
 	}
 
 	/**
-	 * Register the hasher used by Sentry.
+	 * Register the presenter.
 	 *
 	 * @return void
 	 */
-	protected function registerHasher()
+	protected function registerPresenter()
 	{
 		$this->app['nested.sets.presenter'] = $this->app->share(function($app)
 		{
