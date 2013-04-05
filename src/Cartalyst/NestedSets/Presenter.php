@@ -67,7 +67,7 @@ class Presenter {
 	{
 		$present = array();
 
-		$node->hydrateChildren();
+		$node->findChildren();
 		foreach ($node->getChildren() as $child)
 		{
 			$extracted = $this->extractPresentable($child, $attribute);

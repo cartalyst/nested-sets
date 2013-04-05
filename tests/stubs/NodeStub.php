@@ -18,7 +18,11 @@
  * @link       http://cartalyst.com
  */
 
-class NodeStub extends Cartalyst\Support\Attributable implements Cartalyst\NestedSets\Nodes\NodeInterface {
+use Cartalyst\NestedSets\Nodes\NodeInterface;
+
+class NodeStub implements NodeInterface {
+
+	protected $attributes = array();
 
 	protected $children = array();
 
@@ -115,28 +119,35 @@ class NodeStub extends Cartalyst\Support\Attributable implements Cartalyst\Neste
 	 */
 	public function getAttributes()
 	{
-		return parent::getAttributes();
+		return $this->attributes;
 	}
 
 	/**
 	 * Set all of the current attributes on the node.
 	 *
-	 * @return array
+	 * @param  array  $attributes
+	 * @return void
 	 */
 	public function setAttributes(array $attributes)
 	{
-		return parent::setAttributes($attributes);
+		$this->attributes = $attributes;
 	}
 
 	/**
 	 * Get an attribute from the model.
 	 *
 	 * @param  string  $key
+	 * @param  mixed   $default
 	 * @return mixed
 	 */
-	public function getAttribute($key)
+	public function getAttribute($key, $default = null)
 	{
-		return parent::getAttribute($key);
+		if (array_key_exists($key, $this->attributes))
+		{
+			return $this->attributes[$key];
+		}
+
+		return value($default);
 	}
 
 	/**
@@ -148,7 +159,7 @@ class NodeStub extends Cartalyst\Support\Attributable implements Cartalyst\Neste
 	 */
 	public function setAttribute($key, $value)
 	{
-		parent::setAttribute($key, $value);
+		$this->attributes[$key] = $value;
 	}
 
 	/**
@@ -190,6 +201,51 @@ class NodeStub extends Cartalyst\Support\Attributable implements Cartalyst\Neste
 	public function createNode()
 	{
 		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+	}
+
+	/**
+	 * Dynamically retrieve attributes on the object.
+	 *
+	 * @param  string  $key
+	 * @return mixed
+	 */
+	public function __get($key)
+	{
+		return $this->getAttribute($key);
+	}
+
+	/**
+	 * Dynamically set attributes on the object.
+	 *
+	 * @param  string  $key
+	 * @param  mixed   $value
+	 * @return void
+	 */
+	public function __set($key, $value)
+	{
+		$this->setAttribute($key, $value);
+	}
+
+	/**
+	 * Determine if an attribute exists on the object.
+	 *
+	 * @param  string  $key
+	 * @return void
+	 */
+	public function __isset($key)
+	{
+		return isset($this->attributes[$key]);
+	}
+
+	/**
+	 * Unset an attribute on the object.
+	 *
+	 * @param  string  $key
+	 * @return void
+	 */
+	public function __unset($key)
+	{
+		unset($this->attributes[$key]);
 	}
 
 }
