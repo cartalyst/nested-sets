@@ -374,7 +374,7 @@ class IlluminateWorker implements WorkerInterface {
 	 * to create a whole new tree structure or simply to re-order
 	 * a tree.
 	 *
-	 * @param  NodeInterface   $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
 	 * @param  array  $nodes
 	 * @param  bool  $transaction
 	 * @return array
@@ -388,16 +388,23 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName)
 		{
+			// Grab all exstiging child nodes. We'll reduce these through the
+			// recursive mapping process. Whatever children are left-over
+			// should then be deleted.
+			$existingNodes = $me->childrenNodes($parent);
+
 			// Get the existing keys
 			$existingKeys = array_map(function($node) use ($keyName)
 			{
 				return $node->getAttribute($keyName);
-			}, $me->childrenNodes($parent));
+			}, $childrenNodes);
 
 			foreach ($nodes as $node)
 			{
 				$me->recursivelyMapNode($node, $parent, $existingKeys);
 			}
+
+			// Now we've recursively mapped
 
 		}, $transaction);
 	}
@@ -405,7 +412,7 @@ class IlluminateWorker implements WorkerInterface {
 	/**
 	 * Makes a new node a root node.
 	 *
-	 * @param  NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -432,8 +439,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Inserts the given node as the first child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -470,8 +477,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Inserts the given node as the last child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -508,8 +515,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Inserts the given node as the previous sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -547,8 +554,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Inserts the given node as the next sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -583,7 +590,7 @@ class IlluminateWorker implements WorkerInterface {
 	/**
 	 * Makes the given node a root node.
 	 *
-	 * @param  NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -596,8 +603,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Moves the given node as the first child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -630,8 +637,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Moves the given node as the last child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -664,8 +671,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Moves the given node as the previous sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -698,8 +705,8 @@ class IlluminateWorker implements WorkerInterface {
 	 * Moves the given node as the next sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -726,6 +733,82 @@ class IlluminateWorker implements WorkerInterface {
 			$me->hydrateNode($sibling);
 
 		}, $transaction);
+	}
+
+	/**
+	 * Removes a node from the database and orphans
+	 * it's children.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function deleteNode(NodeInterface $node)
+	{
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
+		$keyName    = $this->baseNode->getKeyName();
+		$key        = $node->getAttribute($keyName);
+
+		// Firstly, if a node is a "root" node, we cannot
+		// orphan it's children, where would they go?
+		if ($node->getAttribute($attributes['left']) == 1)
+		{
+			throw new \RuntimeException("Cannot delete node [$key] and orphan it's children as it is root.");
+		}
+
+		$this->dynamicQuery(function($connection) use ($me, $node, $keyName, $key, $attributes)
+		{
+			// Firstly, we'll simply delete the node from the database
+			$me
+				->connection->table($me->getTable())
+				->where($keyName, '=', $key)
+				->delete();
+
+			$tree = $node->getAttribute($attributes['tree']);
+
+			// Now, we need to make a negative gap of "1"
+			// for all items between the parent's left and
+			// right limits so that the left limit which
+			// the parent held is removed.
+			$me->removeGap($node->getAttribute($attributes['left']) + 1, 1, $tree);
+
+			// And now we'll move every node outside of the
+			// tree one more to the left so the right limit
+			// which the parent held is also removed. Our
+			// hierarchy is now pure.
+			$me->removeGap($node->getAttribute($attributes['right']) + 1, 1, $tree);
+		});
+	}
+
+	/**
+	 * Removes a node from the database and all of
+	 * it's children.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function deleteNodeWithChildren(NodeInterface $node)
+	{
+		$attributes = $this->getReservedAttributes();
+		$me         = $this;
+
+		$this->dynamicQuery(function($connection) use ($me, $node, $attributes)
+		{
+			// Firstly, we want to slide our node ouf ot the tree
+			// so that the rest of the tree remains intact once we
+			// remove our node and it's children.
+			$me->slideNodeOutOfTree($node);
+
+			// Now, we want to simply remove all of the nodes
+			// who reside between the limits of the node we're
+			// deleting.
+			$me
+				->connection->table($me->getTable())
+				->where($attributes['left'], '>=', $node->getAttribute($attributes['left']))
+				->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
+				->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
+				->delete();
+		});
 	}
 
 	/**
@@ -1146,6 +1229,8 @@ class IlluminateWorker implements WorkerInterface {
 
 		return $node;
 	}
+
+	//
 
 	/**
 	 * Hydrates a node by querying the database for it

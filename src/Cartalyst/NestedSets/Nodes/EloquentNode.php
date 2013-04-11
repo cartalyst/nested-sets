@@ -250,6 +250,31 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Delete the model from the database and orphan
+	 * it's children.
+	 *
+	 * @return void
+	 */
+	public function delete()
+	{
+		if ($this->exists)
+		{
+
+		}
+	}
+
+	/**
+	 * Delete the model from the database and also
+	 * all of it's children.
+	 *
+	 * @return void
+	 */
+	public function deleteWithChildren()
+	{
+
+	}
+
+	/**
 	 * Refreshes the node's reserved attributes from the database.
 	 *
 	 * @return void

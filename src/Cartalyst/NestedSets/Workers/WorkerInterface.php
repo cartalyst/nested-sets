@@ -129,7 +129,7 @@ interface WorkerInterface {
 	 * to create a whole new tree structure or simply to re-order
 	 * a tree.
 	 *
-	 * @param  NodeInterface   $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
 	 * @param  array  $nodes
 	 * @param  bool  $transaction
 	 * @return array
@@ -139,7 +139,7 @@ interface WorkerInterface {
 	/**
 	 * Makes a new node a root node.
 	 *
-	 * @param  NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -149,8 +149,8 @@ interface WorkerInterface {
 	 * Inserts the given node as the first child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -160,8 +160,8 @@ interface WorkerInterface {
 	 * Inserts the given node as the last child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -171,8 +171,8 @@ interface WorkerInterface {
 	 * Inserts the given node as the previous sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -182,8 +182,8 @@ interface WorkerInterface {
 	 * Inserts the given node as the next sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -192,7 +192,7 @@ interface WorkerInterface {
 	/**
 	 * Makes the given node a root node.
 	 *
-	 * @param  NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -202,8 +202,8 @@ interface WorkerInterface {
 	 * Moves the given node as the first child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -213,8 +213,8 @@ interface WorkerInterface {
 	 * Moves the given node as the last child of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $parent
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -224,8 +224,8 @@ interface WorkerInterface {
 	 * Moves the given node as the previous sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
@@ -235,11 +235,29 @@ interface WorkerInterface {
 	 * Moves the given node as the next sibling of
 	 * the parent node. Updates node attributes as well.
 	 *
-	 * @param  NodeInterface  $node
-	 * @param  NodeInterface  $sibling
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
 	 * @param  bool  $transaction
 	 * @return void
 	 */
 	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true);
+
+	/**
+	 * Removes a node from the database and orphans
+	 * it's children.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function deleteNode(NodeInterface $node);
+
+	/**
+	 * Removes a node from the database and all of
+	 * it's children.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function deleteNodeWithChildren(NodeInterface $node);
 
 }
