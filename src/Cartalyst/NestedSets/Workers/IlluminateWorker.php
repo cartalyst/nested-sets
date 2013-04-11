@@ -740,23 +740,25 @@ class IlluminateWorker implements WorkerInterface {
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNode(NodeInterface $node)
+	public function deleteNode(NodeInterface $node, $transaction = true)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
+		$left       = $node->getAttribute($attributes['left']);
 
 		// Firstly, if a node is a "root" node, we cannot
 		// orphan it's children, where would they go?
-		if ($node->getAttribute($attributes['left']) == 1)
+		if ($left == 1)
 		{
 			throw new \RuntimeException("Cannot delete node [$key] and orphan it's children as it is root.");
 		}
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $keyName, $key, $attributes)
+		$this->dynamicQuery(function($connection) use ($me, $node, $keyName, $key, $left, $attributes)
 		{
 			// Firstly, we'll simply delete the node from the database
 			$me
@@ -770,14 +772,14 @@ class IlluminateWorker implements WorkerInterface {
 			// for all items between the parent's left and
 			// right limits so that the left limit which
 			// the parent held is removed.
-			$me->removeGap($node->getAttribute($attributes['left']) + 1, 1, $tree);
+			$me->removeGap($left + 1, 1, $tree);
 
 			// And now we'll move every node outside of the
 			// tree one more to the left so the right limit
 			// which the parent held is also removed. Our
 			// hierarchy is now pure.
 			$me->removeGap($node->getAttribute($attributes['right']) + 1, 1, $tree);
-		});
+		}, $transaction);
 	}
 
 	/**
@@ -785,9 +787,10 @@ class IlluminateWorker implements WorkerInterface {
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNodeWithChildren(NodeInterface $node)
+	public function deleteNodeWithChildren(NodeInterface $node, $transaction = true)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
@@ -808,7 +811,7 @@ class IlluminateWorker implements WorkerInterface {
 				->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
 				->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
 				->delete();
-		});
+		}, $transaction);
 	}
 
 	/**

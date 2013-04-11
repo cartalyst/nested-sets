@@ -247,17 +247,19 @@ interface WorkerInterface {
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNode(NodeInterface $node);
+	public function deleteNode(NodeInterface $node, $transaction = true);
 
 	/**
 	 * Removes a node from the database and all of
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNodeWithChildren(NodeInterface $node);
+	public function deleteNodeWithChildren(NodeInterface $node, $transaction = true);
 
 }

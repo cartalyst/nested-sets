@@ -629,41 +629,41 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}
 	}
 
-	public function testMapTree()
-	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+	// public function testMapTree()
+	// {
+	// 	$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode]');
+	// 	$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$parentNode = $this->getMockNode();
+	// 	$parentNode = $this->getMockNode();
 
-		$nodes = array(
-			array('id' => 1, 'name' => 'Foo'),
-			array('name' => 'Bar'),
-		);
+	// 	$nodes = array(
+	// 		array('id' => 1, 'name' => 'Foo'),
+	// 		array('name' => 'Bar'),
+	// 	);
 
-		$existingNodes = array(
-			$existingNode1 = $this->getMockNode(),
-			$existingNode2 = $this->getMockNode(),
-		);
-		$existingNode1->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
-		$existingNode2->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
+	// 	$existingNodes = array(
+	// 		$existingNode1 = $this->getMockNode(),
+	// 		$existingNode2 = $this->getMockNode(),
+	// 	);
+	// 	$existingNode1->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
+	// 	$existingNode2->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
 
-		$me = $this;
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
-		{
-			$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
+	// 	$me = $this;
+	// 	$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
+	// 	{
+	// 		$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
 
-			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, array(1, 2))->once();
-			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, array(1, 2))->once();
+	// 		$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, array(1, 2))->once();
+	// 		$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, array(1, 2))->once();
 
-			$callback($connection);
+	// 		$callback($connection);
 
-			return true;
+	// 		return true;
 
-		}), true)->once();
+	// 	}), true)->once();
 
-		$worker->mapTree($parentNode, $nodes);
-	}
+	// 	$worker->mapTree($parentNode, $nodes);
+	// }
 
 	public function testRecursivelyMapNode()
 	{
@@ -960,6 +960,62 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}), true)->once();
 
 		$worker->moveNodeAsNextSibling($node, $siblingNode);
+	}
+
+	public function testDeleteNode()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,removeGap]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
+		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		{
+			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+			$query->shouldReceive('where')->with('id', '=', 3)->once()->andReturn($query);
+			$query->shouldReceive('delete')->once();
+
+			$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+			$worker->shouldReceive('removeGap')->with(3, 1, 1)->once();
+
+			$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(5);
+			$worker->shouldReceive('removeGap')->with(6, 1, 1)->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->deleteNode($node);
+	}
+
+	public function testDeleteNodeWithChildren()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		{
+			$worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
+
+			$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+			$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(5);
+			$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+
+			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+			$query->shouldReceive('where')->with('lft', '>=', 2)->once()->andReturn($query);
+			$query->shouldReceive('where')->with('rgt', '<=', 5)->once()->andReturn($query);
+			$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
+			$query->shouldReceive('delete')->once();
+
+			$callback($connection);
+
+			return true;
+		}), true)->once();
+
+		$worker->deleteNodeWithChildren($node);
 	}
 
 	protected function getMockConnection()
