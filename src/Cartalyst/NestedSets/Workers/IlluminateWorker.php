@@ -393,18 +393,19 @@ class IlluminateWorker implements WorkerInterface {
 			// should then be deleted.
 			$existingNodes = $me->childrenNodes($parent);
 
-			// Get the existing keys
-			$existingKeys = array_map(function($node) use ($keyName)
-			{
-				return $node->getAttribute($keyName);
-			}, $childrenNodes);
-
+			// Loop through nodes and recursively map them in the database
 			foreach ($nodes as $node)
 			{
-				$me->recursivelyMapNode($node, $parent, $existingKeys);
+				$me->recursivelyMapNode($node, $parent, $existingNodes);
 			}
 
-			// Now we've recursively mapped
+			// Now we've recursively mapped the nodes, the leftover
+			// nodes were not mapped at all. These should be deleted
+			// from the database now.
+			foreach ($existingNodes as $existingNode)
+			{
+				$me->deleteNode($existingNode, false);
+			}
 
 		}, $transaction);
 	}
@@ -1041,10 +1042,10 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  mixed  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-	 * @param  array  $existingKeys
+	 * @param  array  $existingNodes
 	 * @return void
 	 */
-	public function recursivelyMapNode($node, NodeInterface $parent, array &$existingKeys = array())
+	public function recursivelyMapNode($node, NodeInterface $parent, array &$existingNodes = array())
 	{
 		// We will accept arrays and StdClass objects
 		// as parameters, as this method is typically
@@ -1054,10 +1055,15 @@ class IlluminateWorker implements WorkerInterface {
 		$keyName = $this->baseNode->getKeyName();
 		$key     = $node->getAttribute($keyName);
 
-		// Check if we have a key for the node and it exists in the database
-		// table.
-		if ($key and ($index = array_search($key, $existingKeys)) !== false)
+		$matched = false;
+
+		foreach ($existingNodes as $index => $existingNode)
 		{
+			// We will need to determine if we're dealing with an existing node
+			// or creating a new one. We do this by filtering the existing nodes
+			// for the target node.
+			if ($existingNode->getAttribute($keyName) != $key) continue;
+
 			// Either the person will not have passed through the reserved
 			// attributes or if they have, we want to make sure we reset
 			// them here so our queries work nicely.
@@ -1078,9 +1084,15 @@ class IlluminateWorker implements WorkerInterface {
 			// us to compare what keys are left at the end of the recursive
 			// operation and those keys will be for the nodes which do
 			// not exist now.
-			unset($existingKeys[$index]);
+			unset($existingNodes[$index]);
+
+			// Break our loop so that we don't continually test other nodes.
+			$matched = true;
+			break;
 		}
-		else
+
+		// If we have not matched any existing nodes, we'll craete one
+		if ( ! $matched)
 		{
 			// When inserting new nodes as children, all of their attributes
 			// are mapped to the database (thus saving multiple queries on that
@@ -1097,7 +1109,8 @@ class IlluminateWorker implements WorkerInterface {
 		// node and this node as the parent.
 		foreach ($node->getChildren() as $child)
 		{
-			$this->recursivelyMapNode($child, $node, $existingKeys);
+			// var_dump($child->getAttributes());
+			$this->recursivelyMapNode($child, $node, $existingNodes);
 		}
 	}
 
