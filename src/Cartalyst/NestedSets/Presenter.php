@@ -85,6 +85,14 @@ class Presenter {
 		return $this->{'presentArrayAs'.ucfirst($format)}($present);
 	}
 
+	/**
+	 * Extracts the presentable data from a node by the given
+	 * dynamic attribute.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  mixed  $attribute
+	 * @return mixed
+	 */
 	public function extractPresentable(NodeInterface $node, $attribute)
 	{
 		if ($attribute instanceof Closure) return $attribute($node);
@@ -92,29 +100,51 @@ class Presenter {
 		return $node->getAttribute($attribute);
 	}
 
+	/**
+	 * Presents the given array as an array.
+	 *
+	 * @param  array  $present
+	 * @return array  $present
+	 */
 	public function presentArrayAsArray(array $present)
 	{
 		return $present;
 	}
 
+	/**
+	 * Presents the given array as an unordered HTML list.
+	 *
+	 * @param  array  $present
+	 * @return array  $present
+	 */
 	public function presentArrayAsUl(array $present)
 	{
 		return $this->presentArrayAsList($present, 'ul');
 	}
 
+	/**
+	 * Presents the given array as an ordered HTML list.
+	 *
+	 * @param  array  $present
+	 * @return array  $present
+	 */
 	public function presentArrayAsOl(array $present)
 	{
 		return $this->presentArrayAsList($present, 'ol');
 	}
 
+	/**
+	 * Presents the given array as the given HTML list.
+	 *
+	 * @param  array   $present
+	 * @param  string  $type
+	 * @return array   $present
+	 */
 	protected function presentArrayAsList(array $present, $type = 'ul')
 	{
 		$html = '';
 
-		if (count($present) == 0)
-		{
-			return $html;
-		}
+		if (count($present) == 0) return $html;
 
 		foreach ($present as $key => $value)
 		{
