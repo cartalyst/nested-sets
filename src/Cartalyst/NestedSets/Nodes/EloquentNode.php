@@ -509,7 +509,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public static function getPresenter()
 	{
-		return static::presenter();
+		return static::$presenter;
 	}
 
 	/**
@@ -520,6 +520,30 @@ class EloquentNode extends Model implements NodeInterface {
 	public static function unsetPresenter()
 	{
 		static::$presenter = null;
+	}
+
+	/**
+	 * Handle dynamic method calls into the method.
+	 *
+	 * @param  string  $method
+	 * @param  array   $parameters
+	 * @return mixed
+	 */
+	public function __call($method, $parameters)
+	{
+		// Account for dynamic calls to a the presenter instance
+		if (starts_with($method, 'presentAs'))
+		{
+			array_unshift($parameters, lcfirst(substr($method, 9)));
+			return call_user_func_array(array($this, 'presentAs'), $parameters);
+		}
+		if (starts_with($method, 'presentChildrenAs'))
+		{
+			array_unshift($parameters, lcfirst(substr($method, 17)));
+			return call_user_func_array(array($this, 'presentChildrenAs'), $parameters);
+		}
+
+		return parent::__call($method, $parameters);
 	}
 
 }

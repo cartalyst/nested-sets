@@ -31,6 +31,7 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 	public function tearDown()
 	{
 		m::close();
+		Node::unsetPresenter();
 	}
 
 	public function testChildrenManipulation()
@@ -56,6 +57,20 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 		$this->addMockConnection($node);
 		$node->setWorker('DummyWorker');
 		$this->assertInstanceOf('DummyWorker', $node->createWorker());
+	}
+
+	public function testPresenter()
+	{
+		$this->assertNull(Node::getPresenter());
+		Node::setPresenter($presenter = m::mock('Cartalyst\NestedSets\Presenter'));
+		$this->assertEquals($presenter, Node::getPresenter());
+
+		$node = new Node;
+		$presenter->shouldReceive('presentAs')->with($node, 'foo', 'bar', 0)->once()->andReturn('success');
+		$this->assertEquals('success', $node->presentAs('foo', 'bar'));
+
+		$presenter->shouldReceive('presentAs')->with($node, 'baz', 'qux', 2)->once()->andReturn('success');
+		$this->assertEquals('success', $node->presentAsBaz('qux', 2));
 	}
 
 	protected function addMockConnection($model)
