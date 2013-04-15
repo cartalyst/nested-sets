@@ -54,6 +54,8 @@ right                        | string          | rgt           | The right-hand 
 name                         | string          | name          | The name property for a Nested sets object. Typically used for the label of a Nested sets object when displaying.
 tree                         | string          | tree_id       | The tree identifier for a Nested sets object. (Nested sets supports multiple trees in one table)
 
+> **Notes:** The `lft`, `rgt` and `tree_id` columns (or what you configure them to be) should be integers in the database. Also, you should consider adding a unique key acrsos the three columns to ensure data integrity.
+
 
 ##### Example of a typical Nested sets Model:
 
