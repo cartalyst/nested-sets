@@ -259,7 +259,7 @@ class EloquentNode extends Model implements NodeInterface {
 	{
 		if ($this->exists)
 		{
-
+			$this->createWorker()->deleteNode($this);
 		}
 	}
 
@@ -271,7 +271,10 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function deleteWithChildren()
 	{
-
+		if ($this->exists)
+		{
+			$this->createWorker()->deleteNodeWithChildren($this);
+		}
 	}
 
 	/**
