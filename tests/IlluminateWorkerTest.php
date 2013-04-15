@@ -407,6 +407,31 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(4, $worker->depth($node));
 	}
 
+	public function testParentNode()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
+		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
+		$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
+		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+
+		$node->shouldReceive('createNode')->andReturnUsing(function()
+		{
+			return new NodeStub;
+		});
+
+		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+		$query->shouldReceive('where')->with('lft', '<', 2)->once()->andReturn($query);
+		$query->shouldReceive('where')->with('rgt', '>', 3)->once()->andReturn($query);
+		$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
+		$query->shouldReceive('orderBy')->with('lft', 'desc')->once()->andReturn($query);
+		$query->shouldReceive('first')->once()->andReturn(array('foo' => 'bar'));
+
+		$this->assertInstanceOf('NodeStub', $parentNode = $worker->parentNode($node));
+		$this->assertEquals(array('foo' => 'bar'), $parentNode->getAttributes());
+	}
+
 	public function testChildrenNodes()
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
@@ -496,7 +521,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			return (string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"';
 		}))->once()->andReturn(array('foo'));
 
-		$node->shouldReceive('createNode')->andReturnUsing(function() use ($me)
+		$node->shouldReceive('createNode')->andReturnUsing(function()
 		{
 			return new NodeStub;
 		});

@@ -90,6 +90,14 @@ interface WorkerInterface {
 	public function relativeDepth(NodeInterface $node, NodeInterface $parentNode);
 
 	/**
+	 * Returns the parnet node for the given node.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+	 */
+	public function parentNode(NodeInterface $node);
+
+	/**
 	 * Returns all children for the given node in a flat
 	 * array. If the depth is 1 or more, that is how many
 	 * levels of children we recurse through to put into

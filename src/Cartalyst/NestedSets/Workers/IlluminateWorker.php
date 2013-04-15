@@ -226,6 +226,42 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Returns the parnet node for the given node.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+	 */
+	public function parentNode(NodeInterface $node)
+	{
+		$attributes = $this->getReservedAttributes();
+		$table      = $this->getTable();
+		$keyName    = $this->baseNode->getKeyName();
+		$key        = $node->getAttribute($keyName);
+		$left       = $node->getAttribute($attributes['left']);
+
+		// If we are a root node, we obviously won't have a parent.
+		// This method should never be called on root nodes.
+		if ($left == 1)
+		{
+			throw new \RuntimeException("Node [$key] has no parent as it is a root node.");
+		}
+
+		// To find the parent, we'll query the database for all
+		// nodes who's limits are outside our node. We'll
+		// grab the one with the largest left limit as this is
+		// our closest parent.
+		$result = $this
+			->connection->table($table)
+			->where($attributes['left'], '<', $left)
+			->where($attributes['right'], '>', $node->getAttribute($attributes['right']))
+			->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
+			->orderBy($attributes['left'], 'desc')
+			->first();
+
+		return $this->createNode($result);
+	}
+
+	/**
 	 * Returns all children for the given node in a flat
 	 * array. If the depth is 1 or more, that is how many
 	 * levels of children we recurse through to put into

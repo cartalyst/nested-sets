@@ -309,6 +309,16 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Returns the parent for the node.
+	 *
+	 * @return Cartalyst\NestedSets\Nodes\EloquentNode
+	 */
+	public function getParent()
+	{
+		return $this->createWorker()->parentNode($this);
+	}
+
+	/**
 	 * Returns the cound of children for the model.
 	 *
 	 * @param  int  $depth
