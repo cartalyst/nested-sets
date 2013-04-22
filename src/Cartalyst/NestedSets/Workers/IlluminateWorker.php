@@ -440,7 +440,7 @@ class IlluminateWorker implements WorkerInterface {
 			// from the database now.
 			foreach ($existingNodes as $existingNode)
 			{
-				$me->deleteNode($existingNode, false);
+				$me->deleteNodeWithChildren($existingNode, false);
 			}
 
 		}, $transaction);
