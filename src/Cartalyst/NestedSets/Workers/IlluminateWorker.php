@@ -844,7 +844,8 @@ class IlluminateWorker implements WorkerInterface {
 			// who reside between the limits of the node we're
 			// deleting.
 			$me
-				->connection->table($me->getTable())
+				->getConnection()
+				->table($me->getTable())
 				->where($attributes['left'], '>=', $node->getAttribute($attributes['left']))
 				->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
 				->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
