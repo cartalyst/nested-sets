@@ -799,7 +799,8 @@ class IlluminateWorker implements WorkerInterface {
 		{
 			// Firstly, we'll simply delete the node from the database
 			$me
-				->connection->table($me->getTable())
+				->getConnection()
+				->table($me->getTable())
 				->where($keyName, '=', $key)
 				->delete();
 
@@ -1148,6 +1149,16 @@ class IlluminateWorker implements WorkerInterface {
 			// var_dump($child->getAttributes());
 			$this->recursivelyMapNode($child, $node, $existingNodes);
 		}
+	}
+
+	/**
+	 * Returns the connection associated with the worker.
+	 *
+	 * @return Illumimate\Database\Connection
+	 */
+	public function getConnection()
+	{
+		return $this->connection;
 	}
 
 	/**
