@@ -656,7 +656,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMapTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode,deleteNodeWithChildren]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode,hydrateNode,deleteNodeWithChildren]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$parentNode = $this->getMockNode();
@@ -679,7 +679,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, $existingNodes)->once();
 			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, $existingNodes)->once();
 
+			$worker->shouldReceive('hydrateNode')->with($existingNodes[0])->once();
 			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[0], false)->once();
+			$worker->shouldReceive('hydrateNode')->with($existingNodes[1])->once();
 			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[1], false)->once();
 
 			$callback($connection);
@@ -688,7 +690,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		}), true)->once();
 
-		$worker->mapTree($parentNode, $nodes);
+		$worker->mapTree($parentNode, $nodes, false);
 	}
 
 	public function testRecursivelyMapNode()

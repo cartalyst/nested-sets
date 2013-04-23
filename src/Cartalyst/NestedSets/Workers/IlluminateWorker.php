@@ -412,17 +412,19 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
 	 * @param  array  $nodes
-	 * @param  bool  $transaction
+	 * @param  bool   $keepChildren
+	 * @param  bool   $transaction
 	 * @return array
 	 */
-	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true)
+	public function mapTree(NodeInterface $parent, array $nodes, $keepChildren = true, $transaction = true)
 	{
-		$table      = $this->getTable();
-		$attributes = $this->getReservedAttributes();
-		$keyName    = $this->baseNode->getKeyName();
-		$me         = $this;
+		$table          = $this->getTable();
+		$attributes     = $this->getReservedAttributes();
+		$keyName        = $this->baseNode->getKeyName();
+		$me             = $this;
+		$deleteStrategy = ($keepChildren == true) ? 'deleteNode' : 'deleteNodeWithChildren';
 
-		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName)
+		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName, $deleteStrategy)
 		{
 			// Grab all exstiging child nodes. We'll reduce these through the
 			// recursive mapping process. Whatever children are left-over
@@ -440,7 +442,8 @@ class IlluminateWorker implements WorkerInterface {
 			// from the database now.
 			foreach ($existingNodes as $existingNode)
 			{
-				$me->deleteNodeWithChildren($existingNode, false);
+				$me->hydrateNode($existingNode);
+				$me->$deleteStrategy($existingNode, false);
 			}
 
 		}, $transaction);
@@ -1147,7 +1150,6 @@ class IlluminateWorker implements WorkerInterface {
 		// node and this node as the parent.
 		foreach ($node->getChildren() as $child)
 		{
-			// var_dump($child->getAttributes());
 			$this->recursivelyMapNode($child, $node, $existingNodes);
 		}
 	}

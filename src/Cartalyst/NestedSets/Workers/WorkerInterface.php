@@ -139,10 +139,11 @@ interface WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
 	 * @param  array  $nodes
-	 * @param  bool  $transaction
+	 * @param  bool   $keepChildren
+	 * @param  bool   $transaction
 	 * @return array
 	 */
-	public function mapTree(NodeInterface $parent, array $nodes, $transaction = true);
+	public function mapTree(NodeInterface $parent, array $nodes, $keepChildren = true, $transaction = true);
 
 	/**
 	 * Makes a new node a root node.
