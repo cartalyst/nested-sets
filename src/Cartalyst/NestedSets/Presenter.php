@@ -164,7 +164,7 @@ class Presenter {
 			}
 			else
 			{
-				$html .= '<li>'.htmlentities($value).'</li>';
+				$html .= '<li>'.$value.'</li>';
 			}
 		}
 
