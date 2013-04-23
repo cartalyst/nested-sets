@@ -73,6 +73,14 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('success', $node->presentAsBaz('qux', 2));
 	}
 
+	public function testFindingChildrenAlwaysReturnsArray()
+	{
+		$node = m::mock('Cartalyst\NestedSets\Nodes\EloquentNode[createWorker]');
+		$node->shouldReceive('createWorker')->once()->andReturn($worker = m::mock('Cartalyst\NestedSets\Workers\WorkerInterface'));
+		$worker->shouldReceive('tree')->with($node, 0)->once()->andReturn($treeNode = new Node);
+		$this->assertEquals(array($treeNode), $node->findChildren());
+	}
+
 	protected function addMockConnection($model)
 	{
 		$model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));

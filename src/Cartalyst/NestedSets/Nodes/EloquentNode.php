@@ -338,7 +338,19 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function findChildren($depth = 0)
 	{
-		return $this->children = $this->createWorker()->tree($this, $depth);
+		$tree = $this->createWorker()->tree($this, $depth);
+
+		// The tree method from the worker is none-the-wiser
+		// to whether we are retrieving a root node or not. If
+		// we only have one child, it will therefore return a
+		// singular object. We'll ensure we're actually returning
+		// an array.
+		if ( ! is_array($tree))
+		{
+			$tree = array($tree);
+		}
+
+		return $this->children = $tree;
 	}
 
 	/**
