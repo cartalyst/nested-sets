@@ -74,7 +74,7 @@ class Presenter {
 
 			if ($child->getChildren())
 			{
-				$present[$extracted] = $this->presentChildrenAs($child, 'array', $format, $depth);
+				$present[$extracted] = $this->presentChildrenAs($child, 'array', $attribute, $depth);
 			}
 			else
 			{
