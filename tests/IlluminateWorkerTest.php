@@ -1008,7 +1008,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$worker->shouldReceive('removeGap')->with(3, 1, 1)->once();
 
 			$node->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(5);
-			$worker->shouldReceive('removeGap')->with(6, 1, 1)->once();
+			$worker->shouldReceive('removeGap')->with(5, 1, 1)->once();
 
 			$callback($connection);
 

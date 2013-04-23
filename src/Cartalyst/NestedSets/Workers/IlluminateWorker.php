@@ -819,7 +819,7 @@ class IlluminateWorker implements WorkerInterface {
 			// tree one more to the left so the right limit
 			// which the parent held is also removed. Our
 			// hierarchy is now pure.
-			$me->removeGap($node->getAttribute($attributes['right']) + 1, 1, $tree);
+			$me->removeGap($node->getAttribute($attributes['right']), 1, $tree);
 		}, $transaction);
 	}
 
