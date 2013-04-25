@@ -1,4 +1,4 @@
-<?php
+<?php namespace Cartalyst\NestedSets\Tests;
 /**
  * Part of the Nested Sets package.
  *
@@ -20,8 +20,19 @@
 
 use Mockery as m;
 use Cartalyst\NestedSets\Nodes\EloquentNode as Node;
+use PHPUnit_Framework_TestCase;
 
 class EloquentNodeTest extends PHPUnit_Framework_TestCase {
+
+	/**
+	 * Setup resources and dependencies.
+	 *
+	 * @return void
+	 */
+	public static function setUpBeforeClass()
+	{
+		require_once __DIR__.'/stubs/DummyWorker.php';
+	}
 
 	/**
 	 * Close mockery.
@@ -87,15 +98,6 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 		$resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
 		$model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
-	}
-
-}
-
-class DummyWorker {
-
-	public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\EloquentNode $node)
-	{
-
 	}
 
 }

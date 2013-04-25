@@ -1,4 +1,4 @@
-<?php
+<?php namespace Cartalyst\NestedSets\Tests;
 /**
  * Part of the Nested Sets package.
  *
@@ -20,6 +20,11 @@
 
 use Mockery as m;
 use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
+use Closure;
+use Illuminate\Database\Connection;
+use NodeStub;
+use PHPUnit_Framework_TestCase;
+use stdClass;
 
 class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
@@ -142,7 +147,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$callback = function(Illuminate\Database\Connection $connection)
+		$callback = function(Connection $connection)
 		{
 			$_SERVER['__nested_sets.dynamic_query'] = true;
 		};
@@ -204,7 +209,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
 		$query->shouldReceive('where')->with('id', '=', 1)->once()->andReturn($query);
 
-		$result = new StdClass;
+		$result = new stdClass;
 		$result->lft  = 2;
 		$result->rgt  = 3;
 		$result->tree = 4;
@@ -355,11 +360,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 
-		$result1 = new StdClass;
+		$result1 = new stdClass;
 		$result1->id = 3;
-		$result2 = new StdClass;
+		$result2 = new stdClass;
 		$result2->id = 2;
-		$result3 = new StdClass;
+		$result3 = new stdClass;
 		$result3->id = 1;
 
 		$query->shouldReceive('get')->with(array('parent.id'))->once()->andReturn(array($result3, $result2, $result1));
@@ -387,7 +392,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
 		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
-		$result = new StdClass;
+		$result = new stdClass;
 		$result->depth = 4;
 
 		// For some reason, unlike other tests, we have to actually ensure the

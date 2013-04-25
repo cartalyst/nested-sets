@@ -1,4 +1,4 @@
-<?php
+<?php namespace Cartalyst\NestedSets\Tests;
 /**
  * Part of the Nested Sets package.
  *
@@ -21,6 +21,7 @@
 use Mockery as m;
 use Cartalyst\NestedSets\Nodes\NodeInterface;
 use Cartalyst\NestedSets\Presenter;
+use PHPUnit_Framework_TestCase;
 
 /**
  * @todo, Finish implementation and tests.
