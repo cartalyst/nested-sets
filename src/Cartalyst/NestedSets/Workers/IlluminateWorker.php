@@ -1299,7 +1299,10 @@ class IlluminateWorker implements WorkerInterface {
 		$result = $this
 			->connection->table("$table")
 			->where($keyName, '=', $key = $node->getAttribute($keyName))
-			->first(array_values(array_except($attributes, 'depth')));
+			->first(array_filter($attributes, function($attribute)
+			{
+				return $attribute !== 'depth';
+			}));
 
 		if ($result === null)
 		{
