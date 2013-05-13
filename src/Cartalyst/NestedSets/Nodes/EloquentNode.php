@@ -270,9 +270,11 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function afterCreate()
 	{
-		$this->touch();
-
-		$this->exists = true;
+		if ($this->timestamps)
+		{
+			$this->setCreatedAt($time = $this->freshTimestamp());
+			$this->touch();
+		}
 	}
 
 	/**
@@ -283,7 +285,10 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function afterUpdate()
 	{
-		$this->touch();
+		if ($this->timestamps)
+		{
+			$this->touch();
+		}
 	}
 
 	/**
