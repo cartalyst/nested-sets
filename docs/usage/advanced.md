@@ -8,7 +8,7 @@ In addition to creating, reading, updating and deleting records, there are a num
 * [Getting the Depth of a Node](#depth)
 * [Getting the Depth of a Node Relative to Another Node](#relative-depth)
 * [Mapping a Tree of Nodes (Mass-Assignment)](#map-tree)
-* [Presenting a Node (Debugging / Outputting)](#presenter)
+* [Presenting a Node (Debugging / Outputting)](#presenting-a-node-debugging-outputting)
 
 <a id="all-root"></a>
 #### Retrieving All Root Nodes
