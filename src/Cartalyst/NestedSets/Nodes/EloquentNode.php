@@ -185,6 +185,11 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function setAttributes(array $attributes)
 	{
+		if ($this->incrementing and array_key_exists($this->primaryKey, $attributes) and $attributes[$this->primaryKey] != null)
+		{
+			$this->exists = true;
+		}
+
 		return parent::setRawAttributes($attributes);
 	}
 
@@ -208,6 +213,11 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function setAttribute($key, $value)
 	{
+		if ($this->incrementing and $key != null)
+		{
+			$this->exists = true;
+		}
+
 		parent::setAttribute($key, $value);
 	}
 
