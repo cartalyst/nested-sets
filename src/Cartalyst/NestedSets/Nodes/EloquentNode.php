@@ -213,7 +213,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function setAttribute($key, $value)
 	{
-		if ($this->incrementing and $key != null)
+		if ($this->incrementing and $key == $this->primaryKey and $value != null)
 		{
 			$this->exists = true;
 		}
