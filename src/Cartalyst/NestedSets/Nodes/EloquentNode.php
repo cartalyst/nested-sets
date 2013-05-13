@@ -272,6 +272,7 @@ class EloquentNode extends Model implements NodeInterface {
 	{
 		if ($this->timestamps)
 		{
+			$this->exists = true;
 			$this->setCreatedAt($time = $this->freshTimestamp());
 			$this->touch();
 		}
