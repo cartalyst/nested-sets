@@ -1217,7 +1217,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function ensureTransaction(Closure $callback)
 	{
-		if ( ! $this->connection->getPdo()->ensureTransaction())
+		if ( ! $this->connection->getPdo()->inTransaction())
 		{
 			$this->connection->transaction($callback);
 		}

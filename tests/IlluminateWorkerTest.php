@@ -147,7 +147,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$connection->getPdo()->shouldReceive('ensureTransaction')->andReturn(false);
+		$connection->getPdo()->shouldReceive('inTransaction')->andReturn(false);
 
 		$callback = function(Connection $connection)
 		{
