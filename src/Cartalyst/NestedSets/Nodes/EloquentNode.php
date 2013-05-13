@@ -268,8 +268,10 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return void
 	 */
-	public function afterUpdate()
+	public function afterCreate()
 	{
+		$this->exists = true;
+
 		$this->touch();
 	}
 
@@ -279,7 +281,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return void
 	 */
-	public function afterCreate()
+	public function afterUpdate()
 	{
 		$this->touch();
 	}
