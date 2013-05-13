@@ -270,9 +270,9 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function afterCreate()
 	{
-		$this->exists = true;
-
 		$this->touch();
+
+		$this->exists = true;
 	}
 
 	/**
