@@ -130,6 +130,13 @@ interface NodeInterface {
 	public function getReservedAttribute($key);
 
 	/**
+	 * Return the "depth" attribute.
+	 *
+	 * @return string
+	 */
+	public function getDepthAttribute();
+
+	/**
 	 * Finds all nodes in a flat array.
 	 *
 	 * @return array

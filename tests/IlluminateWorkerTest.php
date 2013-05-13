@@ -147,6 +147,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	{
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
+		$connection->getPdo()->shouldReceive('ensureTransaction')->andReturn(false);
+
 		$callback = function(Connection $connection)
 		{
 			$_SERVER['__nested_sets.dynamic_query'] = true;
@@ -159,11 +161,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			return ($actualCallback instanceof Closure);
 		}))->once();
 
-		$worker->dynamicQuery($callback);
+		$worker->ensureTransaction($callback);
 		$this->assertTrue(isset($_SERVER['__nested_sets.dynamic_query']));
-		unset($_SERVER['__nested_sets.dynamic_query']);
-		$worker->dynamicQuery($callback, false);
-		$this->assertTrue($_SERVER['__nested_sets.dynamic_query']);
 		unset($_SERVER['__nested_sets.dynamic_query']);
 	}
 
@@ -174,15 +173,15 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node1 = $this->getMockNode();
 		$node1->shouldReceive('getIncrementing')->once()->andReturn(true);
-		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo'));
-		$query->shouldReceive('insertGetId')->with($attributes)->once()->andReturn('bar');
+		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
+		$query->shouldReceive('insertGetId')->with(array('foo' => 'baz'))->once()->andReturn('bar');
 		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
 		$worker->insertNode($node1);
 
 		$node2 = $this->getMockNode();
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
 		$node2->shouldReceive('getAttributes')->once()->andReturn($attributes);
-		$query->shouldReceive('insert')->with($attributes)->once();
+		$query->shouldReceive('insert')->with(array('foo' => 'baz'))->once();
 		$worker->insertNode($node2);
 	}
 
@@ -659,9 +658,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}
 	}
 
-	public function testMapTree()
+	public function testMapTreeAndOrphaningChildren()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,dynamicQuery,recursivelyMapNode,hydrateNode,deleteNodeWithChildren]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$parentNode = $this->getMockNode();
@@ -677,7 +676,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		);
 
 		$me = $this;
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
 		{
 			$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
 
@@ -685,15 +684,54 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, $existingNodes)->once();
 
 			$worker->shouldReceive('hydrateNode')->with($existingNodes[0])->once();
-			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[0], false)->once();
+			$worker->shouldReceive('deleteNode')->with($existingNodes[0])->once();
 			$worker->shouldReceive('hydrateNode')->with($existingNodes[1])->once();
-			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[1], false)->once();
+			$worker->shouldReceive('deleteNode')->with($existingNodes[1])->once();
 
 			$callback($connection);
 
 			return true;
 
-		}), true)->once();
+		}))->once();
+
+		$worker->mapTree($parentNode, $nodes);
+	}
+
+	public function testMapTreeAndDeletingChildren()
+	{
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNodeWithChildren]');
+		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+		$parentNode = $this->getMockNode();
+
+		$nodes = array(
+			array('id' => 1, 'name' => 'Foo'),
+			array('name' => 'Bar'),
+		);
+
+		$existingNodes = array(
+			$existingNode1 = $this->getMockNode(),
+			$existingNode2 = $this->getMockNode(),
+		);
+
+		$me = $this;
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
+		{
+			$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
+
+			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, $existingNodes)->once();
+			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, $existingNodes)->once();
+
+			$worker->shouldReceive('hydrateNode')->with($existingNodes[0])->once();
+			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[0])->once();
+			$worker->shouldReceive('hydrateNode')->with($existingNodes[1])->once();
+			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[1])->once();
+
+			$callback($connection);
+
+			return true;
+
+		}))->once();
 
 		$worker->mapTree($parentNode, $nodes, false);
 	}
@@ -709,7 +747,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$childNode1->shouldReceive('getChildren')->once()->andReturn(array());
 		$childNode1->shouldReceive('getAttribute')->with('id')->twice()->andReturn(2);
 		$worker->shouldReceive('hydrateNode')->with($childNode1)->once();
-		$worker->shouldReceive('moveNodeAsLastChild')->with($childNode1, $parentNode, false)->once();
+		$worker->shouldReceive('moveNodeAsLastChild')->with($childNode1, $parentNode)->once();
 		$worker->shouldReceive('updateNode')->with($childNode1)->once();
 		$worker->recursivelyMapNode($childNode1, $parentNode, $existingNodes);
 		$this->assertEmpty($existingNodes);
@@ -718,14 +756,14 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$childNode2 = $this->getMockNode();
 		$childNode2->shouldReceive('getChildren')->once()->andReturn(array());
 		$childNode2->shouldReceive('getAttribute')->with('id')->once()->andReturn(4);
-		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode2, $parentNode, false)->once();
+		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode2, $parentNode)->once();
 		$worker->recursivelyMapNode($childNode2, $parentNode, $existingNodes);
 
 		// New node without key
 		$childNode3 = $this->getMockNode();
 		$childNode3->shouldReceive('getChildren')->once()->andReturn(array());
 		$childNode3->shouldReceive('getAttribute')->with('id')->once();
-		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode3, $parentNode, false)->once();
+		$worker->shouldReceive('insertNodeAsLastChild')->with($childNode3, $parentNode)->once();
 		$worker->recursivelyMapNode($childNode3, $parentNode, $existingNodes);
 
 		$existingNodes = array($existingNode = $this->getMockNode());
@@ -742,22 +780,22 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		{
 			return $node->getAttributes() == array('id' => 3, 'name' => 'Foo');
 		}))->once();
-		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck, $parentNode, false)->once();
+		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck, $parentNode)->once();
 		$worker->shouldReceive('updateNode')->with($nodeStubCheck)->once();
 
 		$worker->shouldReceive('insertNodeAsLastChild')->with(m::on(function($node)
 		{
 			return $node->getAttributes() == array('name' => 'Bar');
-		}), $nodeStubCheck, false)->once();
+		}), $nodeStubCheck)->once();
 		$worker->recursivelyMapNode($nodeArray, $parentNode, $existingNodes);
 	}
 
 	public function testInsertNodeAsRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
 			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -772,20 +810,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->insertNodeAsRoot($node);
 	}
 
 	public function testInsertNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
 			$parentNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 			$parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
@@ -804,20 +842,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->insertNodeAsFirstChild($childNode, $parentNode);
 	}
 
 	public function testInsertNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
 			$parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
 			$parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
@@ -835,19 +873,19 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->insertNodeAsLastChild($childNode, $parentNode);
 	}
 
 	public function testInsertNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
 			$siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
 			$siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
@@ -867,19 +905,19 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->insertNodeAsPreviousSibling($node, $siblingNode);
 	}
 
 	public function testInsertNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
 			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
 			$siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
@@ -895,20 +933,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->insertNodeAsNextSibling($node, $siblingNode);
 	}
 
 	public function testMoveNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
 			$worker->shouldReceive('slideNodeOutOfTree')->with($childNode)->once();
 			$worker->shouldReceive('hydrateNode')->with($parentNode)->twice();
@@ -919,20 +957,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->moveNodeAsFirstChild($childNode, $parentNode);
 	}
 
 	public function testMoveNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
 			$worker->shouldReceive('slideNodeOutOfTree')->with($childNode)->once();
 			$worker->shouldReceive('hydrateNode')->with($parentNode)->twice();
@@ -943,19 +981,19 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->moveNodeAsLastChild($childNode, $parentNode);
 	}
 
 	public function testMoveNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
 			$worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
 			$worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
@@ -966,19 +1004,19 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->moveNodeAsPreviousSibling($node, $siblingNode);
 	}
 
 	public function testMoveNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
 			$worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
 			$worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
@@ -989,20 +1027,20 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->moveNodeAsNextSibling($node, $siblingNode);
 	}
 
 	public function testDeleteNode()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,removeGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,removeGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
 			$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -1018,17 +1056,17 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->deleteNode($node);
 	}
 
 	public function testDeleteNodeWithChildren()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[dynamicQuery,slideNodeOutOfTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('dynamicQuery')->with(m::on(function($callback) use ($worker, $connection, $node)
+		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
 			$worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
 
@@ -1045,7 +1083,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$callback($connection);
 
 			return true;
-		}), true)->once();
+		}))->once();
 
 		$worker->deleteNodeWithChildren($node);
 	}
@@ -1055,6 +1093,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection = m::mock('Illuminate\Database\Connection');
 		$connection->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
+
+		$connection->shouldReceive('getPdo')->andReturn($pdo = m::mock('stdClass'));
 
 		return $connection;
 	}
@@ -1073,6 +1113,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node->shouldReceive('getReservedAttribute')->with('left')->andReturn('lft');
 		$node->shouldReceive('getReservedAttribute')->with('right')->andReturn('rgt');
 		$node->shouldReceive('getReservedAttribute')->with('tree')->andReturn('tree');
+		$node->shouldReceive('getDepthAttribute')->andReturn('depth');
 
 		return $node;
 	}
