@@ -216,7 +216,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributes()
+	public function getReservedAttributeNameNames()
 	{
 		return $this->reservedAttributes;
 	}
@@ -227,7 +227,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 * @param  string  $key
 	 * @return string
 	 */
-	public function getReservedAttribute($key)
+	public function getReservedAttributeName($key)
 	{
 		return $this->reservedAttributes[$key];
 	}
@@ -237,7 +237,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return string
 	 */
-	public function getDepthAttribute()
+	public function getDepthAttributeName()
 	{
 		return $this->depthAttribute;
 	}

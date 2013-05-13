@@ -79,7 +79,7 @@ class IlluminateWorker implements WorkerInterface {
 		// ensure the tree matches.
 		return array_filter($all, function($node) use ($me, $tree)
 		{
-			return ($node->getAttribute($me->getReservedAttribute('tree')) == $tree);
+			return ($node->getAttribute($me->getReservedAttributeName('tree')) == $tree);
 		});
 	}
 
@@ -95,7 +95,7 @@ class IlluminateWorker implements WorkerInterface {
 		// Root items are those who's left limit is equal to "1".
 		return array_filter($this->baseNode->findAll(), function($node) use ($me)
 		{
-			return ($node->getAttribute($me->getReservedAttribute('left')) == 1);
+			return ($node->getAttribute($me->getReservedAttributeName('left')) == 1);
 		});
 	}
 
@@ -115,15 +115,15 @@ class IlluminateWorker implements WorkerInterface {
 		// right limit will be one greater than the left limit.
 		return array_filter($this->baseNode->findAll(), function($node) use ($me, $tree)
 		{
-			$right = $node->getAttribute($me->getReservedAttribute('right'));
-			$left  = $node->getAttribute($me->getReservedAttribute('left'));
+			$right = $node->getAttribute($me->getReservedAttributeName('right'));
+			$left  = $node->getAttribute($me->getReservedAttributeName('left'));
 			$size  = $right - $left;
 
 			// If we have no tree, simply check the size
 			if ($tree === null) return $size == 1;
 
 			// Otherwise, check our tree constraint matches as well.
-			return ($size == 1 and $node->getAttribute($me->getReservedAttribute('tree')) == $tree);
+			return ($size == 1 and $node->getAttribute($me->getReservedAttributeName('tree')) == $tree);
 		});
 	}
 
@@ -136,7 +136,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function isLeaf(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 
 		return $node->getAttribute($attributes['right']) - $node->getAttribute($attributes['left']) == 1;
 	}
@@ -151,7 +151,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function path(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$grammar    = $this->connection->getQueryGrammar();
@@ -188,7 +188,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function depth(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$grammar    = $this->connection->getQueryGrammar();
@@ -203,7 +203,7 @@ class IlluminateWorker implements WorkerInterface {
 			->first(array(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
 				$grammar->wrap("parent.$keyName"),
-				$grammar->wrap($this->getDepthAttribute())
+				$grammar->wrap($this->getDepthAttributeName())
 			))));
 
 		return $result->depth;
@@ -233,7 +233,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function parentNode(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
@@ -273,7 +273,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function childrenNodes(NodeInterface $node, $depth = 0)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
@@ -307,7 +307,7 @@ class IlluminateWorker implements WorkerInterface {
 				->select("node.$keyName", new Expression(sprintf(
 					'(count(%s) - 1) as %s',
 					$grammar->wrap("parent.$keyName"),
-					$grammar->wrap($me->getDepthAttribute())
+					$grammar->wrap($me->getDepthAttributeName())
 				)))
 				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 				->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
@@ -344,14 +344,14 @@ class IlluminateWorker implements WorkerInterface {
 		// clause to the query builder.
 		if ($depth > 0)
 		{
-			$query->having($me->getDepthAttribute(), '<=', $depth);
+			$query->having($me->getDepthAttributeName(), '<=', $depth);
 		}
 
 		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
-			$grammar->wrap("sub_tree.{$this->getDepthAttribute()}"),
-			$grammar->wrap($this->getDepthAttribute())
+			$grammar->wrap("sub_tree.{$this->getDepthAttributeName()}"),
+			$grammar->wrap($this->getDepthAttributeName())
 		))));
 
 		foreach ($results as $result)
@@ -380,7 +380,7 @@ class IlluminateWorker implements WorkerInterface {
 			return count($this->childrenNodes($node, $depth));
 		}
 
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$right      = $node->getAttribute($attributes['right']);
 		$left       = $node->getAttribute($attributes['left']);
 
@@ -418,7 +418,7 @@ class IlluminateWorker implements WorkerInterface {
 	public function mapTree(NodeInterface $parent, array $nodes, $keepChildren = true)
 	{
 		$table          = $this->getTable();
-		$attributes     = $this->getReservedAttributes();
+		$attributes     = $this->getReservedAttributeNameNames();
 		$keyName        = $this->baseNode->getKeyName();
 		$me             = $this;
 		$deleteStrategy = ($keepChildren == true) ? 'deleteNode' : 'deleteNodeWithChildren';
@@ -457,7 +457,7 @@ class IlluminateWorker implements WorkerInterface {
 	public function insertNodeAsRoot(NodeInterface $node)
 	{
 		$table      = $this->getTable();
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $table, $attributes)
@@ -483,7 +483,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
@@ -520,7 +520,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
@@ -557,7 +557,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
@@ -595,7 +595,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
@@ -642,7 +642,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
@@ -676,7 +676,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
@@ -710,7 +710,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
@@ -744,7 +744,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
@@ -777,7 +777,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function deleteNode(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
@@ -824,7 +824,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function deleteNodeWithChildren(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$me         = $this;
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $attributes)
@@ -864,7 +864,7 @@ class IlluminateWorker implements WorkerInterface {
 			throw new \InvalidArgumentException("Cannot create a gap in tree [$tree] starting from [$left] with a size of [0].");
 		}
 
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 
 		$this
 			->connection->table($this->getTable())
@@ -919,7 +919,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function slideNodeOutOfTree(NodeInterface $node)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$size       = $this->getNodeSize($node);
 		$delta      = 0 - $node->getAttribute($attributes['right']);
 		$grammar    = $this->connection->getQueryGrammar();
@@ -966,7 +966,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function slideNodeInTree(NodeInterface $node, $left)
 	{
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$size       = $this->getNodeSize($node);
 		$delta      = $size + $left;
 		$grammar    = $this->connection->getQueryGrammar();
@@ -1029,7 +1029,7 @@ class IlluminateWorker implements WorkerInterface {
 		// in the hierarchy array.
 		$stackCounter = 0;
 
-		$depthAttribute = $this->getDepthAttribute();
+		$depthAttribute = $this->getDepthAttributeName();
 
 		// Loop through the results
 		foreach ($nodes as $node)
@@ -1171,9 +1171,9 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributes()
+	public function getReservedAttributeNameNames()
 	{
-		return $this->baseNode->getReservedAttributes();
+		return $this->baseNode->getReservedAttributeNameNames();
 	}
 
 	/**
@@ -1182,9 +1182,9 @@ class IlluminateWorker implements WorkerInterface {
 	 * @param  string  $key
 	 * @return string
 	 */
-	public function getReservedAttribute($key)
+	public function getReservedAttributeName($key)
 	{
-		return $this->baseNode->getReservedAttribute($key);
+		return $this->baseNode->getReservedAttributeName($key);
 	}
 
 	/**
@@ -1192,9 +1192,9 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @return string
 	 */
-	public function getDepthAttribute()
+	public function getDepthAttributeName()
 	{
-		return $this->baseNode->getDepthAttribute();
+		return $this->baseNode->getDepthAttributeName();
 	}
 
 	/**
@@ -1206,7 +1206,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function getNodeSize(NodeInterface $node)
 	{
-		return $node->getAttribute($node->getReservedAttribute('right')) - $node->getAttribute($node->getReservedAttribute('left'));
+		return $node->getAttribute($node->getReservedAttributeName('right')) - $node->getAttribute($node->getReservedAttributeName('left'));
 	}
 
 	/**
@@ -1238,7 +1238,7 @@ class IlluminateWorker implements WorkerInterface {
 	public function insertNode(NodeInterface $node)
 	{
 		$query      = $this->connection->table($this->getTable());
-		$attributes = array_except($node->getAttributes(), array($this->getDepthAttribute()));
+		$attributes = array_except($node->getAttributes(), array($this->getDepthAttributeName()));
 
 		if ($node->getIncrementing())
 		{
@@ -1262,7 +1262,7 @@ class IlluminateWorker implements WorkerInterface {
 	{
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
-		$attributes = array_except($node->getAttributes(), array($this->getDepthAttribute()));
+		$attributes = array_except($node->getAttributes(), array($this->getDepthAttributeName()));
 
 		$this
 			->connection->table($this->getTable())
@@ -1310,7 +1310,7 @@ class IlluminateWorker implements WorkerInterface {
 	public function hydrateNode(NodeInterface $node)
 	{
 		$table      = $this->getTable();
-		$attributes = $this->getReservedAttributes();
+		$attributes = $this->getReservedAttributeNameNames();
 		$keyName    = $this->baseNode->getKeyName();
 
 		$result = $this

@@ -167,7 +167,7 @@ class NodeStub implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributes()
+	public function getReservedAttributeNameNames()
 	{
 		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
 	}
@@ -178,7 +178,7 @@ class NodeStub implements NodeInterface {
 	 * @param  string  $key
 	 * @return string
 	 */
-	public function getReservedAttribute($key)
+	public function getReservedAttributeName($key)
 	{
 		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
 	}
@@ -188,7 +188,7 @@ class NodeStub implements NodeInterface {
 	 *
 	 * @return string
 	 */
-	public function getDepthAttribute()
+	public function getDepthAttributeName()
 	{
 		return 'depth';
 	}

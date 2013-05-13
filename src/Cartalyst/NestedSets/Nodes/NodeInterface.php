@@ -119,7 +119,7 @@ interface NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributes();
+	public function getReservedAttributeNameNames();
 
 	/**
 	 * Get the name of a reserved attribute.
@@ -127,14 +127,14 @@ interface NodeInterface {
 	 * @param  string  $key
 	 * @return string
 	 */
-	public function getReservedAttribute($key);
+	public function getReservedAttributeName($key);
 
 	/**
 	 * Return the "depth" attribute.
 	 *
 	 * @return string
 	 */
-	public function getDepthAttribute();
+	public function getDepthAttributeName();
 
 	/**
 	 * Finds all nodes in a flat array.

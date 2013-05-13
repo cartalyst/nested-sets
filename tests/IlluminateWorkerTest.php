@@ -247,7 +247,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllFlatWithTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
@@ -256,7 +256,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
 		));
 
-		$worker->shouldReceive('getReservedAttribute')->with('tree')->times(3)->andReturn('tree');
+		$worker->shouldReceive('getReservedAttributeName')->with('tree')->times(3)->andReturn('tree');
 
 		$node1->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 		$node2->shouldReceive('getAttribute')->with('tree')->once()->andReturn(2);
@@ -272,7 +272,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
@@ -281,7 +281,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
 		));
 
-		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
+		$worker->shouldReceive('getReservedAttributeName')->with('left')->times(3)->andReturn('lft');
 
 		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 		$node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
@@ -292,7 +292,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllLeafWithNoTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
@@ -301,8 +301,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
 		));
 
-		$worker->shouldReceive('getReservedAttribute')->with('right')->times(3)->andReturn('rgt');
-		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
+		$worker->shouldReceive('getReservedAttributeName')->with('right')->times(3)->andReturn('rgt');
+		$worker->shouldReceive('getReservedAttributeName')->with('left')->times(3)->andReturn('lft');
 
 		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(2);
 		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
@@ -318,7 +318,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllLeafWithTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttribute]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
@@ -327,9 +327,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$node3 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
 		));
 
-		$worker->shouldReceive('getReservedAttribute')->with('right')->times(3)->andReturn('rgt');
-		$worker->shouldReceive('getReservedAttribute')->with('left')->times(3)->andReturn('lft');
-		$worker->shouldReceive('getReservedAttribute')->with('tree')->twice()->andReturn('tree');
+		$worker->shouldReceive('getReservedAttributeName')->with('right')->times(3)->andReturn('rgt');
+		$worker->shouldReceive('getReservedAttributeName')->with('left')->times(3)->andReturn('lft');
+		$worker->shouldReceive('getReservedAttributeName')->with('tree')->twice()->andReturn('tree');
 
 		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(2);
 		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
@@ -1133,15 +1133,15 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node->shouldReceive('getKeyName')->andReturn('id');
 		$node->shouldReceive('getTable')->andReturn('categories');
-		$node->shouldReceive('getReservedAttributes')->andReturn(array(
+		$node->shouldReceive('getReservedAttributeNameNames')->andReturn(array(
 			'left'  => 'lft',
 			'right' => 'rgt',
 			'tree'  => 'tree',
 		));
-		$node->shouldReceive('getReservedAttribute')->with('left')->andReturn('lft');
-		$node->shouldReceive('getReservedAttribute')->with('right')->andReturn('rgt');
-		$node->shouldReceive('getReservedAttribute')->with('tree')->andReturn('tree');
-		$node->shouldReceive('getDepthAttribute')->andReturn('depth');
+		$node->shouldReceive('getReservedAttributeName')->with('left')->andReturn('lft');
+		$node->shouldReceive('getReservedAttributeName')->with('right')->andReturn('rgt');
+		$node->shouldReceive('getReservedAttributeName')->with('tree')->andReturn('tree');
+		$node->shouldReceive('getDepthAttributeName')->andReturn('depth');
 
 		return $node;
 	}
