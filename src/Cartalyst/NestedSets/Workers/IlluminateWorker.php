@@ -203,7 +203,7 @@ class IlluminateWorker implements WorkerInterface {
 			->first(array(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
 				$grammar->wrap("parent.$keyName"),
-				$grammar->wrap('depth')
+				$grammar->wrap($this->getDepthAttribute())
 			))));
 
 		return $result->depth;
@@ -307,7 +307,7 @@ class IlluminateWorker implements WorkerInterface {
 				->select("node.$keyName", new Expression(sprintf(
 					'(count(%s) - 1) as %s',
 					$grammar->wrap("parent.$keyName"),
-					$grammar->wrap('depth')
+					$grammar->wrap($me->getDepthAttribute())
 				)))
 				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 				->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
@@ -344,14 +344,14 @@ class IlluminateWorker implements WorkerInterface {
 		// clause to the query builder.
 		if ($depth > 0)
 		{
-			$query->having('depth', '<=', $depth);
+			$query->having($me->getDepthAttribute(), '<=', $depth);
 		}
 
 		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
-			$grammar->wrap('sub_tree.depth'),
-			$grammar->wrap('depth')
+			$grammar->wrap("sub_tree.{$this->getDepthAttribute()}"),
+			$grammar->wrap($this->getDepthAttribute())
 		))));
 
 		foreach ($results as $result)
@@ -413,10 +413,9 @@ class IlluminateWorker implements WorkerInterface {
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
 	 * @param  array  $nodes
 	 * @param  bool   $keepChildren
-	 * @param  bool   $transaction
 	 * @return array
 	 */
-	public function mapTree(NodeInterface $parent, array $nodes, $keepChildren = true, $transaction = true)
+	public function mapTree(NodeInterface $parent, array $nodes, $keepChildren = true)
 	{
 		$table          = $this->getTable();
 		$attributes     = $this->getReservedAttributes();
@@ -424,7 +423,7 @@ class IlluminateWorker implements WorkerInterface {
 		$me             = $this;
 		$deleteStrategy = ($keepChildren == true) ? 'deleteNode' : 'deleteNodeWithChildren';
 
-		$this->dynamicQuery(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName, $deleteStrategy)
+		$this->ensureTransaction(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName, $deleteStrategy)
 		{
 			// Grab all exstiging child nodes. We'll reduce these through the
 			// recursive mapping process. Whatever children are left-over
@@ -443,26 +442,25 @@ class IlluminateWorker implements WorkerInterface {
 			foreach ($existingNodes as $existingNode)
 			{
 				$me->hydrateNode($existingNode);
-				$me->$deleteStrategy($existingNode, false);
+				$me->$deleteStrategy($existingNode);
 			}
 
-		}, $transaction);
+		});
 	}
 
 	/**
 	 * Makes a new node a root node.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsRoot(NodeInterface $node, $transaction = true)
+	public function insertNodeAsRoot(NodeInterface $node)
 	{
 		$table      = $this->getTable();
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $table, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $table, $attributes)
 		{
 			$query = $connection->table($table);
 
@@ -472,7 +470,7 @@ class IlluminateWorker implements WorkerInterface {
 
 			$me->insertNode($node);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -481,15 +479,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
+	public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			// Our left limit will be one greater than that of the parent
 			// node, which will mean we are the first child.
@@ -510,7 +507,7 @@ class IlluminateWorker implements WorkerInterface {
 			// limits are accurate and it can be used again.
 			$parent->setAttribute($attributes['right'], $parent->getAttribute($attributes['right']) + 2);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -519,15 +516,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
+	public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			// Our left limit will be the same as the (current) right limit
 			// of the parent node, which will mean we are the last child.
@@ -548,7 +544,7 @@ class IlluminateWorker implements WorkerInterface {
 			// limits are accurate and it can be used again.
 			$parent->setAttribute($attributes['right'], $parentRight + 2);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -557,15 +553,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
+	public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			// Our left limit will be the same as the (current) left limit
 			// of the sibling node, which will mean we are the previous sibling.
@@ -587,7 +582,7 @@ class IlluminateWorker implements WorkerInterface {
 			$sibling->setAttribute($attributes['left'], $siblingLeft + 2);
 			$sibling->setAttribute($attributes['right'], $sibling->getAttribute($attributes['right']) + 2);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -596,15 +591,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
+	public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			// Our left limit will be one more than the (current) right limit
 			// of the sibling node, which will mean we are the next sibling.
@@ -624,17 +618,16 @@ class IlluminateWorker implements WorkerInterface {
 
 			$me->insertNode($node);
 
-		}, $transaction);
+		});
 	}
 
 	/**
 	 * Makes the given node a root node.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsRoot(NodeInterface $node, $transaction = true)
+	public function moveNodeAsRoot(NodeInterface $node)
 	{
 		throw new \BadMethodCallException(__METHOD__);
 	}
@@ -645,15 +638,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
+	public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			$me->slideNodeOutOfTree($node);
 
@@ -670,7 +662,7 @@ class IlluminateWorker implements WorkerInterface {
 			// is in sync with the database
 			$me->hydrateNode($parent);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -679,15 +671,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent, $transaction = true)
+	public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $parent, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
 			$me->slideNodeOutOfTree($node);
 
@@ -704,7 +695,7 @@ class IlluminateWorker implements WorkerInterface {
 			// is in sync with the database
 			$me->hydrateNode($parent);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -713,15 +704,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
+	public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			$me->slideNodeOutOfTree($node);
 
@@ -738,7 +728,7 @@ class IlluminateWorker implements WorkerInterface {
 			// is in sync with the database
 			$me->hydrateNode($sibling);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -747,15 +737,14 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling, $transaction = true)
+	public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $sibling, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
 			$me->slideNodeOutOfTree($node);
 
@@ -772,7 +761,7 @@ class IlluminateWorker implements WorkerInterface {
 			// is in sync with the database
 			$me->hydrateNode($sibling);
 
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -780,10 +769,9 @@ class IlluminateWorker implements WorkerInterface {
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNode(NodeInterface $node, $transaction = true)
+	public function deleteNode(NodeInterface $node)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
@@ -798,7 +786,7 @@ class IlluminateWorker implements WorkerInterface {
 			throw new \RuntimeException("Cannot delete node [$key] and orphan it's children as it is root.");
 		}
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $keyName, $key, $left, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $keyName, $key, $left, $attributes)
 		{
 			// Firstly, we'll simply delete the node from the database
 			$me
@@ -820,7 +808,7 @@ class IlluminateWorker implements WorkerInterface {
 			// which the parent held is also removed. Our
 			// hierarchy is now pure.
 			$me->removeGap($node->getAttribute($attributes['right']), 1, $tree);
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -828,15 +816,14 @@ class IlluminateWorker implements WorkerInterface {
 	 * it's children.
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-	 * @param  bool  $transaction
 	 * @return void
 	 */
-	public function deleteNodeWithChildren(NodeInterface $node, $transaction = true)
+	public function deleteNodeWithChildren(NodeInterface $node)
 	{
 		$attributes = $this->getReservedAttributes();
 		$me         = $this;
 
-		$this->dynamicQuery(function($connection) use ($me, $node, $attributes)
+		$this->ensureTransaction(function($connection) use ($me, $node, $attributes)
 		{
 			// Firstly, we want to slide our node ouf ot the tree
 			// so that the rest of the tree remains intact once we
@@ -853,7 +840,7 @@ class IlluminateWorker implements WorkerInterface {
 				->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
 				->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
 				->delete();
-		}, $transaction);
+		});
 	}
 
 	/**
@@ -1020,10 +1007,9 @@ class IlluminateWorker implements WorkerInterface {
 	 * results are returned).
 	 *
 	 * @param  array   $nodes
-	 * @param  string  $depthAttribute
 	 * @return mixed
 	 */
-	public function flatNodesToTree(array $nodes, $depthAttribute = 'depth')
+	public function flatNodesToTree(array $nodes)
 	{
 		if (count($nodes) === 0) return array();
 
@@ -1038,6 +1024,8 @@ class IlluminateWorker implements WorkerInterface {
 		// stack. We use it to determine where to put children
 		// in the hierarchy array.
 		$stackCounter = 0;
+
+		$depthAttribute = $this->getDepthAttribute();
 
 		// Loop through the results
 		foreach ($nodes as $node)
@@ -1113,7 +1101,7 @@ class IlluminateWorker implements WorkerInterface {
 			// We will move the node to be the last child of the parent (which
 			// will keep it's order consistent to the order which it was
 			// in the array).
-			$this->moveNodeAsLastChild($node, $parent, false);
+			$this->moveNodeAsLastChild($node, $parent);
 
 			// We will update the node. Moving nodes around only updates the
 			// appropriate attributes on the database table. This will ensure
@@ -1140,7 +1128,7 @@ class IlluminateWorker implements WorkerInterface {
 			// operation, where all attributes should be saved [as opposed to
 			// sliding existing nodes around]). This makes our operation here
 			// extremely simple.
-			$this->insertNodeAsLastChild($node, $parent, false);
+			$this->insertNodeAsLastChild($node, $parent);
 		}
 
 		// Now, we will look to see if the node
@@ -1196,6 +1184,16 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Return the "depth" attribute.
+	 *
+	 * @return string
+	 */
+	public function getDepthAttribute()
+	{
+		return $this->baseNode->getDepthAttribute();
+	}
+
+	/**
 	 * Calculate's the "size" of a node in the hierachical
 	 * structure, based off it's left and right limits.
 	 *
@@ -1208,19 +1206,14 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
-	 * Runs a query enclosed in a callback and wraps it in
-	 * a databae transaction if required. The "creating", "updating"
-	 * and "deleting" processes in MPTT require several queries (whereas
-	 * "reading" only takes one query). It is good practice to wrap these
-	 * queries in a transaction so that if just one fails, we can rollback
-	 * tne entire transaction.
+	 * Enures the given closur is executed within a PDO transaction.
 	 *
 	 * @param  Closure  $callback
-	 * @param  bool     $transaction
+	 * @return void
 	 */
-	public function dynamicQuery(Closure $callback, $transaction = true)
+	public function ensureTransaction(Closure $callback)
 	{
-		if ($transaction === true)
+		if ( ! $this->connection->getPdo()->ensureTransaction())
 		{
 			$this->connection->transaction($callback);
 		}
@@ -1240,15 +1233,16 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNode(NodeInterface $node)
 	{
-		$query = $this->connection->table($this->getTable());
+		$query      = $this->connection->table($this->getTable());
+		$attributes = array_except($node->getAttributes(), array($this->getDepthAttribute()));
 
 		if ($node->getIncrementing())
 		{
-			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($node->getAttributes()));
+			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($attributes));
 		}
 		else
 		{
-			$query->insert($node->getAttributes());
+			$query->insert($attributes);
 		}
 	}
 
@@ -1260,13 +1254,14 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function updateNode(NodeInterface $node)
 	{
-		$keyName = $this->baseNode->getKeyName();
-		$key     = $node->getAttribute($keyName);
+		$keyName    = $this->baseNode->getKeyName();
+		$key        = $node->getAttribute($keyName);
+		$attributes = array_except($node->getAttributes(), array($this->getDepthAttribute()));
 
 		$this
 			->connection->table($this->getTable())
 			->where($keyName, '=', $key)
-			->update($node->getAttributes());
+			->update($attributes);
 	}
 
 	/**
@@ -1295,8 +1290,6 @@ class IlluminateWorker implements WorkerInterface {
 
 		return $node;
 	}
-
-	//
 
 	/**
 	 * Hydrates a node by querying the database for it

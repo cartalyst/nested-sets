@@ -184,6 +184,16 @@ class NodeStub implements NodeInterface {
 	}
 
 	/**
+	 * Return the "depth" attribute.
+	 *
+	 * @return string
+	 */
+	public function getDepthAttribute()
+	{
+		return 'depth';
+	}
+
+	/**
 	 * Finds all nodes in a flat array.
 	 *
 	 * @return array

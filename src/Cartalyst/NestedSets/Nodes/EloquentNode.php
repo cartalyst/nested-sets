@@ -55,14 +55,17 @@ class EloquentNode extends Model implements NodeInterface {
 		// package supports multiple trees within
 		// the one database.
 		'tree'  => 'tree',
-
-		// Attribute used for the depth of the
-		// node when creating hierarchical trees.
-		// Note: This attribute should NOT exist
-		// in your database, it's reserved for
-		// processing only.
-		'depth' => 'depth',
 	);
+
+	/**
+	 * The attribute used to show the depth
+	 * of a child when in a tree. This attribute
+	 * cannot be saved to the databse, it's for
+	 * processing and runtime usage only.
+	 *
+	 * @var string
+	 */
+	protected $depthAttribute = 'depth';
 
 	/**
 	 * The worker class which the model uses.
@@ -227,6 +230,16 @@ class EloquentNode extends Model implements NodeInterface {
 	public function getReservedAttribute($key)
 	{
 		return $this->reservedAttributes[$key];
+	}
+
+	/**
+	 * Return the "depth" attribute.
+	 *
+	 * @return string
+	 */
+	public function getDepthAttribute()
+	{
+		return $this->depthAttribute;
 	}
 
 	/**
@@ -484,6 +497,39 @@ class EloquentNode extends Model implements NodeInterface {
 	public function setWorker($worker)
 	{
 		$this->worker = $worker;
+	}
+
+	/**
+	 * Get mutator for the "left" limit attribute.
+	 *
+	 * @param  mixed  $left
+	 * @return int    $left
+	 */
+	public function getLftAttribute($left)
+	{
+		return (int) $left;
+	}
+
+	/**
+	 * Get mutator for the "right" limit attribute.
+	 *
+	 * @param  mixed  $right
+	 * @return int    $right
+	 */
+	public function getRgtAttribute($right)
+	{
+		return (int) $right;
+	}
+
+	/**
+	 * Get mutator for the "tree" limit attribute.
+	 *
+	 * @param  mixed  $tree
+	 * @return int    $tree
+	 */
+	public function getTreeAttribute($tree)
+	{
+		return (int) $tree;
 	}
 
 	/**
