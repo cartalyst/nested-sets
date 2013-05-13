@@ -263,6 +263,28 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Callback after the node is created in the
+	 * database, not necessarily through save().
+	 *
+	 * @return void
+	 */
+	public function afterUpdate()
+	{
+		$this->touch();
+	}
+
+	/**
+	 * Callback after the node is updated in the
+	 * database, not necessarily through save().
+	 *
+	 * @return void
+	 */
+	public function afterCreate()
+	{
+		$this->touch();
+	}
+
+	/**
 	 * Delete the model from the database and orphan
 	 * it's children.
 	 *

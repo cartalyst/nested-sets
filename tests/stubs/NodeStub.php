@@ -214,6 +214,28 @@ class NodeStub implements NodeInterface {
 	}
 
 	/**
+	 * Callback after the node is created in the
+	 * database, not necessarily through save().
+	 *
+	 * @return void
+	 */
+	public function afterUpdate()
+	{
+
+	}
+
+	/**
+	 * Callback after the node is updated in the
+	 * database, not necessarily through save().
+	 *
+	 * @return void
+	 */
+	public function afterCreate()
+	{
+
+	}
+
+	/**
 	 * Dynamically retrieve attributes on the object.
 	 *
 	 * @param  string  $key

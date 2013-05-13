@@ -656,12 +656,13 @@ class IlluminateWorker implements WorkerInterface {
 
 			$left = $parent->getAttribute($attributes['left']) + 1;
 			$me->slideNodeInTree($node, $left);
+			$me->afterUpdateNode($node);
 
 			// And once more we will hydrate the parent's
 			// attributes again so that the object instance
 			// is in sync with the database
 			$me->hydrateNode($parent);
-
+			$me->afterUpdateNode($parent);
 		});
 	}
 
@@ -689,12 +690,13 @@ class IlluminateWorker implements WorkerInterface {
 
 			$left = $parent->getAttribute($attributes['right']);
 			$me->slideNodeInTree($node, $left);
+			$me->afterUpdateNode($node);
 
 			// And once more we will hydrate the parent's
 			// attributes again so that the object instance
 			// is in sync with the database
 			$me->hydrateNode($parent);
-
+			$me->afterUpdateNode($parent);
 		});
 	}
 
@@ -722,12 +724,13 @@ class IlluminateWorker implements WorkerInterface {
 
 			$left = $sibling->getAttribute($attributes['left']);
 			$me->slideNodeInTree($node, $left);
+			$me->afterUpdateNode($node);
 
 			// And once more we will hydrate the sibling's
 			// attributes again so that the object instance
 			// is in sync with the database
 			$me->hydrateNode($sibling);
-
+			$me->afterUpdateNode($sibling);
 		});
 	}
 
@@ -755,12 +758,13 @@ class IlluminateWorker implements WorkerInterface {
 
 			$left = $sibling->getAttribute($attributes['right']) + 1;
 			$me->slideNodeInTree($node, $left);
+			$me->afterUpdateNode($node);
 
 			// And once more we will hydrate the sibling's
 			// attributes again so that the object instance
 			// is in sync with the database
 			$me->hydrateNode($sibling);
-
+			$me->afterUpdateNode($sibling);
 		});
 	}
 
@@ -1244,6 +1248,8 @@ class IlluminateWorker implements WorkerInterface {
 		{
 			$query->insert($attributes);
 		}
+
+		$this->afterCreateNode($node);
 	}
 
 	/**
@@ -1262,6 +1268,8 @@ class IlluminateWorker implements WorkerInterface {
 			->connection->table($this->getTable())
 			->where($keyName, '=', $key)
 			->update($attributes);
+
+		$this->afterUpdateNode($node);
 	}
 
 	/**
@@ -1323,6 +1331,28 @@ class IlluminateWorker implements WorkerInterface {
 		{
 			$node->setAttribute($key, $value);
 		}
+	}
+
+	/**
+	 * Fires the "after create" trigger for a node.*
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function afterCreateNode(NodeInterface $node)
+	{
+		$node->afterCreate();
+	}
+
+	/**
+	 * Fires the "after update" trigger for a node.*
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @return void
+	 */
+	public function afterUpdateNode(NodeInterface $node)
+	{
+		$node->afterUpdate();
 	}
 
 }

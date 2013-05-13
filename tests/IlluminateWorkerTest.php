@@ -176,13 +176,29 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
 		$query->shouldReceive('insertGetId')->with(array('foo' => 'baz'))->once()->andReturn('bar');
 		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
+		$node1->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node1);
 
 		$node2 = $this->getMockNode();
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
 		$node2->shouldReceive('getAttributes')->once()->andReturn($attributes);
 		$query->shouldReceive('insert')->with(array('foo' => 'baz'))->once();
+		$node2->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node2);
+	}
+
+	public function testUpdateNode()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+
+		$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
+		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
+
+		$query->shouldReceive('where')->with('id', '=', 2)->once()->andReturn($query);
+		$query->shouldReceive('update')->with(array('foo' => 'baz'))->once()->andReturn('bar');
+		$node->shouldReceive('afterUpdate')->once();
+		$worker->updateNode($node);
 	}
 
 	/**
@@ -940,7 +956,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
@@ -953,6 +969,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$parentNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 			$worker->shouldReceive('slideNodeInTree')->with($childNode, 2)->once();
+			$worker->shouldReceive('afterUpdateNode')->with($childNode)->once();
+
+			$worker->shouldReceive('afterUpdateNode')->with($parentNode)->once();
 
 			$callback($connection);
 
@@ -964,7 +983,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
@@ -977,6 +996,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
 			$worker->shouldReceive('slideNodeInTree')->with($childNode, 3)->once();
+			$worker->shouldReceive('afterUpdateNode')->with($childNode)->once();
+
+			$worker->shouldReceive('afterUpdateNode')->with($parentNode)->once();
 
 			$callback($connection);
 
@@ -988,7 +1010,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
@@ -1000,6 +1022,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
 			$worker->shouldReceive('slideNodeInTree')->with($node, 3)->once();
+			$worker->shouldReceive('afterUpdateNode')->with($node)->once();
+
+			$worker->shouldReceive('afterUpdateNode')->with($siblingNode)->once();
 
 			$callback($connection);
 
@@ -1011,7 +1036,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
@@ -1023,6 +1048,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
 			$worker->shouldReceive('slideNodeInTree')->with($node, 4)->once();
+			$worker->shouldReceive('afterUpdateNode')->with($node)->once();
+
+			$worker->shouldReceive('afterUpdateNode')->with($siblingNode)->once();
 
 			$callback($connection);
 
