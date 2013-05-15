@@ -373,6 +373,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}))->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+		$query->shouldReceive('where')->with('node.tree', '=', 1)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 
 		$result1 = new stdClass;
@@ -401,6 +403,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}))->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$query->shouldReceive('where')->with('node.id', '=', 3)->once()->andReturn($query);
+		$node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+		$query->shouldReceive('where')->with('node.tree', '=', 1)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 		$query->shouldReceive('groupBy')->with('node.lft')->once()->andReturn($query);
 

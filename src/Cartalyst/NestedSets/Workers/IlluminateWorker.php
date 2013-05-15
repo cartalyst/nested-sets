@@ -166,6 +166,7 @@ class IlluminateWorker implements WorkerInterface {
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
+			->where("node.{$attributes['tree']}", '=', $node->getAttribute($attributes['tree']))
 			->orderBy("node.{$attributes['left']}")
 			->get(array("parent.$keyName"));
 
@@ -198,6 +199,7 @@ class IlluminateWorker implements WorkerInterface {
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
+			->where("node.{$attributes['tree']}", '=', $node->getAttribute($attributes['tree']))
 			->orderBy("node.{$attributes['left']}")
 			->groupBy("node.{$attributes['left']}")
 			->first(array(new Expression(sprintf(
