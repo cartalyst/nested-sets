@@ -155,6 +155,7 @@ class IlluminateWorker implements WorkerInterface {
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$grammar    = $this->connection->getQueryGrammar();
+		$tree       = $node->getAttribute($attributes['tree']);
 
 		// Note, joins currently don't support "between" operators
 		// in the query builder, so we will satisfy half of the
@@ -163,13 +164,11 @@ class IlluminateWorker implements WorkerInterface {
 		// it's database agnostic compilation
 		$results = $this
 			->connection->table("$table as node")
-			->join("$table as parent", function($join) use ($attributes) {
-				$join->on("node.{$attributes['left']}", '>=', "parent.{$attributes['left']}");
-				$join->on("parent.{$attributes['tree']}", '=', "node.{$attributes['tree']}");
-			})
+			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
-			->where("node.{$attributes['tree']}", '=', $node->getAttribute($attributes['tree']))
+			->where("node.{$attributes['tree']}", '=', $tree)
+			->where("parent.{$attributes['tree']}", '=', $tree)
 			->orderBy("node.{$attributes['left']}")
 			->get(array("parent.$keyName"));
 
@@ -196,16 +195,15 @@ class IlluminateWorker implements WorkerInterface {
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
 		$grammar    = $this->connection->getQueryGrammar();
+		$tree       = $node->getAttribute($attributes['tree']);
 
 		$result = $this
 			->connection->table("$table as node")
-			->join("$table as parent", function($join) use ($attributes) {
-				$join->on("node.{$attributes['left']}", '>=', "parent.{$attributes['left']}");
-				$join->on("parent.{$attributes['tree']}", '=', "node.{$attributes['tree']}");
-			})
+			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
 			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
-			->where("node.{$attributes['tree']}", '=', $node->getAttribute($attributes['tree']))
+			->where("node.{$attributes['tree']}", '=', $tree)
+			->where("parent.{$attributes['tree']}", '=', $tree)
 			->orderBy("node.{$attributes['left']}")
 			->groupBy("node.{$attributes['left']}")
 			->first(array(new Expression(sprintf(
