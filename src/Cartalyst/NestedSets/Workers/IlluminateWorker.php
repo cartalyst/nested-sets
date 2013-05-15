@@ -201,7 +201,7 @@ class IlluminateWorker implements WorkerInterface {
 			->connection->table("$table as node")
 			->join("$table as parent", function($join) use ($attributes) {
 				$join->on("node.{$attributes['left']}", '>=', "parent.{$attributes['left']}");
-				$join->on("parent.{$attributes['tree']}", '>=', "node.{$attributes['tree']}");
+				$join->on("parent.{$attributes['tree']}", '=', "node.{$attributes['tree']}");
 			})
 			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
