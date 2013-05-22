@@ -95,7 +95,7 @@ This is quite frankly, disgusting, inefficient code. What would happen if you wa
 
 ### Enter the "Modified Preorder Tree Traversal" (MPTT) Algorithm
 
-Dispite it's horrible name, it's actually a beautiful algorithm and is also known as the **Nested Sets Model**. In the Nested Set Model, we can look at our hierarchy in a new way, not as nodes and lines, but as nested containers. Try picturing our electronics categories this way:
+Despite it's horrible name, it's actually a beautiful algorithm and is also known as the **Nested Sets Model**. In the Nested Set Model, we can look at our hierarchy in a new way, not as nodes and lines, but as nested containers. Try picturing our electronics categories this way:
 
 ![Nested Categories - Bubble](https://raw.github.com/cartalyst/nested-sets/master/resources/nested-sets-chart-bubble.png?login=bencorlett&token=693c41f1f8e03be38e9e4527cd53d6b5)
 
