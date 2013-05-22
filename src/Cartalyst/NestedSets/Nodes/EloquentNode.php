@@ -23,7 +23,7 @@ use Cartalyst\NestedSets\Presenter;
 // @todo remove when my pull request gets merged
 use Carbon\Carbon;
 
-
+use Closure;
 use Illuminate\Database\Eloquent\Model;
 
 class EloquentNode extends Model implements NodeInterface {
