@@ -455,7 +455,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('first')->once()->andReturn(array('foo' => 'bar'));
 
 		$this->assertInstanceOf('NodeStub', $parentNode = $worker->parentNode($node));
-		$this->assertEquals(array('foo' => 'bar'), $parentNode->getAttributes());
+		$this->assertEquals(array('foo' => 'bar'), $parentNode->getAttribute());
 	}
 
 	public function testChildrenNodes()
@@ -612,7 +612,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		foreach ($resultsArray as $result)
 		{
 			$node = new NodeStub;
-			$node->setAttributes((array) $result);
+			$node->setAllAttributes((array) $result);
 			$nodes[] = $node;
 		}
 
