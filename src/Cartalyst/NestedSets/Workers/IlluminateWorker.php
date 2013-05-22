@@ -275,9 +275,10 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  int  $depth
+	 * @param  Closure  $callback
 	 * @return array
 	 */
-	public function childrenNodes(NodeInterface $node, $depth = 0)
+	public function childrenNodes(NodeInterface $node, $depth = 0, Closure $callback = null)
 	{
 		$attributes = $this->getReservedAttributeNameNames();
 		$table      = $this->getTable();
@@ -353,6 +354,12 @@ class IlluminateWorker implements WorkerInterface {
 			$query->having($me->getDepthAttributeName(), '<=', $depth);
 		}
 
+		// If a callback was supplied, we'll call it now
+		if ($callback)
+		{
+			$callback($query);
+		}
+
 		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
 			$grammar->wrap("parent.$keyName"),
@@ -374,16 +381,17 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  int  $depth
+	 * @param  Closure  $callback
 	 * @return int
 	 */
-	public function childrenCount(NodeInterface $node, $depth = 0)
+	public function childrenCount(NodeInterface $node, $depth = 0, $callback = null)
 	{
 		// We will only use our complex query if the depth
 		// is being limited. Otherwise, we can save on some
 		// overhead.
 		if ($depth > 0)
 		{
-			return count($this->childrenNodes($node, $depth));
+			return count($this->childrenNodes($node, $depth, $callback));
 		}
 
 		$attributes = $this->getReservedAttributeNameNames();
@@ -401,11 +409,12 @@ class IlluminateWorker implements WorkerInterface {
 	 *
 	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
 	 * @param  int  $depth
+	 * @param  Closure  $callback
 	 * @return array
 	 */
-	public function tree(NodeInterface $node, $depth = 0)
+	public function tree(NodeInterface $node, $depth = 0, $callback = null)
 	{
-		$nodes = $this->childrenNodes($node, $depth);
+		$nodes = $this->childrenNodes($node, $depth, $callback);
 
 		return $this->flatNodesToTree($nodes);
 	}
