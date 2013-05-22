@@ -1253,7 +1253,7 @@ class IlluminateWorker implements WorkerInterface {
 	public function insertNode(NodeInterface $node)
 	{
 		$query      = $this->connection->table($this->getTable());
-		$attributes = array_except($node->getAttributes(), array($this->getDepthAttributeName()));
+		$attributes = array_except($node->getAllAttributes(), array($this->getDepthAttributeName()));
 
 		if ($node->getIncrementing())
 		{
@@ -1277,7 +1277,7 @@ class IlluminateWorker implements WorkerInterface {
 	{
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
-		$attributes = array_except($node->getAttributes(), array($this->getDepthAttributeName()));
+		$attributes = array_except($node->getAllAttributes(), array($this->getDepthAttributeName()));
 
 		$this
 			->connection->table($this->getTable())
@@ -1308,7 +1308,7 @@ class IlluminateWorker implements WorkerInterface {
 		// Create a new node which we will hydrate
 		// with results.
 		$node = $this->baseNode->createNode();
-		$node->setAttributes($attributes);
+		$node->setAllAttributes($attributes);
 		$node->setChildren($children);
 
 		return $node;

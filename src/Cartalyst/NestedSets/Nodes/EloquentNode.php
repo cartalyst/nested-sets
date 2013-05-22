@@ -172,9 +172,9 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getAttributes()
+	public function getAllAttributes()
 	{
-		return parent::getAttributes();
+		return $this->attributesToArray();
 	}
 
 	/**
@@ -183,14 +183,16 @@ class EloquentNode extends Model implements NodeInterface {
 	 * @param  array  $attributes
 	 * @return void
 	 */
-	public function setAttributes(array $attributes)
+	public function setAllAttributes(array $attributes)
 	{
 		if ($this->incrementing and array_key_exists($this->primaryKey, $attributes) and $attributes[$this->primaryKey] != null)
 		{
 			$this->exists = true;
 		}
 
-		return parent::setRawAttributes($attributes);
+		static::$unguarded = true;
+		$this->fill($attributes);
+		static::$unguarded = false;
 	}
 
 	/**

@@ -87,7 +87,7 @@ interface NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getAttributes();
+	public function getAllAttributes();
 
 	/**
 	 * Set all of the current attributes on the node.
@@ -95,7 +95,7 @@ interface NodeInterface {
 	 * @param  array  $attributes
 	 * @return void
 	 */
-	public function setAttributes(array $attributes);
+	public function setAllAttributes(array $attributes);
 
 	/**
 	 * Get an attribute from the model.

@@ -117,7 +117,7 @@ class NodeStub implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getAttributes()
+	public function getAllAttributes()
 	{
 		return $this->attributes;
 	}
@@ -128,7 +128,7 @@ class NodeStub implements NodeInterface {
 	 * @param  array  $attributes
 	 * @return void
 	 */
-	public function setAttributes(array $attributes)
+	public function setAllAttributes(array $attributes)
 	{
 		$this->attributes = $attributes;
 	}
