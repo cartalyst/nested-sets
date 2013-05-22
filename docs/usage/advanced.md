@@ -27,7 +27,7 @@ Let's retrieve all root nodes (the node which holds each menu's structure):
 
 	foreach ($menus as $menu)
 	{
-		"<li>{$menu->name}</li>";
+		echo "<li>{$menu->name}</li>";
 	}
 
 	echo '</ul>';
