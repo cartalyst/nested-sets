@@ -36,6 +36,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass()
 	{
 		require_once __DIR__.'/stubs/NodeStub.php';
+
+		/**
+		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
+		 */
+		require_once __DIR__.'/stubs/TestDatabaseConnection.php';
 	}
 
 	/**
@@ -173,7 +178,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node1 = $this->getMockNode();
 		$node1->shouldReceive('getIncrementing')->once()->andReturn(true);
-		$node1->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
+		$node1->shouldReceive('getAllAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
 		$query->shouldReceive('insertGetId')->with(array('foo' => 'baz'))->once()->andReturn('bar');
 		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
 		$node1->shouldReceive('afterCreate')->once();
@@ -181,7 +186,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node2 = $this->getMockNode();
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
-		$node2->shouldReceive('getAttributes')->once()->andReturn($attributes);
+		$node2->shouldReceive('getAllAttributes')->once()->andReturn($attributes);
 		$query->shouldReceive('insert')->with(array('foo' => 'baz'))->once();
 		$node2->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node2);
@@ -192,7 +197,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 		$connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
-		$node->shouldReceive('getAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
+		$node->shouldReceive('getAllAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(2);
 
 		$query->shouldReceive('where')->with('id', '=', 2)->once()->andReturn($query);
@@ -455,7 +460,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('first')->once()->andReturn(array('foo' => 'bar'));
 
 		$this->assertInstanceOf('NodeStub', $parentNode = $worker->parentNode($node));
-		$this->assertEquals(array('foo' => 'bar'), $parentNode->getAttribute());
+		$this->assertEquals(array('foo' => 'bar'), $parentNode->getAllAttributes());
 	}
 
 	public function testChildrenNodes()
@@ -561,7 +566,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('childrenNodes')->with($node1 = $this->getMockNode(), 1)->once()->andReturn(array('foo', 'bar'));
+		$worker->shouldReceive('childrenNodes')->with($node1 = $this->getMockNode(), 1, null)->once()->andReturn(array('foo', 'bar'));
 		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
 		$node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 
@@ -589,7 +594,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatNodesToTree]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
-		$worker->shouldReceive('childrenNodes')->with($node, $depth = 2)->andReturn($results = array('foo'));
+		$worker->shouldReceive('childrenNodes')->with($node, $depth = 2, null)->andReturn($results = array('foo'));
 		$worker->shouldReceive('flatNodesToTree')->with($results)->andReturn('success');
 
 		$this->assertEquals('success', $worker->tree($node, $depth));
@@ -800,14 +805,14 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$worker->shouldReceive('hydrateNode')->with($nodeStubCheck = m::on(function($node)
 		{
-			return $node->getAttributes() == array('id' => 3, 'name' => 'Foo');
+			return $node->getAllAttributes() == array('id' => 3, 'name' => 'Foo');
 		}))->once();
 		$worker->shouldReceive('moveNodeAsLastChild')->with($nodeStubCheck, $parentNode)->once();
 		$worker->shouldReceive('updateNode')->with($nodeStubCheck)->once();
 
 		$worker->shouldReceive('insertNodeAsLastChild')->with(m::on(function($node)
 		{
-			return $node->getAttributes() == array('name' => 'Bar');
+			return $node->getAllAttributes() == array('name' => 'Bar');
 		}), $nodeStubCheck)->once();
 		$worker->recursivelyMapNode($nodeArray, $parentNode, $existingNodes);
 	}
@@ -1124,7 +1129,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	protected function getMockConnection()
 	{
-		$connection = m::mock('Illuminate\Database\Connection');
+		/**
+		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
+		 */
+		$connection = m::mock('TestDatabaseConnection');
+		// $connection = m::mock('Illuminate\Database\Connection');
 		$connection->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 

@@ -32,6 +32,11 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass()
 	{
 		require_once __DIR__.'/stubs/DummyWorker.php';
+
+		/**
+		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
+		 */
+		require_once __DIR__.'/stubs/TestDatabaseConnection.php';
 	}
 
 	/**
@@ -88,14 +93,19 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 	{
 		$node = m::mock('Cartalyst\NestedSets\Nodes\EloquentNode[createWorker]');
 		$node->shouldReceive('createWorker')->once()->andReturn($worker = m::mock('Cartalyst\NestedSets\Workers\WorkerInterface'));
-		$worker->shouldReceive('tree')->with($node, 0)->once()->andReturn($treeNode = new Node);
+		$worker->shouldReceive('tree')->with($node, 0, null)->once()->andReturn($treeNode = new Node);
 		$this->assertEquals(array($treeNode), $node->findChildren());
 	}
 
 	protected function addMockConnection($model)
 	{
 		$model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
-		$resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+
+		/**
+		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
+		 */
+		$resolver->shouldReceive('connection')->andReturn(m::mock('TestDatabaseConnection'));
+		// $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
 		$model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 	}
