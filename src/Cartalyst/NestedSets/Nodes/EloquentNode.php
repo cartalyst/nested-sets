@@ -547,14 +547,44 @@ class EloquentNode extends Model implements NodeInterface {
 
 	/**
 	 * Maps a tree of either nodes, arrays of StdClass objects to
-	 * the hierarchy array.
+	 * the hierarchy array. Children nodes present in the database
+	 * but not present in this hierarchy will be kept, they
+	 * become the first items in the tree.
 	 *
 	 * @param  mixed  $nodes
 	 * @return void
 	 */
-	public function mapTree($nodes)
+	public function mapTreeAndKeep($nodes)
 	{
-		$this->createWorker()->mapTree($this, $nodes);
+		$this->createWorker()->mapTreeAndKeep($this, $nodes);
+	}
+
+	/**
+	 * Maps a tree of either nodes, arrays of StdClass objects to
+	 * the hierarchy array. Children nodes present in the database
+	 * but not present in this hierarchy will removed and any
+	 * descendent children of those will be orphaned (given to
+	 * the nearest parent node).
+	 *
+	 * @param  mixed  $nodes
+	 * @return void
+	 */
+	public function mapTreeAndOrphan()
+	{
+		$this->createWorker()->mapTreeAndOrphan($this, $nodes);
+	}
+
+	/**
+	 * Maps a tree of either nodes, arrays of StdClass objects to
+	 * the hierarchy array. Children nodes present in the database
+	 * but not present in this hierarchy will killed.
+	 *
+	 * @param  mixed  $nodes
+	 * @return void
+	 */
+	public function mapTreeAndKill()
+	{
+		$this->createWorker->mapTreeAndKill($this, $nodes);
 	}
 
 	/**
