@@ -678,6 +678,24 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Convert the model instance to an array.
+	 *
+	 * @return array
+	 */
+	public function toArray()
+	{
+		$attributes = $this->attributesToArray();
+		$attributes['children'] = array();
+
+		foreach ($this->children as $child)
+		{
+			$attributes['children'][] = $child->toArray();
+		}
+
+		return array_merge($attributes, $this->relationsToArray());
+	}
+
+	/**
 	 * Loads a tree.
 	 *
 	 * @param  int  $depth
