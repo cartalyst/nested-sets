@@ -569,7 +569,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 * @param  mixed  $nodes
 	 * @return void
 	 */
-	public function mapTreeAndOrphan()
+	public function mapTreeAndOrphan($nodes)
 	{
 		$this->createWorker()->mapTreeAndOrphan($this, $nodes);
 	}
