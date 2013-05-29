@@ -343,7 +343,15 @@ class IlluminateWorker implements WorkerInterface {
 			->where("node.{$keyName}", '!=', $key)
 			->where("node.{$attributes['tree']}", '=', $tree)
 			->where("parent.{$attributes['tree']}", '=', $tree)
-			->where("sub_parent.{$attributes['tree']}", '=', $tree)
+			->where("sub_parent.{$attributes['tree']}", '=', $tree);
+
+		// If a callback was supplied, we'll call it now
+		if ($callback)
+		{
+			$callback($query);
+		}
+
+		$query
 			->orderBy("node.{$attributes['left']}")
 			->groupBy("node.$keyName");
 
@@ -352,12 +360,6 @@ class IlluminateWorker implements WorkerInterface {
 		if ($depth > 0)
 		{
 			$query->having($me->getDepthAttributeName(), '<=', $depth);
-		}
-
-		// If a callback was supplied, we'll call it now
-		if ($callback)
-		{
-			$callback($query);
 		}
 
 		$results = $query->get(array("node.*", new Expression(sprintf(
