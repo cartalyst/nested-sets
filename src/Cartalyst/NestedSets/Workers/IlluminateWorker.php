@@ -1195,7 +1195,7 @@ class IlluminateWorker implements WorkerInterface {
 			break;
 		}
 
-		// If we have not matched any existing nodes, we'll craete one
+		// If we have not matched any existing nodes, we'll create one
 		if ( ! $matched)
 		{
 			// When inserting new nodes as children, all of their attributes
