@@ -584,7 +584,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function mapTreeAndKill($nodes)
 	{
-		$this->createWorker->mapTreeAndKill($this, $nodes);
+		$this->createWorker()->mapTreeAndKill($this, $nodes);
 	}
 
 	/**
