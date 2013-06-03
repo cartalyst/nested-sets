@@ -680,41 +680,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		}
 	}
 
-	public function testMapTreeKeepingMissingChildren()
-	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
-
-		$parentNode = $this->getMockNode();
-
-		$nodes = array(
-			array('id' => 1, 'name' => 'Foo'),
-			array('name' => 'Bar'),
-		);
-
-		$existingNodes = array(
-			$existingNode1 = $this->getMockNode(),
-			$existingNode2 = $this->getMockNode(),
-		);
-
-		$me = $this;
-		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $parentNode, $nodes, $existingNodes)
-		{
-			$worker->shouldReceive('childrenNodes')->andReturn($existingNodes);
-
-			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, $existingNodes)->once();
-			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, $existingNodes)->once();
-
-			$callback($connection);
-
-			return true;
-
-		}))->once();
-
-		$worker->mapTreeAndKeep($parentNode, $nodes);
-	}
-
-	public function testMapTreeAndOrphaningChildren()
+	public function testMapTree()
 	{
 		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
@@ -750,12 +716,12 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		}))->once();
 
-		$worker->mapTreeAndOrphan($parentNode, $nodes);
+		$worker->mapTree($parentNode, $nodes);
 	}
 
-	public function testMapTreeAndKillingChildren()
+	public function testMapTreeKeepingMissingChildren()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNodeWithChildren]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$parentNode = $this->getMockNode();
@@ -778,18 +744,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$worker->shouldReceive('recursivelyMapNode')->with($nodes[0], $parentNode, $existingNodes)->once();
 			$worker->shouldReceive('recursivelyMapNode')->with($nodes[1], $parentNode, $existingNodes)->once();
 
-			$worker->shouldReceive('hydrateNode')->with($existingNodes[0])->once();
-			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[0])->once();
-			$worker->shouldReceive('hydrateNode')->with($existingNodes[1])->once();
-			$worker->shouldReceive('deleteNodeWithChildren')->with($existingNodes[1])->once();
-
 			$callback($connection);
 
 			return true;
 
 		}))->once();
 
-		$worker->mapTreeAndKill($parentNode, $nodes);
+		$worker->mapTreeAndKeep($parentNode, $nodes);
 	}
 
 	public function testRecursivelyMapNode()

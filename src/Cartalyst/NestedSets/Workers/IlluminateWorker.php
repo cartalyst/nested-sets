@@ -422,6 +422,51 @@ class IlluminateWorker implements WorkerInterface {
 	}
 
 	/**
+	 * Maps a tree to the database. We update each items'
+	 * values as well if they're provided. This can be used
+	 * to create a whole new tree structure or simply to re-order
+	 * a tree.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
+	 * @param  array   $nodes
+	 * @param  delete  $delete
+	 * @return void
+	 */
+	public function mapTree(NodeInterface $parent, array $nodes, $delete = true)
+	{
+		$table      = $this->getTable();
+		$attributes = $this->getReservedAttributeNameNames();
+		$keyName    = $this->baseNode->getKeyName();
+		$me         = $this;
+
+		$this->ensureTransaction(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName, $delete)
+		{
+			// Grab all exstiging child nodes. We'll reduce these through the
+			// recursive mapping process. Whatever children are left-over
+			// should then be deleted.
+			$existingNodes = $me->childrenNodes($parent);
+
+			// Loop through nodes and recursively map them in the database
+			foreach ($nodes as $node)
+			{
+				$me->recursivelyMapNode($node, $parent, $existingNodes);
+			}
+
+			// If we are keeping children, we'll skip on deleting
+			if ($delete === false) return;
+
+			// Now we've recursively mapped the nodes, the leftover
+			// nodes were not mapped at all. These should be deleted
+			// from the database now.
+			foreach ($existingNodes as $existingNode)
+			{
+				$me->hydrateNode($existingNode);
+				$me->deleteNode($existingNode);
+			}
+		});
+	}
+
+	/**
 	 * Maps a tree to the database and keep all nodes not present in
 	 * the passed array. This allows for allowing pushing new items
 	 * into a tree without affecting the entire tree.
@@ -432,35 +477,7 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function mapTreeAndKeep(NodeInterface $parent, array $nodes)
 	{
-		$this->mapTree($parent, $nodes, 'keep');
-	}
-
-	/**
-	 * Maps a tree to the database and removes nodes not present
-	 * in the passed array. Children nodes of these will be
-	 * orphaned.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-	 * @param  array  $nodes
-	 * @return void
-	 */
-	public function mapTreeAndOrphan(NodeInterface $parent, array $nodes)
-	{
-		$this->mapTree($parent, $nodes, 'orphan');
-	}
-
-	/**
-	 * Maps a tree to the database and removes nodes not present
-	 * in the passed array. Children nodes of these will be
-	 * killed - removed from the tree. Use with care.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-	 * @param  array  $nodes
-	 * @return void
-	 */
-	public function mapTreeAndKill(NodeInterface $parent, array $nodes)
-	{
-		$this->mapTree($parent, $nodes, 'kill');
+		$this->mapTree($parent, $nodes, false);
 	}
 
 	/**
@@ -1100,62 +1117,6 @@ class IlluminateWorker implements WorkerInterface {
 		}
 
 		return (count($tree) > 1) ? $tree : reset($tree);
-	}
-
-	/**
-	 * Maps a tree to the database. We update each items'
-	 * values as well if they're provided. This can be used
-	 * to create a whole new tree structure or simply to re-order
-	 * a tree.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-	 * @param  array   $nodes
-	 * @param  string  $deleteStrategy
-	 * @return void
-	 */
-	public function mapTree(NodeInterface $parent, array $nodes, $deleteStrategy = 'orphan')
-	{
-		if ( ! in_array($deleteStrategy, $allowed = array('keep', 'orphan', 'kill')))
-		{
-			throw new \InvalidArgumentException(sprintf(
-				'Invalid delete strategy provided, [%s] are supported.',
-				implode(', ', $allowed)
-			));
-		}
-
-		$table      = $this->getTable();
-		$attributes = $this->getReservedAttributeNameNames();
-		$keyName    = $this->baseNode->getKeyName();
-		$me         = $this;
-
-		$this->ensureTransaction(function($connection) use ($me, $parent, $nodes, $table, $attributes, $keyName, $deleteStrategy)
-		{
-			// Grab all exstiging child nodes. We'll reduce these through the
-			// recursive mapping process. Whatever children are left-over
-			// should then be deleted.
-			$existingNodes = $me->childrenNodes($parent);
-
-			// Loop through nodes and recursively map them in the database
-			foreach ($nodes as $node)
-			{
-				$me->recursivelyMapNode($node, $parent, $existingNodes);
-			}
-
-			// If we are keeping children, we'll skip on deleting
-			if ($deleteStrategy == 'keep') return;
-
-			// Determine the method we need to call
-			$method = ($deleteStrategy == 'orphan') ? 'deleteNode' : 'deleteNodeWithChildren';
-
-			// Now we've recursively mapped the nodes, the leftover
-			// nodes were not mapped at all. These should be deleted
-			// from the database now.
-			foreach ($existingNodes as $existingNode)
-			{
-				$me->hydrateNode($existingNode);
-				$me->$method($existingNode);
-			}
-		});
 	}
 
 	/**

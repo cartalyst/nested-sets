@@ -132,6 +132,19 @@ interface WorkerInterface {
 	public function tree(NodeInterface $node, $depth = 0);
 
 	/**
+	 * Maps a tree to the database. We update each items'
+	 * values as well if they're provided. This can be used
+	 * to create a whole new tree structure or simply to re-order
+	 * a tree.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
+	 * @param  array   $nodes
+	 * @param  delete  $delete
+	 * @return void
+	 */
+	public function mapTree(NodeInterface $parent, array $nodes, $delete = true);
+
+	/**
 	 * Maps a tree to the database and keep all nodes not present in
 	 * the passed array. This allows for allowing pushing new items
 	 * into a tree without affecting the entire tree.
@@ -141,28 +154,6 @@ interface WorkerInterface {
 	 * @return void
 	 */
 	public function mapTreeAndKeep(NodeInterface $parent, array $nodes);
-
-	/**
-	 * Maps a tree to the database and removes nodes not present
-	 * in the passed array. Children nodes of these will be
-	 * orphaned.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-	 * @param  array  $nodes
-	 * @return void
-	 */
-	public function mapTreeAndOrphan(NodeInterface $parent, array $nodes);
-
-	/**
-	 * Maps a tree to the database and removes nodes not present
-	 * in the passed array. Children nodes of these will be
-	 * killed - removed from the tree. Use with care.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-	 * @param  array  $nodes
-	 * @return void
-	 */
-	public function mapTreeAndKill(NodeInterface $parent, array $nodes);
 
 	/**
 	 * Makes a new node a root node.
