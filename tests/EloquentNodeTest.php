@@ -32,11 +32,6 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass()
 	{
 		require_once __DIR__.'/stubs/DummyWorker.php';
-
-		/**
-		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
-		 */
-		require_once __DIR__.'/stubs/TestDatabaseConnection.php';
 	}
 
 	/**
@@ -101,11 +96,7 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase {
 	{
 		$model->setConnectionResolver($resolver = m::mock('Illuminate\Database\ConnectionResolverInterface'));
 
-		/**
-		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
-		 */
-		$resolver->shouldReceive('connection')->andReturn(m::mock('TestDatabaseConnection'));
-		// $resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
+		$resolver->shouldReceive('connection')->andReturn(m::mock('Illuminate\Database\Connection'));
 		$model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 	}

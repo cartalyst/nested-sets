@@ -503,6 +503,11 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
+			// We will hydrate our parent node now just in case
+			// we're dealing with stale data (i.e. in a mapping
+			// process)
+			$me->hydrateNode($parent);
+
 			// Our left limit will be one greater than that of the parent
 			// node, which will mean we are the first child.
 			$left  = $parent->getAttribute($attributes['left']) + 1;
@@ -540,6 +545,11 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $parent, $attributes)
 		{
+			// We will hydrate our parent node now just in case
+			// we're dealing with stale data (i.e. in a mapping
+			// process)
+			$me->hydrateNode($parent);
+
 			// Our left limit will be the same as the (current) right limit
 			// of the parent node, which will mean we are the last child.
 			$left  = $parentRight = $parent->getAttribute($attributes['right']);
@@ -577,6 +587,11 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
+			// We will hydrate our sibling node now just in case
+			// we're dealing with stale data (i.e. in a mapping
+			// process)
+			$me->hydrateNode($sibling);
+
 			// Our left limit will be the same as the (current) left limit
 			// of the sibling node, which will mean we are the previous sibling.
 			$left  = $siblingLeft = $sibling->getAttribute($attributes['left']);
@@ -615,6 +630,11 @@ class IlluminateWorker implements WorkerInterface {
 
 		$this->ensureTransaction(function($connection) use ($me, $node, $sibling, $attributes)
 		{
+			// We will hydrate our sibling node now just in case
+			// we're dealing with stale data (i.e. in a mapping
+			// process)
+			$me->hydrateNode($sibling);
+
 			// Our left limit will be one more than the (current) right limit
 			// of the sibling node, which will mean we are the next sibling.
 			// Additionally, because we sit to the right of the child, we do

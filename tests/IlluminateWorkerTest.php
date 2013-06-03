@@ -36,11 +36,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 	public static function setUpBeforeClass()
 	{
 		require_once __DIR__.'/stubs/NodeStub.php';
-
-		/**
-		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
-		 */
-		require_once __DIR__.'/stubs/TestDatabaseConnection.php';
 	}
 
 	/**
@@ -878,7 +873,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
@@ -886,6 +881,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
+			$worker->shouldReceive('hydrateNode')->with($parentNode)->once();
+
 			$parentNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 			$parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 
@@ -910,7 +907,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$childNode  = $this->getMockNode();
@@ -918,6 +915,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $childNode, $parentNode)
 		{
+			$worker->shouldReceive('hydrateNode')->with($parentNode)->once();
+
 			$parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
 			$parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 
@@ -941,13 +940,15 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
+			$worker->shouldReceive('hydrateNode')->with($siblingNode)->once();
+
 			$siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
 			$siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 
@@ -973,13 +974,15 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode,createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
 		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
 		$siblingNode = $this->getMockNode();
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node, $siblingNode)
 		{
+			$worker->shouldReceive('hydrateNode')->with($siblingNode)->once();
+
 			$siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(4);
 			$siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 
@@ -1163,11 +1166,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	protected function getMockConnection()
 	{
-		/**
-		 * @todo Remove when https://github.com/laravel/framework/pull/1426 gets merged.
-		 */
-		$connection = m::mock('TestDatabaseConnection');
-		// $connection = m::mock('Illuminate\Database\Connection');
+		$connection = m::mock('Illuminate\Database\Connection');
 		$connection->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
 		$connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 

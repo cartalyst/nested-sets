@@ -19,11 +19,6 @@
  */
 
 use Cartalyst\NestedSets\Presenter;
-
-// @todo remove when my pull request gets merged
-use Carbon\Carbon;
-use DateTime;
-
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 
@@ -226,73 +221,7 @@ class EloquentNode extends Model implements NodeInterface {
 			$this->exists = true;
 		}
 
-		/**
-		 * @todo Remove when my PR #1374 is merged.
-		 */
-		// parent::setAttribute($key, $value)
-		$this->tempSetAttribute($key, $value);
-	}
-
-	/**
-	 * Set a given attribute on the model.
-	 *
-	 * @param  string  $key
-	 * @param  mixed   $value
-	 * @return void
-	 * @todo   Remove when my PR #1374 is merged.
-	 */
-	public function tempSetAttribute($key, $value)
-	{
-		// First we will check for the presence of a mutator for the set operation
-		// which simply lets the developers tweak the attribute as it is set on
-		// the model, such as "json_encoding" an listing of data for storage.
-		if ($this->hasSetMutator($key))
-		{
-			$method = 'set'.studly_case($key).'Attribute';
-
-			return $this->{$method}($value);
-		}
-
-		// If an attribute is listed as a "date", we'll convert it from a DateTime
-		// instance into a form proper for storage on the database tables using
-		// the connection grammar's date format. We will auto set the values.
-		elseif (in_array($key, $this->getDates()))
-		{
-			if ($value)
-			{
-				$value = $this->tempFromDateTime($value);
-			}
-		}
-
-		$this->attributes[$key] = $value;
-	}
-
-	/**
-	 * Convert a DateTime to a storable string.
-	 *
-	 * @param  DateTime  $value
-	 * @return string
-	 * @todo   Remove when my PR #1374 is merged.
-	 */
-	protected function tempFromDateTime($value)
-	{
-		$format = $this->getDateFormat();
-
-		// If a timestamp has come through we will create
-		// a carbon instance from the timestamp.
-		if (is_numeric($value))
-		{
-			$value = Carbon::createFromTimestampUTC($value);
-		}
-
-		// Otherwise, we'll create a Carbon object based
-		// on the format for our model.
-		elseif ( ! $value instanceof DateTime)
-		{
-			$value = Carbon::createFromFormat($format, $value);
-		}
-
-		return $value->format($format);
+		parent::setAttribute($key, $value);
 	}
 
 	/**

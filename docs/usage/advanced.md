@@ -201,7 +201,7 @@ Sometimes, you may not wish to write your own custom logic for outputting your t
 
 There are currently four ways to present your nodes:
 
-1. Array (will return a set of nested arrays, much like what you pass to `mapTree()`).
+1. Array (will return a set of nested arrays, much like what you pass to the various mapping methods).
 2. Unordered List
 3. Ordered List
 4. JSON
