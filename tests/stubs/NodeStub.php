@@ -27,7 +27,18 @@ class NodeStub implements NodeInterface {
 	protected $children = array();
 
 	/**
-	 * Returns the children for the node.
+	 * Actually finds the children for the node.
+	 *
+	 * @param  int  $depth
+	 * @return array
+	 */
+	public function findChildren($depth = 0)
+	{
+
+	}
+
+	/**
+	 * Returns the loaded children for the node.
 	 *
 	 * @return array
 	 */

@@ -28,7 +28,7 @@ class Presenter {
 	 *
 	 * @var array
 	 */
-	protected $formats = array('array', 'ul', 'ol', 'json');
+	public $formats = array('array', 'ul', 'ol', 'json');
 
 	/**
 	 * Presents the node in the given format. If the attribute
@@ -42,11 +42,10 @@ class Presenter {
 	 * @param  string|Closure  $attribute
 	 * @param  int  $depth
 	 * @return mixed
-	 * @todo   Implement depth
 	 */
 	public function presentAs(NodeInterface $node, $format, $attribute, $depth = 0)
 	{
-		throw new \BadMethodCallException(__METHOD__);
+		return $this->recursivelyPresentAs($node, $format, $attribute, $depth, true);
 	}
 
 	/**
@@ -61,28 +60,10 @@ class Presenter {
 	 * @param  string|Closure  $attribute
 	 * @param  int  $depth
 	 * @return mixed
-	 * @todo   Implement depth
 	 */
 	public function presentChildrenAs(NodeInterface $node, $format, $attribute, $depth = 0)
 	{
-		$present = array();
-
-		$node->findChildren();
-		foreach ($node->getChildren() as $child)
-		{
-			$extracted = $this->extractPresentable($child, $attribute);
-
-			if ($child->getChildren())
-			{
-				$present[$extracted] = $this->presentChildrenAs($child, 'array', $attribute, $depth);
-			}
-			else
-			{
-				$present[] = $extracted;
-			}
-		}
-
-		return $this->{'presentArrayAs'.ucfirst($format)}($present);
+		return $this->recursivelyPresentAs($node, $format, $attribute, $depth);
 	}
 
 	/**
@@ -131,6 +112,45 @@ class Presenter {
 	public function presentArrayAsOl(array $present)
 	{
 		return $this->presentArrayAsList($present, 'ol');
+	}
+
+	/**
+	 * Actually does the magic for presenting nodes.
+	 *
+	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+	 * @param  string  $format
+	 * @param  string|Closure  $attribute
+	 * @param  int  $depth
+	 * @return mixed
+	 */
+	public function recursivelyPresentAs(NodeInterface $node, $format, $attribute, $depth = 0, $includeNode = false)
+	{
+		$present = array();
+
+		$node->findChildren($depth);
+
+		foreach ($node->getChildren() as $child)
+		{
+			$extracted = $this->extractPresentable($child, $attribute);
+
+			if ($child->getChildren())
+			{
+				$present[$extracted] = $this->presentChildrenAs($child, 'array', $attribute, $depth, false, $currentDepth);
+			}
+			else
+			{
+				$present[] = $extracted;
+			}
+		}
+
+		if ($includeNode === true)
+		{
+			$extracted = $this->extractPresentable($node, $attribute);
+
+			$present = array($extracted => $present);
+		}
+
+		return $this->{'presentArrayAs'.ucfirst($format)}($present);
 	}
 
 	/**

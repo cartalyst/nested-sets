@@ -83,7 +83,7 @@ class EloquentNode extends Model implements NodeInterface {
 	protected static $presenter;
 
 	/**
-	 * Returns the children for the node.
+	 * Returns the loaded children for the node.
 	 *
 	 * @return array
 	 */
@@ -386,11 +386,10 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
-	 * Queries the database for all children for the model.
-	 * Optionally, a depth may be provided.
+	 * Actually finds the children for the node.
 	 *
-	 * @param   int  $depth
-	 * @return  array
+	 * @param  int  $depth
+	 * @return array
 	 */
 	public function findChildren($depth = 0)
 	{
