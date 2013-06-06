@@ -127,7 +127,7 @@ interface NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributeNameNames();
+	public function getReservedAttributeNames();
 
 	/**
 	 * Get the name of a reserved attribute.

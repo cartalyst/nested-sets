@@ -178,7 +178,7 @@ class NodeStub implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributeNameNames()
+	public function getReservedAttributeNames()
 	{
 		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
 	}

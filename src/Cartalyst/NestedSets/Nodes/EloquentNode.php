@@ -229,7 +229,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 *
 	 * @return array
 	 */
-	public function getReservedAttributeNameNames()
+	public function getReservedAttributeNames()
 	{
 		return $this->reservedAttributes;
 	}
@@ -555,39 +555,6 @@ class EloquentNode extends Model implements NodeInterface {
 	public function setWorker($worker)
 	{
 		$this->worker = $worker;
-	}
-
-	/**
-	 * Get mutator for the "left" limit attribute.
-	 *
-	 * @param  mixed  $left
-	 * @return int    $left
-	 */
-	public function getLftAttribute($left)
-	{
-		return (int) $left;
-	}
-
-	/**
-	 * Get mutator for the "right" limit attribute.
-	 *
-	 * @param  mixed  $right
-	 * @return int    $right
-	 */
-	public function getRgtAttribute($right)
-	{
-		return (int) $right;
-	}
-
-	/**
-	 * Get mutator for the "tree" limit attribute.
-	 *
-	 * @param  mixed  $tree
-	 * @return int    $tree
-	 */
-	public function getTreeAttribute($tree)
-	{
-		return (int) $tree;
 	}
 
 	/**
