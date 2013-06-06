@@ -1142,7 +1142,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$node->shouldReceive('getKeyName')->andReturn('id');
 		$node->shouldReceive('getTable')->andReturn('categories');
-		$node->shouldReceive('getReservedAttributeNameNames')->andReturn(array(
+		$node->shouldReceive('getReservedAttributeNames')->andReturn(array(
 			'left'  => 'lft',
 			'right' => 'rgt',
 			'tree'  => 'tree',
