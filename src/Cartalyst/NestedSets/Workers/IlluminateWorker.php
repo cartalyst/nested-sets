@@ -190,7 +190,7 @@ class IlluminateWorker implements WorkerInterface {
 				$tree
 			)
 			->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-			->get(array("parent.$keyName"));
+			->get(array(new Expression($this->wrapColumn("parent.$keyName"))));
 
 		// Our results is an array of objects containing the key name
 		// only. We will simplify this by simply returning the key

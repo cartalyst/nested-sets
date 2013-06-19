@@ -400,7 +400,12 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$result3 = new stdClass;
 		$result3->id = 1;
 
-		$query->shouldReceive('get')->with(array('parent.id'))->once()->andReturn(array($result3, $result2, $result1));
+		$query->shouldReceive('get')->with(m::on(function($select)
+			{
+				$this->assertCount(1, $select);
+
+				return (string) $select[0] == '"parent"."id"';
+			}))->once()->andReturn(array($result3, $result2, $result1));
 
 		$this->assertCount(3, $path = $worker->path($node));
 		$this->assertEquals('1,2,3', implode(',', $path));
