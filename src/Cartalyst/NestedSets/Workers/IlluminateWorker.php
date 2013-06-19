@@ -163,12 +163,33 @@ class IlluminateWorker implements WorkerInterface {
 		// it's database agnostic compilation
 		$results = $this
 			->connection->table("$table as node")
-			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
-			->where("node.$keyName", '=', $node->getAttribute($keyName))
-			->where("node.{$attributes['tree']}", '=', $tree)
-			->where("parent.{$attributes['tree']}", '=', $tree)
-			->orderBy("node.{$attributes['left']}")
+			->join(
+				"$table as parent",
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'>=',
+				new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'<=',
+				new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.$keyName")),
+				'=',
+				$node->getAttribute($keyName)
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->where(
+				new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
 			->get(array("parent.$keyName"));
 
 		// Our results is an array of objects containing the key name
@@ -197,13 +218,34 @@ class IlluminateWorker implements WorkerInterface {
 
 		$result = $this
 			->connection->table("$table as node")
-			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
-			->where("node.$keyName", '=', $node->getAttribute($keyName))
-			->where("node.{$attributes['tree']}", '=', $tree)
-			->where("parent.{$attributes['tree']}", '=', $tree)
-			->orderBy("node.{$attributes['left']}")
-			->groupBy("node.{$attributes['left']}")
+			->join(
+				"$table as parent",
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'>=',
+				new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'<=',
+				new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.$keyName")),
+				'=',
+				$node->getAttribute($keyName)
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->where(
+				new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
+			->groupBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
 			->first(array(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
 				$this->wrapColumn("parent.$keyName"),
@@ -289,10 +331,28 @@ class IlluminateWorker implements WorkerInterface {
 		// use throughout the course of this method.
 		$query = $this
 			->connection->table("$table as node")
-			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
-			->join("$table as sub_parent", "node.{$attributes['left']}", '>=', "sub_parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("sub_parent.{$attributes['right']}")));
+			->join(
+				"$table as parent",
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'>=',
+				new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'<=',
+				new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+			)
+			->join(
+				"$table as sub_parent",
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'>=',
+				new Expression($this->wrapColumn("sub_parent.{$attributes['left']}"))
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['left']}")),
+				'<=',
+				new Expression($this->wrapColumn("sub_parent.{$attributes['right']}"))
+			);
 
 		// Create a query to select the sub-tree
 		// component of each node. We initialize this
@@ -308,18 +368,42 @@ class IlluminateWorker implements WorkerInterface {
 		$query->join('sub_tree', function($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree)
 		{
 			$subQuery
-				->select("node.$keyName", new Expression(sprintf(
-					'(count(%s) - 1) as %s',
-					$me->wrapColumn("parent.$keyName"),
-					$me->wrap($me->getDepthAttributeName())
-				)))
-				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-				->where("node.{$attributes['left']}", '<=', new Expression($me->wrapColumn("parent.{$attributes['right']}")))
-				->where("node.$keyName", '=', $key)
-				->where("node.{$attributes['tree']}", '=', $tree)
-				->where("parent.{$attributes['tree']}", '=', $tree)
-				->orderBy("node.{$attributes['left']}")
-				->groupBy("node.$keyName");
+				->select(
+					new Expression($me->wrapColumn("node.$keyName")),
+					new Expression(sprintf(
+						'(count(%s) - 1) as %s',
+						$me->wrapColumn("parent.$keyName"),
+						$me->wrap($me->getDepthAttributeName())
+					))
+				)
+				->join(
+					"$table as parent",
+					new Expression($me->wrapColumn("node.{$attributes['left']}")),
+					'>=',
+					new Expression($me->wrapColumn("parent.{$attributes['left']}"))
+				)
+				->where(
+					new Expression($me->wrapColumn("node.{$attributes['left']}")),
+					'<=',
+					new Expression($me->wrapColumn("parent.{$attributes['right']}"))
+				)
+				->where(
+					new Expression($me->wrapColumn("node.$keyName")),
+					'=',
+					$key
+				)
+				->where(
+					new Expression($me->wrapColumn("node.{$attributes['tree']}")),
+					'=',
+					$tree
+				)
+				->where(
+					new Expression($me->wrapColumn("parent.{$attributes['tree']}")),
+					'=',
+					$tree
+				)
+				->orderBy(new Expression($me->wrapColumn("node.{$attributes['left']}")))
+				->groupBy(new Expression($me->wrapColumn("node.$keyName")));
 
 			// Configure the join from the SQL the query
 			// builder generates.
@@ -329,7 +413,11 @@ class IlluminateWorker implements WorkerInterface {
 				$me->wrap($join->table)
 			));
 
-			$join->on("sub_parent.$keyName", '=', "sub_tree.$keyName");
+			$join->on(
+				new Expression($me->wrapColumn("sub_parent.$keyName")),
+				'=',
+				new Expression($me->wrapColumn("sub_tree.$keyName"))
+			);
 		});
 
 		// Now we have compiled the SQL for our sub query,
@@ -337,10 +425,26 @@ class IlluminateWorker implements WorkerInterface {
 		$query->mergeBindings($subQuery);
 
 		$query
-			->where("node.{$keyName}", '!=', $key)
-			->where("node.{$attributes['tree']}", '=', $tree)
-			->where("parent.{$attributes['tree']}", '=', $tree)
-			->where("sub_parent.{$attributes['tree']}", '=', $tree);
+			->where(
+				new Expression($this->wrapColumn("node.{$keyName}")),
+				'!=',
+				$key
+			)
+			->where(
+				new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->where(
+				new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+				'=',
+				$tree
+			)
+			->where(
+				new Expression($this->wrapColumn("sub_parent.{$attributes['tree']}")),
+				'=',
+				$tree
+			);
 
 		// If a callback was supplied, we'll call it now
 		if ($callback)
@@ -349,22 +453,25 @@ class IlluminateWorker implements WorkerInterface {
 		}
 
 		$query
-			->orderBy("node.{$attributes['left']}")
-			->groupBy("node.$keyName");
+			->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
+			->groupBy(new Expression($this->wrapColumn("node.$keyName")));
 
 		// If we have a depth, we need to supply a "having"
 		// clause to the query builder.
 		if ($depth > 0)
 		{
-			$query->having($me->getDepthAttributeName(), '<=', $depth);
+			$query->having(new Expression($this->wrapColumn($me->getDepthAttributeName())), '<=', $depth);
 		}
 
-		$results = $query->get(array("node.*", new Expression(sprintf(
-			'(count(%s) - (%s + 1)) as %s',
-			$this->wrapColumn("parent.$keyName"),
-			$this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
-			$this->wrap($this->getDepthAttributeName())
-		))));
+		$results = $query->get(array(
+			new Expression($this->wrapColumn("node.*")),
+			new Expression(sprintf(
+				'(count(%s) - (%s + 1)) as %s',
+				$this->wrapColumn("parent.$keyName"),
+				$this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
+				$this->wrap($this->getDepthAttributeName())
+				))
+		));
 
 		foreach ($results as $result)
 		{
