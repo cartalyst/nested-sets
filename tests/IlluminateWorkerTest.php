@@ -22,6 +22,7 @@ use Mockery as m;
 use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
 use Closure;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Grammars\Grammar;
 use NodeStub;
 use PHPUnit_Framework_TestCase;
 use stdClass;
@@ -65,13 +66,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('where')->with('lft', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
 		$query->shouldReceive('update')->with(array('lft' => '"lft" + 2'))->once();
 
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('where')->with('rgt', '>=', 1)->once()->andReturn($query);
 		$query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
 		$query->shouldReceive('update')->with(array('rgt' => '"rgt" + 2'))->once();
 
 		$worker->createGap(1, 2, 3);
@@ -106,8 +105,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('where')->with('rgt', '<=', 3)->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
 		$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
 		$query->shouldReceive('update')->with(array('lft' => '"lft" + -3', 'rgt' => '"rgt" + -3'))->once();
 
 		$worker->shouldReceive('removeGap')->with(2, 2, 1)->once();
@@ -131,8 +128,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('where')->with('rgt', '<=', 0)->once()->andReturn($query);
 		$node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
 		$query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('lft')->once()->andReturn('"lft"');
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('rgt')->once()->andReturn('"rgt"');
 		$query->shouldReceive('update')->with(array('lft' => '"lft" + 3', 'rgt' => '"rgt" + 3'))->once();
 
 		$worker->shouldReceive('createGap')->with(2, 2, 1)->once();
@@ -366,7 +361,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
 		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
 		{
 			return (string) $expression == '"parent"."rgt"';
@@ -397,7 +391,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
 		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
 		{
 			return (string) $expression == '"parent"."rgt"';
@@ -409,9 +402,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('where')->with('parent.tree', '=', 1)->once()->andReturn($query);
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 		$query->shouldReceive('groupBy')->with('node.lft')->once()->andReturn($query);
-
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
 		$result = new stdClass;
 		$result->depth = 4;
@@ -467,7 +457,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 		$query->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
 		$query->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
 		{
 			return (string) $expression == '"parent"."rgt"';
@@ -477,7 +466,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		{
 			return (string) $expression == '"sub_parent"."rgt"';
 		}))->once()->andReturn($query);
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('sub_parent.rgt')->once()->andReturn('"sub_parent"."rgt"');
 		$connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
 
 		// We need to mock our sub-query that we put in our join
@@ -486,8 +474,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		{
 			$join = m::mock('Illuminate\Database\Query\JoinClause');
 
-			$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
-			$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
 			$subQuery->shouldReceive('select')->with('node.id', m::on(function($expression)
 			{
@@ -495,7 +481,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			}))->once()->andReturn($subQuery);
 
 			$subQuery->shouldReceive('join')->with('categories as parent', 'node.lft', '>=', 'parent.lft')->once()->andReturn($subQuery);
-			$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.rgt')->once()->andReturn('"parent"."rgt"');
 			$subQuery->shouldReceive('where')->with('node.lft', '<=', m::on(function($expression)
 			{
 				return (string) $expression == '"parent"."rgt"';
@@ -509,7 +494,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 			$subQuery->shouldReceive('toSql')->once()->andReturn('foo');
 
 			$join->table = 'categories';
-			$connection->getQueryGrammar()->shouldReceive('wrap')->with('categories')->once()->andReturn('"categories"');
 
 			$join->shouldReceive('on')->with('sub_parent.id', '=', 'sub_tree.id')->once();
 
@@ -532,10 +516,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('orderBy')->with('node.lft')->once()->andReturn($query);
 		$query->shouldReceive('groupBy')->with('node.id')->once()->andReturn($query);
 		$query->shouldReceive('having')->with('depth', '<=', 2)->once()->andReturn($query);
-
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('parent.id')->once()->andReturn('"parent"."id"');
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('sub_tree.depth')->once()->andReturn('"sub_tree"."depth"');
-		$connection->getQueryGrammar()->shouldReceive('wrap')->with('depth')->once()->andReturn('"depth"');
 
 		$query->shouldReceive('get')->with(m::on(function($select) use ($me)
 		{
@@ -1125,10 +1105,29 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$worker->deleteNodeWithChildren($node);
 	}
 
+	public function testWrapTable()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$this->assertEquals('"prefix_foo" as "bar"', $worker->wrapTable('foo as bar'));
+	}
+
+	public function testWrap()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$this->assertEquals('"prefix_foo"."bar"', $worker->wrap('foo.bar'));
+	}
+
+	public function testWrappingColumn()
+	{
+		$worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$this->assertEquals('"foo"."bar"', $worker->wrapColumn('foo.bar'));
+	}
+
 	protected function getMockConnection()
 	{
 		$connection = m::mock('Illuminate\Database\Connection');
-		$connection->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
+		$connection->shouldReceive('getQueryGrammar')->andReturn($grammar = new Grammar);
+		$grammar->setTablePrefix('prefix_');
 		$connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 
 		$connection->shouldReceive('getPdo')->andReturn($pdo = m::mock('stdClass'));
