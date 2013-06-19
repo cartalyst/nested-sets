@@ -154,7 +154,6 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributeNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
-		$grammar    = $this->connection->getQueryGrammar();
 		$tree       = $node->getAttribute($attributes['tree']);
 
 		// Note, joins currently don't support "between" operators
@@ -165,7 +164,7 @@ class IlluminateWorker implements WorkerInterface {
 		$results = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
+			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->where("node.{$attributes['tree']}", '=', $tree)
 			->where("parent.{$attributes['tree']}", '=', $tree)
@@ -194,13 +193,12 @@ class IlluminateWorker implements WorkerInterface {
 		$attributes = $this->getReservedAttributeNames();
 		$table      = $this->getTable();
 		$keyName    = $this->baseNode->getKeyName();
-		$grammar    = $this->connection->getQueryGrammar();
 		$tree       = $node->getAttribute($attributes['tree']);
 
 		$result = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
+			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
 			->where("node.$keyName", '=', $node->getAttribute($keyName))
 			->where("node.{$attributes['tree']}", '=', $tree)
 			->where("parent.{$attributes['tree']}", '=', $tree)
@@ -208,8 +206,8 @@ class IlluminateWorker implements WorkerInterface {
 			->groupBy("node.{$attributes['left']}")
 			->first(array(new Expression(sprintf(
 				'(count(%s) - 1) as %s',
-				$grammar->wrap("parent.$keyName"),
-				$grammar->wrap($this->getDepthAttributeName())
+				$this->wrapColumn("parent.$keyName"),
+				$this->wrap($this->getDepthAttributeName())
 			))));
 
 		return $result->depth;
@@ -285,7 +283,6 @@ class IlluminateWorker implements WorkerInterface {
 		$keyName    = $this->baseNode->getKeyName();
 		$key        = $node->getAttribute($keyName);
 		$tree       = $node->getAttribute($attributes['tree']);
-		$grammar    = $this->connection->getQueryGrammar();
 		$nodes      = array();
 
 		// We will store a query builder object that we
@@ -293,9 +290,9 @@ class IlluminateWorker implements WorkerInterface {
 		$query = $this
 			->connection->table("$table as node")
 			->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
+			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("parent.{$attributes['right']}")))
 			->join("$table as sub_parent", "node.{$attributes['left']}", '>=', "sub_parent.{$attributes['left']}")
-			->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("sub_parent.{$attributes['right']}")));
+			->where("node.{$attributes['left']}", '<=', new Expression($this->wrapColumn("sub_parent.{$attributes['right']}")));
 
 		// Create a query to select the sub-tree
 		// component of each node. We initialize this
@@ -308,16 +305,16 @@ class IlluminateWorker implements WorkerInterface {
 		// an inner join for the main query.
 		$me = $this;
 
-		$query->join('sub_tree', function($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree, $grammar)
+		$query->join('sub_tree', function($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree)
 		{
 			$subQuery
 				->select("node.$keyName", new Expression(sprintf(
 					'(count(%s) - 1) as %s',
-					$grammar->wrap("parent.$keyName"),
-					$grammar->wrap($me->getDepthAttributeName())
+					$me->wrapColumn("parent.$keyName"),
+					$me->wrap($me->getDepthAttributeName())
 				)))
 				->join("$table as parent", "node.{$attributes['left']}", '>=', "parent.{$attributes['left']}")
-				->where("node.{$attributes['left']}", '<=', new Expression($grammar->wrap("parent.{$attributes['right']}")))
+				->where("node.{$attributes['left']}", '<=', new Expression($me->wrapColumn("parent.{$attributes['right']}")))
 				->where("node.$keyName", '=', $key)
 				->where("node.{$attributes['tree']}", '=', $tree)
 				->where("parent.{$attributes['tree']}", '=', $tree)
@@ -329,7 +326,7 @@ class IlluminateWorker implements WorkerInterface {
 			$join->table = new Expression(sprintf(
 				'(%s) as %s',
 				$subQuery->toSql(),
-				$grammar->wrap($join->table)
+				$me->wrap($join->table)
 			));
 
 			$join->on("sub_parent.$keyName", '=', "sub_tree.$keyName");
@@ -364,9 +361,9 @@ class IlluminateWorker implements WorkerInterface {
 
 		$results = $query->get(array("node.*", new Expression(sprintf(
 			'(count(%s) - (%s + 1)) as %s',
-			$grammar->wrap("parent.$keyName"),
-			$grammar->wrap("sub_tree.{$this->getDepthAttributeName()}"),
-			$grammar->wrap($this->getDepthAttributeName())
+			$this->wrapColumn("parent.$keyName"),
+			$this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
+			$this->wrap($this->getDepthAttributeName())
 		))));
 
 		foreach ($results as $result)
@@ -1405,6 +1402,46 @@ class IlluminateWorker implements WorkerInterface {
 	public function afterUpdateNode(NodeInterface $node)
 	{
 		$node->afterUpdate();
+	}
+
+	/**
+	 * Wraps a table from the current database connection.
+	 *
+	 * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
+	 * is resolved.
+	 */
+	public function wrapTable($value)
+	{
+		return $this->connection->getQueryGrammar()->wrapTable($value);
+	}
+
+	/**
+	 * Wraps a value from the current database connection.
+	 *
+	 * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
+	 * is resolved.
+	 */
+	public function wrap($value)
+	{
+		return $this->connection->getQueryGrammar()->wrap($value);
+	}
+
+	/**
+	 * Wraps a column value from the current database connection.
+	 *
+	 * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
+	 * is resolved.
+	 */
+	public function wrapColumn($value)
+	{
+		$wrapped = $this->wrap($value);
+
+		$prefix = $this->connection->getQueryGrammar()->getTablePrefix();
+
+		$pattern = sprintf('/([^a-zA-Z])(%s)([a-zA-Z])/', preg_quote($prefix));
+		$replacement = '$1$3';
+
+		return preg_replace($pattern, $replacement, $wrapped);
 	}
 
 }
