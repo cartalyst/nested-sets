@@ -27,7 +27,7 @@ Support
 
 Have a bug? Please create an issue here on GitHub that conforms with [necolas's guidelines](https://github.com/necolas/issue-guidelines).
 
-https://github.com/cartalyst/cart/issues
+https://github.com/cartalyst/nested-sets/issues
 
 Follow us on Twitter, [@cartalyst](http://twitter.com/cartalyst).
 
