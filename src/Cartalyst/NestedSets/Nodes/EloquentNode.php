@@ -600,6 +600,20 @@ class EloquentNode extends Model implements NodeInterface {
 	}
 
 	/**
+	 * Returns a collection of all nodes in a flat array.
+	 *
+	 * @param  int  $tree
+	 * @return Illuminate\Database\Eloquent\Collection
+	 */
+	public static function allFlat($tree = null)
+	{
+		$static = new static;
+		$nodes  = $static->createWorker()->allFlat($tree = null);
+
+		return $static->newCollection($nodes);
+	}
+
+	/**
 	 * Returns a collection of all root nodes.
 	 *
 	 * @return Illuminate\Database\Eloquent\Collection
