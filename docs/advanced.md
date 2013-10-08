@@ -1,4 +1,4 @@
-### Advanced Usage
+## Advanced Usage
 
 In addition to creating, reading, updating and deleting records, there are a number of other useful things you can do with Nested Sets. These include:
 
@@ -10,10 +10,12 @@ In addition to creating, reading, updating and deleting records, there are a num
 * [Mapping a Tree of Nodes (Mass-Assignment)](#map-tree)
 * [Presenting a Node (Debugging / Outputting)](#presenting-a-node-debugging-outputting)
 
-<a id="all-root"></a>
-#### Retrieving All Root Nodes
 
-Retrieving all root nodes is easy and is very similar to methods you [may already be familiar with](http://four.laravel.com/docs/eloquent#insert-update-delete).
+### Retrieving All Root Nodes {#all-root}
+
+---
+
+Retrieving all root nodes is easy and is very similar to methods you [may already be familiar with](http://laravel.com/docs/eloquent#insert-update-delete).
 
 For our example, let's assume we have a `Menu` model, which can have any number of separate menus (trees) in it and each menu may have any given hierarchical structure of data.
 
