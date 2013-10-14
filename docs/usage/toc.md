@@ -1,0 +1,17 @@
+## Usage
+
+- [Configure an Eloquent Node]({url}/usage/configure)
+- [Basic Usage]({url}/usage/basic)
+	- [Making a Root Node](#make-root)
+	- [Make a Node a Child of Another Node](#make-child)
+	- [Make a Node a Sibling of Another Node](#make-sibling)
+	- [Delete a Node](#deleting-a-node)
+	- [Getting the Hierarchy Tree](#reading)
+- [Advanced Usage]({url}/usage/advanced)
+	- [Retrieving All Root Nodes](#all-root)
+	- [Retrieving All Nodes Without Children](#all-leaf)
+	- [Getting the Path of a Node](#path)
+	- [Getting the Depth of a Node](#depth)
+	- [Getting the Depth of a Node Relative to Another Node](#relative-depth)
+	- [Mapping a Tree of Nodes (Mass-Assignment)](#map-tree)
+	- [Presenting a Node (Debugging / Outputting)](#presenting-a-node-debugging-outputting)

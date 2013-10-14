@@ -1,0 +1,9 @@
+{
+	"name" : "Nested Sets",
+	"type" : "package",
+	"public" : false,
+	"branch" : "master",
+	"github" : "cartalyst/nested-sets",
+	"travis" : false,
+	"demo" : false
+}

@@ -1,11 +1,5 @@
 ## Basic Usage
 
-- [Making a Root Node](#make-root)
-- [Make a Node a Child of Another Node](#make-child)
-- [Make a Node a Sibling of Another Node](#make-sibling)
-- [Delete a Node](#deleting-a-node)
-- [Getting the Hierarchy Tree](#reading)
-
 A special rule to remember about using Eloquent models with Nested Sets is you probably do not want to be calling **save()** on a model to add it to the hierarchy. Calling **save()** will not automatically assign the node to any hierarchy in any tree.
 
 A new concept to understand with Nested Sets is you insert, re-arrange nodes by placing them before or after another node (sibling) or as the first / last child of another node. In some other patterns, you may be used to setting a sort order for nodes. In Nested Sets, you set the sort order by placing a node relative to another node.
