@@ -608,7 +608,7 @@ class EloquentNode extends Model implements NodeInterface {
 	public static function allFlat($tree = null)
 	{
 		$static = new static;
-		$nodes  = $static->createWorker()->allFlat($tree = null);
+		$nodes  = $static->createWorker()->allFlat($tree);
 
 		return $static->newCollection($nodes);
 	}
