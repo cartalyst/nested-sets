@@ -367,7 +367,7 @@ class EloquentNode extends Model implements NodeInterface {
 	/**
 	 * Returns the depth of the node.
 	 *
-	 * @return array
+	 * @return int
 	 */
 	public function getDepth()
 	{
