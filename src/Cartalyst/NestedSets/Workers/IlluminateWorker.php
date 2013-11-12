@@ -1497,6 +1497,8 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function afterCreateNode(NodeInterface $node)
 	{
+		$node->syncOriginal();
+
 		$node->afterCreate();
 	}
 
@@ -1508,6 +1510,8 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function afterUpdateNode(NodeInterface $node)
 	{
+		$node->syncOriginal();
+
 		$node->afterUpdate();
 	}
 
