@@ -1,3 +1,3 @@
 ## Installation
 
-- [Installation]({url}/Installation)
+- [Installation]({url}/installation)
