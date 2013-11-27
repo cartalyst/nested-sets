@@ -171,6 +171,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node1->shouldReceive('getAllAttributes')->once()->andReturn($attributes = array('foo' => 'baz', 'depth' => 2));
 		$query->shouldReceive('insertGetId')->with(array('foo' => 'baz'))->once()->andReturn('bar');
 		$node1->shouldReceive('setAttribute')->with('id', 'bar')->once();
+		$node1->shouldReceive('syncOriginal')->once();
 		$node1->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node1);
 
@@ -178,6 +179,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
 		$node2->shouldReceive('getAllAttributes')->once()->andReturn($attributes);
 		$query->shouldReceive('insert')->with(array('foo' => 'baz'))->once();
+		$node2->shouldReceive('syncOriginal')->once();
 		$node2->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node2);
 	}
@@ -192,6 +194,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 		$query->shouldReceive('where')->with('id', '=', 2)->once()->andReturn($query);
 		$query->shouldReceive('update')->with(array('foo' => 'baz'))->once()->andReturn('bar');
+		$node->shouldReceive('syncOriginal')->once();
 		$node->shouldReceive('afterUpdate')->once();
 		$worker->updateNode($node);
 	}
