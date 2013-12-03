@@ -175,7 +175,7 @@ class EloquentNode extends Model implements NodeInterface {
 	 */
 	public function getAllAttributes()
 	{
-		return $this->attributesToArray();
+		return $this->getAttributes();
 	}
 
 	/**
