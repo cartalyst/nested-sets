@@ -363,6 +363,16 @@ class EloquentNode extends Model implements NodeInterface {
 	{
 		return $this->createWorker()->path($this);
 	}
+	
+	/**
+	 * Returns the depth of the node.
+	 *
+	 * @return int
+	 */
+	public function getDepth()
+	{
+		return $this->createWorker()->depth($this);
+	}
 
 	/**
 	 * Returns the parent for the node.
