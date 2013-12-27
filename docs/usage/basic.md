@@ -1,12 +1,10 @@
-## Basic Usage
+# Basic Usage
 
 A special rule to remember about using Eloquent models with Nested Sets is you probably do not want to be calling **save()** on a model to add it to the hierarchy. Calling **save()** will not automatically assign the node to any hierarchy in any tree.
 
 A new concept to understand with Nested Sets is you insert, re-arrange nodes by placing them before or after another node (sibling) or as the first / last child of another node. In some other patterns, you may be used to setting a sort order for nodes. In Nested Sets, you set the sort order by placing a node relative to another node.
 
-### Making a Root Node {#make-root}
-
----
+## Making a Root Node {#make-root}
 
 Making a node a root node (which starts a new tree in the database) is done by calling `makeRoot()`. This will automatically save the node in the database and setup the `lft`, `rgt` and `tree` properties:
 
@@ -25,9 +23,7 @@ Making a node a root node (which starts a new tree in the database) is done by c
 	$countries->makeRoot();
 
 
-### Make a Node a Child of Another Node {#make-child}
-
----
+## Make a Node a Child of Another Node {#make-child}
 
 Leading off from our root node above, let's make a couple of child nodes. We have a choice to put the nodes as either the first or last child of the root node (Countries):
 
@@ -87,9 +83,7 @@ This is much better as it is sorted alphabetically.
 Now, we've decided we want to broaden our directory listing to include England. This is where siblings come in;
 
 
-### Make a Node a Sibling of Another Node {#make-sibling}
-
----
+## Make a Node a Sibling of Another Node {#make-sibling}
 
 Let's say you want to put a node in the hierarchy but do not want to make it the first or last child of a parent node.
 
@@ -124,9 +118,7 @@ You can also make a node the next sibling of another node:
 > **Note**: It is important to note, while the `$australia` variable is updated, any other variables are not updated. You must call `refresh()` on those models instead, or query for them again.
 
 
-### Deleting a Node {#deleting-a-node}
-
----
+## Deleting a Node {#deleting-a-node}
 
 When deleting a node, you need to consider any children it has. Let's assume we have the following hierarchical directory structure (of countries and their states):
 
@@ -176,9 +168,7 @@ This will ensure the orphaned children are deleted:
 		3. Washington
 
 
-### Getting the Hierarchy Tree {#reading}
-
----
+## Getting the Hierarchy Tree {#reading}
 
 To get the hierarchy tree we've been creating, you need to do the following:
 

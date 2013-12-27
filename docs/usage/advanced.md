@@ -1,10 +1,8 @@
-## Advanced Usage
+# Advanced Usage
 
 In addition to creating, reading, updating and deleting records, there are a number of other useful things you can do with Nested Sets.
 
-### Retrieving All Root Nodes {#all-root}
-
----
+## Retrieving All Root Nodes {#all-root}
 
 Retrieving all root nodes is easy and is very similar to methods you [may already be familiar with](http://laravel.com/docs/eloquent#insert-update-delete).
 
@@ -37,9 +35,7 @@ The output of this might be:
 
 You might have started to notice how you can begin buliding a menu-management system for your next application.
 
-### Retrieving All Nodes Without Children {#all-leaf}
-
----
+## Retrieving All Nodes Without Children {#all-leaf}
 
 Referred to as "leaf nodes" in the Nested Sets Model, you may find a need to find all nodes which do not have any children:
 
@@ -56,9 +52,7 @@ Alternatively, you may wish to see if a node has children when iterating through
 		//
 	}
 
-### Getting the Path of a Node {#path}
-
----
+## Getting the Path of a Node {#path}
 
 You can get the path of a node quite easily in Nested Sets. The path will return an array of all the primary keys for all parent nodes up to the root item. An example of usage for this would be if you had an active menu item, `$activeItem`. You could build an "active path"; the path of menu items which lead to this item.
 
@@ -75,9 +69,7 @@ You can get the path of a node quite easily in Nested Sets. The path will return
 		echo 'class="active"';
 	}
 
-### Getting the Depth of a Node {#depth}
-
----
+## Getting the Depth of a Node {#depth}
 
 Retrieving the depth of a node can be useful as well. You may wish to know how many parents the item has in the hierarchy tree:
 
@@ -89,9 +81,7 @@ Retrieving the depth of a node can be useful as well. You may wish to know how m
 	// the item's parent has 1 parent and so on.
 	echo $item->depth();
 
-### Getting the Depth of a Node Relative to Another Node {#relative-depth}
-
----
+## Getting the Depth of a Node Relative to Another Node {#relative-depth}
 
 You can retrieve the depth of a node relative to another node extremely easily:
 
@@ -105,9 +95,7 @@ You can retrieve the depth of a node relative to another node extremely easily:
 
 	echo "Computer Repairs is {$computerRepairs->relativeDepth($services)} levels deeper than Services";
 
-### Mapping a Tree of Nodes (Mass-Assignment) {#map-tree}
-
----
+## Mapping a Tree of Nodes (Mass-Assignment) {#map-tree}
 
 Because Nested Sets can involve a number of queries and API calls to build a hierarchy structure (through setting children & siblings), we have provided a convenient method which will match the supplied array of nodes (or simple arrays) and create a hierarchy tree from them.
 
@@ -192,9 +180,7 @@ We would now have the following menu:
       * Laravel Applications
 * Contact Us
 
-### Presenting a Node (Debugging / Outputting) {#presenting-a-node-debugging-outputting}
-
----
+## Presenting a Node (Debugging / Outputting) {#presenting-a-node-debugging-outputting}
 
 Sometimes, you may not wish to write your own custom logic for outputting your trees. Thankfully, the hard work has already been done for many custom operations. We call it the presenting - and it's dead simple to use.
 

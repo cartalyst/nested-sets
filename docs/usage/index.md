@@ -1,4 +1,4 @@
-## Configure an Eloquent Node
+# Configure an Eloquent Node
 
 We make the assumption that you have read the [Laravel 4 documentation](http://laravel.com/docs/eloquent#basic-usage) on Eloquent models.
 
