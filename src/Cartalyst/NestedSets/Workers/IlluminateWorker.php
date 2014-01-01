@@ -454,7 +454,10 @@ class IlluminateWorker implements WorkerInterface {
 
 		$query
 			->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-			->groupBy(new Expression($this->wrapColumn("node.$keyName")));
+			->groupBy(
+				new Expression($this->wrapColumn("node.$keyName")),
+				new Expression($this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"))
+			);
 
 		// If we have a depth, we need to supply a "having"
 		// clause to the query builder.
