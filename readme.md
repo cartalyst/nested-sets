@@ -1,6 +1,8 @@
 #Nested Sets
 
-Nested sets utilizing the Modified Preorder Tree Traversal algorithm.. Part of the Cartalyst Arsenal & licensed [OSI BSD 3](license.md). Code well, rock on.
+Nested sets utilizing the Modified Preorder Tree Traversal algorithm.
+
+Part of the Cartalyst Arsenal & licensed [OSI BSD 3](license.txt). Code well, rock on.
 
 ##Package Story
 
