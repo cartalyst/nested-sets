@@ -1,16 +1,15 @@
-#Nested Sets
+# Nested Sets
 
 Nested sets utilizing the Modified Preorder Tree Traversal algorithm.
 
 Part of the Cartalyst Arsenal & licensed [OSI BSD 3](license.txt). Code well, rock on.
 
-##Package Story
+## Package Story
 
 History and future capabilities.
 
 
-Versioning
-----------
+## Versioning
 
 We version under the [Semantic Versioning](http://semver.org/) guidelines as much as possible.
 
@@ -24,8 +23,7 @@ And constructed with the following guidelines:
 * New additions without breaking backward compatibility bumps the minor (and resets the patch)
 * Bug fixes and misc changes bumps the patch
 
-Support
---------
+## Support
 
 Have a bug? Please create an issue here on GitHub that conforms with [necolas's guidelines](https://github.com/necolas/issue-guidelines).
 
