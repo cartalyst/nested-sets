@@ -1396,15 +1396,22 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNode(NodeInterface $node)
 	{
-		$query      = $this->connection->table($this->getTable());
-		$attributes = array_except($node->getAllAttributes(), array($this->getDepthAttributeName()));
+		$query   = $this->connection->table($this->getTable());
+		$keyName = $this->baseNode->getKeyName();
+
+		$attributes = array_except(
+			$node->getAllAttributes(),
+			array($this->getDepthAttributeName(), $keyName)
+		);
 
 		if ($node->getIncrementing())
 		{
-			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($attributes));
+			$node->setAttribute($keyName, $query->insertGetId($attributes));
 		}
 		else
 		{
+			$attributes[$keyName] = array_get($node->getAllAttributes(), $keyName);
+
 			$query->insert($attributes);
 		}
 
