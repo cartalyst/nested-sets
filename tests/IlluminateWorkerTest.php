@@ -178,7 +178,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$node2 = $this->getMockNode();
 		$node2->shouldReceive('getIncrementing')->once()->andReturn(false);
 		$node2->shouldReceive('getAllAttributes')->once()->andReturn($attributes);
-		$query->shouldReceive('insert')->with(array('foo' => 'baz'))->once();
+		$query->shouldReceive('insert')->with(array('foo' => 'baz', 'id' => null))->once();
 		$node2->shouldReceive('syncOriginal')->once();
 		$node2->shouldReceive('afterCreate')->once();
 		$worker->insertNode($node2);
@@ -636,11 +636,14 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 		$query->shouldReceive('groupBy')->with(m::on(function($expression)
 		{
 			return (string) $expression == '"node"."id"';
+		}), m::on(function($expression)
+		{
+			return (string) $expression == '"sub_tree"."depth"';
 		}))->once()->andReturn($query);
 		$query->shouldReceive('having')->with(m::on(function($expression)
 		{
-			return (string) $expression == '"depth"';
-		}), '<=', 2)->once()->andReturn($query);
+			return (string) $expression == 'count("depth")';
+		}), '<=', 3)->once()->andReturn($query);
 
 		$query->shouldReceive('get')->with(m::on(function($select) use ($me)
 		{
