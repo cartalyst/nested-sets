@@ -470,7 +470,7 @@ class IlluminateWorker implements WorkerInterface {
 						$this->wrapColumn($me->getDepthAttributeName())
 					)
 				),
-				'<=', $depth + 1
+				'<=', ++$depth
 			);
 		}
 
@@ -481,7 +481,7 @@ class IlluminateWorker implements WorkerInterface {
 				$this->wrapColumn("parent.$keyName"),
 				$this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
 				$this->wrap($this->getDepthAttributeName())
-				))
+			))
 		));
 
 		foreach ($results as $result)
