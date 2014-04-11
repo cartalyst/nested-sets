@@ -463,7 +463,15 @@ class IlluminateWorker implements WorkerInterface {
 		// clause to the query builder.
 		if ($depth > 0)
 		{
-			$query->having(new Expression($this->wrapColumn($me->getDepthAttributeName())), '<=', $depth);
+			$query->having(
+				new Expression(
+					sprintf(
+						'count(%s)',
+						$this->wrapColumn($me->getDepthAttributeName())
+					)
+				),
+				'<=', $depth + 1
+			);
 		}
 
 		$results = $query->get(array(
