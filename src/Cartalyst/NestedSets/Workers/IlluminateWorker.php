@@ -463,7 +463,15 @@ class IlluminateWorker implements WorkerInterface {
 		// clause to the query builder.
 		if ($depth > 0)
 		{
-			$query->having(new Expression($this->wrapColumn($me->getDepthAttributeName())), '<=', $depth);
+			$query->having(
+				new Expression(
+					sprintf(
+						'count(%s)',
+						$this->wrapColumn($me->getDepthAttributeName())
+					)
+				),
+				'<=', ++$depth
+			);
 		}
 
 		$results = $query->get(array(
@@ -473,7 +481,7 @@ class IlluminateWorker implements WorkerInterface {
 				$this->wrapColumn("parent.$keyName"),
 				$this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
 				$this->wrap($this->getDepthAttributeName())
-				))
+			))
 		));
 
 		foreach ($results as $result)
@@ -1396,15 +1404,23 @@ class IlluminateWorker implements WorkerInterface {
 	 */
 	public function insertNode(NodeInterface $node)
 	{
-		$query      = $this->connection->table($this->getTable());
-		$attributes = array_except($node->getAllAttributes(), array($this->getDepthAttributeName()));
+		$query         = $this->connection->table($this->getTable());
+		$keyName       = $this->baseNode->getKeyName();
+		$allAttributes = $node->getAllAttributes();
+
+		$attributes = array_except(
+			$allAttributes,
+			array($this->getDepthAttributeName(), $keyName)
+		);
 
 		if ($node->getIncrementing())
 		{
-			$node->setAttribute($this->baseNode->getKeyName(), $query->insertGetId($attributes));
+			$node->setAttribute($keyName, $query->insertGetId($attributes));
 		}
 		else
 		{
+			$attributes[$keyName] = array_get($allAttributes, $keyName);
+
 			$query->insert($attributes);
 		}
 
