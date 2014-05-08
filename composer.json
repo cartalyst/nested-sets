@@ -2,7 +2,7 @@
 	"name": "cartalyst/nested-sets",
 	"description": "PHP 5.3+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
 	"keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
-	"license": "Cartalyst-PSL",
+	"license": "proprietary",
 	"authors": [
 		{
 			"name": "Cartalyst LLC",
