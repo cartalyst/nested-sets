@@ -47,8 +47,8 @@ Let's make a couple more countries:
 As you can see, we now have three children nodes for the "Countries" tree:
 
 	1. Australia
-	2. United States of America
-	3. New Zealand
+	2. New Zealand
+	3. United States of America
 
 Let's add Argentina to our list of countries:
 
