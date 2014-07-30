@@ -1,5 +1,7 @@
 # Nested Sets
 
+[![Build Status](http://ci.cartalyst.com/build-status/svg/9)](http://ci.cartalyst.com/build-status/view/9)
+
 Nested sets utilizing the Modified Preorder Tree Traversal algorithm.
 
 Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](license.txt). Code well, rock on.
