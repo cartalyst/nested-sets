@@ -1,4 +1,4 @@
-# Introduction
+## Introduction
 
 A modern and framework agnostic nested sets package utilizing the Modified Preorder Tree Traversal algorithm.
 
@@ -10,7 +10,7 @@ Have a [read through the Installation Guide](#installation) and on how to [Integ
 
 ### Quick Example
 
-#### Making a Root Node
+###### Making a Root Node
 
 ```php
 $countries = new Directory(['name' => 'Countries']);
@@ -18,7 +18,7 @@ $countries = new Directory(['name' => 'Countries']);
 $countries->makeRoot();
 ```
 
-#### Make a Node a Child of Another Node
+###### Make a Node a Child of Another Node
 
 ```php
 $australia = new Directory(['name' => 'Australia']);
@@ -26,7 +26,7 @@ $australia = new Directory(['name' => 'Australia']);
 $australia->makeLastChildOf($countries);
 ```
 
-#### Make a Node a Sibling of Another Node
+###### Make a Node a Sibling of Another Node
 
 ```php
 $england = new Directory(['name' => 'England']);
