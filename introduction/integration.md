@@ -1,6 +1,6 @@
-# Integration
+## Integration
 
-## Laravel 4
+### Laravel 4
 
 The Nested Sets package has optional support for Laravel 4 and it comes bundled with a Service Provider for easy integration.
 
@@ -89,6 +89,6 @@ class Menu extends EloquentNode {
 }
 ```
 
-## Native
+### Native
 
 Coming Soon
