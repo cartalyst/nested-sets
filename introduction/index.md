@@ -13,7 +13,7 @@ Have a [read through the Installation Guide](#installation) and on how to [Integ
 #### Making a Root Node
 
 ```php
-$countries = new Directory(['name' => 'Countries']);
+$countries = new Menu(['name' => 'Countries']);
 
 $countries->makeRoot();
 ```
@@ -21,7 +21,7 @@ $countries->makeRoot();
 #### Make a Node a Child of Another Node
 
 ```php
-$australia = new Directory(['name' => 'Australia']);
+$australia = new Menu(['name' => 'Australia']);
 
 $australia->makeLastChildOf($countries);
 ```
@@ -29,7 +29,7 @@ $australia->makeLastChildOf($countries);
 #### Make a Node a Sibling of Another Node
 
 ```php
-$england = new Directory(['name' => 'England']);
+$england = new Menu(['name' => 'England']);
 
 $england->makePreviousSiblingOf($newZealand);
 ```

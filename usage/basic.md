@@ -12,14 +12,14 @@ Making a node a root node (which starts a new tree in the database) is done by c
 
 	use Cartalyst\NestedSets\Nodes\EloquentNode as Model;
 
-	class Directory extends Model {
+	class Menu extends Model {
 
-		protected $table = 'directory';
+		protected $table = 'menus';
 
 	}
 
 	// Make a new "Countries" root node
-	$countries = new Directory(['name' => 'Countries']);
+	$countries = new Menu(['name' => 'Countries']);
 	$countries->makeRoot();
 
 
@@ -29,7 +29,7 @@ Leading off from our root node above, let's make a couple of child nodes. We hav
 
 	<?php
 
-	$australia = new Directory(['name' => 'Australia']);
+	$australia = new Menu(['name' => 'Australia']);
 	$australia->makeLastChildOf($countries);
 
 Nested Sets will ensure that any changes caused to the `Countries` record in the database are reflected in the `$countries` instance (the `lft` & `rgt` values are synchronized).
@@ -38,10 +38,10 @@ Let's make a couple more countries:
 
 	<?php
 
-	$newZealand = new Directory(['name' => 'New Zealand']);
+	$newZealand = new Menu(['name' => 'New Zealand']);
 	$newZealand->makeLastChildOf($countries);
 
-	$unitedStates = new Directory(['name' => 'United States of America']);
+	$unitedStates = new Menu(['name' => 'United States of America']);
 	$unitedStates->makeLastChildOf($countries);
 
 As you can see, we now have three children nodes for the "Countries" tree:
@@ -54,7 +54,7 @@ Let's add Argentina to our list of countries:
 
 	<?php
 
-	$argentina = new Directory(['name' => 'Argentina']);
+	$argentina = new Menu(['name' => 'Argentina']);
 	$argentina->makeLastChildOf($countries);
 
 Because we called `makeLastChildOf()` we now have the following list:
@@ -80,7 +80,7 @@ We now have the following list of countries:
 
 This is much better as it is sorted alphabetically.
 
-Now, we've decided we want to broaden our directory listing to include England. This is where siblings come in;
+Now, we've decided we want to broaden our menu listing to include England. This is where siblings come in;
 
 
 ### Make a Node a Sibling of Another Node
@@ -93,9 +93,9 @@ You can make a node the previous sibling (meaning it will be on the same left, b
 
 	<?php
 
-	$newZealand = Directory::where('name', 'New Zealand')->first();
+	$newZealand = Menu::where('name', 'New Zealand')->first();
 
-	$england = new Directory(['name' => 'England']);
+	$england = new Menu(['name' => 'England']);
 	$england->makePreviousSiblingOf($newZealand);
 
 Great! Now our list is:
@@ -110,9 +110,9 @@ You can also make a node the next sibling of another node:
 
 	<?php
 
-	$australia = Directory::where('name', 'Australia')->first();
+	$australia = Menu::where('name', 'Australia')->first();
 
-	$brazil = new Directory('name' => 'Brazil');
+	$brazil = new Menu('name' => 'Brazil');
 	$brazil->makeNextSiblingOf($australia);
 
 > **Note**: It is important to note, while the `$australia` variable is updated, any other variables are not updated. You must call `refresh()` on those models instead, or query for them again.
@@ -120,7 +120,7 @@ You can also make a node the next sibling of another node:
 
 ### Deleting a Node
 
-When deleting a node, you need to consider any children it has. Let's assume we have the following hierarchical directory structure (of countries and their states):
+When deleting a node, you need to consider any children it has. Let's assume we have the following hierarchical menu structure (of countries and their states):
 
 	1. Argentina
 	2. Australia
@@ -151,7 +151,7 @@ The updated list
 		2. New York
 		3. Washington
 
-This is probably not what you want in your directory, a list of Australia's states at the same level as a country.
+This is probably not what you want in your menu, a list of Australia's states at the same level as a country.
 
 So, to overcome this, you need to call `deleteWithChildren()`.
 
@@ -174,7 +174,7 @@ To get the hierarchy tree we've been creating, you need to do the following:
 
 	<?php
 
-	$root = Directory::find(1);
+	$root = Menu::find(1);
 
 	// We need to find our children. We don't do this lazily because it can be
 	// advantageous to control when it happens. You may wish to provide a
