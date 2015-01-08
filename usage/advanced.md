@@ -79,7 +79,7 @@ Retrieving the depth of a node can be useful as well. You may wish to know how m
 	// where 0 means the item has no parents,
 	// 1 means the item has 1 parent, 2 means
 	// the item's parent has 1 parent and so on.
-	echo $item->depth();
+	echo $item->getDepth();
 
 ### Getting the Depth of a Node Relative to Another Node
 
