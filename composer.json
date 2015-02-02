@@ -41,8 +41,8 @@
 		"illuminate/database": "We (by default) provide an Eloquent implementation (and illuminate/database worker). Required if you are not building your own implementations."
 	},
 	"autoload": {
-		"psr-0": {
-			"Cartalyst\\NestedSets": "src/"
+		"psr-4": {
+			"Cartalyst\\NestedSets\\": "src/"
 		}
 	},
 	"extra": {
