@@ -86,15 +86,14 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testRemovingGap()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[createGap]');
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 		$worker->shouldReceive('createGap')->with(1, -2, 3);
 		$worker->removeGap(1, 2, 3);
 	}
 
 	public function testSlidingNodeOutOfTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,removeGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,removeGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
@@ -116,8 +115,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testSlidingNodeInTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,createGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
 		$connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
@@ -244,8 +242,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllFlatWithTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
 			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
@@ -269,8 +266,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
 			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
@@ -289,8 +285,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllLeafWithNoTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
 			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
@@ -315,8 +310,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testAllLeafWithTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getReservedAttributeName]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$node->shouldReceive('findAll')->once()->andReturn(array(
 			$node1 = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface'),
@@ -666,8 +660,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testChildrenCount()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('childrenNodes')->with($node1 = $this->getMockNode(), 1, null)->once()->andReturn(array('foo', 'bar'));
 		$node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
@@ -694,8 +687,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatNodesToTree]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,flatNodesToTree]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('childrenNodes')->with($node, $depth = 2, null)->andReturn($results = array('foo'));
 		$worker->shouldReceive('flatNodesToTree')->with($results)->andReturn('success');
@@ -790,8 +782,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMapTree()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$parentNode = $this->getMockNode();
 
@@ -829,8 +820,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMapTreeKeepingMissingChildren()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[childrenNodes,ensureTransaction,recursivelyMapNode,hydrateNode,deleteNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$parentNode = $this->getMockNode();
 
@@ -863,8 +853,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testRecursivelyMapNode()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[hydrateNode,insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[hydrateNode,insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 		$parentNode    = $this->getMockNode();
 		$existingNodes = array($childNode1 = $this->getMockNode());
 
@@ -917,8 +906,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsRoot()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,insertNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
@@ -942,8 +930,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
@@ -976,8 +963,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
@@ -1009,8 +995,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$siblingNode = $this->getMockNode();
 
@@ -1043,8 +1028,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testInsertNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,hydrateNode,insertNode,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$siblingNode = $this->getMockNode();
 
@@ -1073,8 +1057,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsFirstChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
@@ -1100,8 +1083,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsLastChild()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$childNode  = $this->getMockNode();
 		$parentNode = $this->getMockNode();
@@ -1127,8 +1109,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsPreviousSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$siblingNode = $this->getMockNode();
 
@@ -1153,8 +1134,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testMoveNodeAsNextSibling()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$siblingNode = $this->getMockNode();
 
@@ -1179,8 +1159,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testDeleteNode()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,removeGap]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,removeGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
 		$node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
@@ -1208,8 +1187,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase {
 
 	public function testDeleteNodeWithChildren()
 	{
-		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree]');
-		$worker->__construct($connection = $this->getMockConnection(), $node = $this->getMockNode());
+		$worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
 		$worker->shouldReceive('ensureTransaction')->with(m::on(function($callback) use ($worker, $connection, $node)
 		{
