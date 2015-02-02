@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Part of the Nested Sets package.
  *
@@ -17,11 +18,9 @@
  * @link       http://cartalyst.com
  */
 
-class DummyWorker {
-
-	public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\EloquentNode $node)
-	{
-
-	}
-
+class DummyWorker
+{
+    public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\EloquentNode $node)
+    {
+    }
 }

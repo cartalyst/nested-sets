@@ -1,4 +1,5 @@
-<?php namespace Cartalyst\NestedSets\Tests;
+<?php
+
 /**
  * Part of the Nested Sets package.
  *
@@ -17,88 +18,89 @@
  * @link       http://cartalyst.com
  */
 
+namespace Cartalyst\NestedSets\Tests;
+
 use Mockery as m;
-use Cartalyst\NestedSets\Nodes\NodeInterface;
-use Cartalyst\NestedSets\Presenter;
 use PHPUnit_Framework_TestCase;
+use Cartalyst\NestedSets\Presenter;
+use Cartalyst\NestedSets\Nodes\NodeInterface;
 
 /**
  * @todo, Finish implementation and tests.
  */
-class PresenterTest extends PHPUnit_Framework_TestCase {
+class PresenterTest extends PHPUnit_Framework_TestCase
+{
+    /**
+     * Close mockery.
+     *
+     * @return void
+     */
+    public function tearDown()
+    {
+        m::close();
+    }
 
-	/**
-	 * Close mockery.
-	 *
-	 * @return void
-	 */
-	public function tearDown()
-	{
-		m::close();
-	}
+    public function testExtractingPresentableWithNormalAttribute()
+    {
+        $presenter = new Presenter;
+        $node = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface');
+        $node->shouldReceive('getAttribute')->with($attribute = 'foo')->once()->andReturn('bar');
+        $this->assertEquals('bar', $presenter->extractPresentable($node, $attribute));
+    }
 
-	public function testExtractingPresentableWithNormalAttribute()
-	{
-		$presenter = new Presenter;
-		$node = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface');
-		$node->shouldReceive('getAttribute')->with($attribute = 'foo')->once()->andReturn('bar');
-		$this->assertEquals('bar', $presenter->extractPresentable($node, $attribute));
-	}
+    public function testExtractingPresentableWithClosure()
+    {
+        $presenter = new Presenter;
+        $node = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface');
+        $attribute = function (NodeInterface $node) { return 'bar'; };
 
-	public function testExtractingPresentableWithClosure()
-	{
-		$presenter = new Presenter;
-		$node = m::mock('Cartalyst\NestedSets\Nodes\NodeInterface');
-		$attribute = function(NodeInterface $node) { return 'bar'; };
+        $this->assertEquals('bar', $presenter->extractPresentable($node, $attribute));
+    }
 
-		$this->assertEquals('bar', $presenter->extractPresentable($node, $attribute));
-	}
+    public function testPresentingArrayAsArray()
+    {
+        $presenter = new Presenter;
 
-	public function testPresentingArrayAsArray()
-	{
-		$presenter = new Presenter;
+        $array = array(
+            'foo',
+            'bar',
+            'baz' => array(
+                'bat',
+                'qux',
+            ),
+        );
+        $this->assertEquals($array, $presenter->presentArrayAsArray($array));
+    }
 
-		$array = array(
-			'foo',
-			'bar',
-			'baz' => array(
-				'bat',
-				'qux',
-			),
-		);
-		$this->assertEquals($array, $presenter->presentArrayAsArray($array));
-	}
+    public function testPresentingArrayAsUl()
+    {
+        $presenter = new Presenter;
 
-	public function testPresentingArrayAsUl()
-	{
-		$presenter = new Presenter;
+        $array = array(
+            'foo',
+            'bar',
+            'baz' => array(
+                'bat',
+                'qux',
+            ),
+        );
+        $expected = '<ul><li>foo</li><li>bar</li><li>baz<ul><li>bat</li><li>qux</li></ul></li></ul>';
+        $this->assertEquals($expected, $presenter->presentArrayAsUl($array));
+    }
 
-		$array = array(
-			'foo',
-			'bar',
-			'baz' => array(
-				'bat',
-				'qux',
-			),
-		);
-		$expected = '<ul><li>foo</li><li>bar</li><li>baz<ul><li>bat</li><li>qux</li></ul></li></ul>';
-		$this->assertEquals($expected, $presenter->presentArrayAsUl($array));
-	}
+    public function testPresentingArrayAsOl()
+    {
+        $presenter = new Presenter;
 
-	public function testPresentingArrayAsOl()
-	{
-		$presenter = new Presenter;
-
-		$array = array(
-			'foo',
-			'bar',
-			'baz' => array(
-				'bat',
-				'qux',
-			),
-		);
-		$expected = '<ol><li>foo</li><li>bar</li><li>baz<ol><li>bat</li><li>qux</li></ol></li></ol>';
-		$this->assertEquals($expected, $presenter->presentArrayAsOl($array));
-	}
-
+        $array = array(
+            'foo',
+            'bar',
+            'baz' => array(
+                'bat',
+                'qux',
+            ),
+        );
+        $expected = '<ol><li>foo</li><li>bar</li><li>baz<ol><li>bat</li><li>qux</li></ol></li></ol>';
+        $this->assertEquals($expected, $presenter->presentArrayAsOl($array));
+    }
 }

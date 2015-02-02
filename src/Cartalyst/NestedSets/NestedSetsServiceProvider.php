@@ -1,4 +1,5 @@
-<?php namespace Cartalyst\NestedSets;
+<?php
+
 /**
  * Part of the Nested Sets package.
  *
@@ -17,42 +18,42 @@
  * @link       http://cartalyst.com
  */
 
-use Cartalyst\NestedSets\Nodes\EloquentNode;
+namespace Cartalyst\NestedSets;
+
 use Illuminate\Support\ServiceProvider;
+use Cartalyst\NestedSets\Nodes\EloquentNode;
 
-class NestedSetsServiceProvider extends ServiceProvider {
+class NestedSetsServiceProvider extends ServiceProvider
+{
+    /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        EloquentNode::setPresenter($this->app['nested.sets.presenter']);
+    }
 
-	/**
-	 * Boot the service provider.
-	 *
-	 * @return void
-	 */
-	public function boot()
-	{
-		EloquentNode::setPresenter($this->app['nested.sets.presenter']);
-	}
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->registerPresenter();
+    }
 
-	/**
-	 * Register the service provider.
-	 *
-	 * @return void
-	 */
-	public function register()
-	{
-		$this->registerPresenter();
-	}
-
-	/**
-	 * Register the presenter.
-	 *
-	 * @return void
-	 */
-	protected function registerPresenter()
-	{
-		$this->app['nested.sets.presenter'] = $this->app->share(function($app)
-		{
-			return new Presenter;
-		});
-	}
-
+    /**
+     * Register the presenter.
+     *
+     * @return void
+     */
+    protected function registerPresenter()
+    {
+        $this->app['nested.sets.presenter'] = $this->app->share(function ($app) {
+            return new Presenter;
+        });
+    }
 }

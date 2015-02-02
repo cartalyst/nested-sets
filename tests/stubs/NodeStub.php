@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Part of the Nested Sets package.
  *
@@ -19,275 +20,270 @@
 
 use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-class NodeStub implements NodeInterface {
+class NodeStub implements NodeInterface
+{
+    protected $attributes = array();
 
-	protected $attributes = array();
+    protected $children = array();
 
-	protected $children = array();
+    /**
+     * Actually finds the children for the node.
+     *
+     * @param  int  $depth
+     * @return array
+     */
+    public function findChildren($depth = 0)
+    {
+    }
 
-	/**
-	 * Actually finds the children for the node.
-	 *
-	 * @param  int  $depth
-	 * @return array
-	 */
-	public function findChildren($depth = 0)
-	{
+    /**
+     * Returns the loaded children for the node.
+     *
+     * @return array
+     */
+    public function getChildren()
+    {
+        return $this->children;
+    }
 
-	}
+    /**
+     * Sets the children for the model.
+     *
+     * @param  array  $children
+     * @return void
+     */
+    public function setChildren(array $children)
+    {
+        $this->children = $children;
+    }
 
-	/**
-	 * Returns the loaded children for the node.
-	 *
-	 * @return array
-	 */
-	public function getChildren()
-	{
-		return $this->children;
-	}
+    /**
+     * Clears the children for the model.
+     *
+     * @return void
+     */
+    public function clearChildren()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Sets the children for the model.
-	 *
-	 * @param  array  $children
-	 * @return void
-	 */
-	public function setChildren(array $children)
-	{
-		$this->children = $children;
-	}
+    /**
+     * Sets the child in the children array at
+     * the given index.
+     *
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
+     * @param  int  $index
+     * @return void
+     */
+    public function setChildAtIndex(Cartalyst\NestedSets\Nodes\NodeInterface $child, $index)
+    {
+        $this->children[$index] = $child;
+    }
 
-	/**
-	 * Clears the children for the model.
-	 *
-	 * @return void
-	 */
-	public function clearChildren()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Returns the child at the given index. If
+     * the index does not exist, we return "null"
+     *
+     * @param  int  $index
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
+     */
+    public function getChildAtIndex($index)
+    {
+        return (isset($this->children[$index])) ? $this->children[$index] : null;
+    }
 
-	/**
-	 * Sets the child in the children array at
-	 * the given index.
-	 *
-	 * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
-	 * @param  int  $index
-	 * @return void
-	 */
-	public function setChildAtIndex(Cartalyst\NestedSets\Nodes\NodeInterface $child, $index)
-	{
-		$this->children[$index] = $child;
-	}
+    /**
+     * Get the table associated with the node.
+     *
+     * @return string
+     */
+    public function getTable()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Returns the child at the given index. If
-	 * the index does not exist, we return "null"
-	 *
-	 * @param  int  $index
-	 * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
-	 */
-	public function getChildAtIndex($index)
-	{
-		return (isset($this->children[$index])) ? $this->children[$index] : null;
-	}
+    /**
+     * Get the primary key for the node.
+     *
+     * @return string
+     */
+    public function getKeyName()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Get the table associated with the node.
-	 *
-	 * @return string
-	 */
-	public function getTable()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Get the value indicating whether the IDs are incrementing.
+     *
+     * @return bool
+     */
+    public function getIncrementing()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Get the primary key for the node.
-	 *
-	 * @return string
-	 */
-	public function getKeyName()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Get all of the current attributes on the node.
+     *
+     * @return array
+     */
+    public function getAllAttributes()
+    {
+        return $this->attributes;
+    }
 
-	/**
-	 * Get the value indicating whether the IDs are incrementing.
-	 *
-	 * @return bool
-	 */
-	public function getIncrementing()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Set all of the current attributes on the node.
+     *
+     * @param  array  $attributes
+     * @return void
+     */
+    public function setAllAttributes(array $attributes)
+    {
+        $this->attributes = $attributes;
+    }
 
-	/**
-	 * Get all of the current attributes on the node.
-	 *
-	 * @return array
-	 */
-	public function getAllAttributes()
-	{
-		return $this->attributes;
-	}
+    /**
+     * Get an attribute from the model.
+     *
+     * @param  string  $key
+     * @param  mixed   $default
+     * @return mixed
+     */
+    public function getAttribute($key, $default = null)
+    {
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->attributes[$key];
+        }
 
-	/**
-	 * Set all of the current attributes on the node.
-	 *
-	 * @param  array  $attributes
-	 * @return void
-	 */
-	public function setAllAttributes(array $attributes)
-	{
-		$this->attributes = $attributes;
-	}
+        return value($default);
+    }
 
-	/**
-	 * Get an attribute from the model.
-	 *
-	 * @param  string  $key
-	 * @param  mixed   $default
-	 * @return mixed
-	 */
-	public function getAttribute($key, $default = null)
-	{
-		if (array_key_exists($key, $this->attributes))
-		{
-			return $this->attributes[$key];
-		}
+    /**
+     * Set a given attribute on the model.
+     *
+     * @param  string  $key
+     * @param  mixed   $value
+     * @return void
+     */
+    public function setAttribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
+    }
 
-		return value($default);
-	}
+    /**
+     * Get the reserved attributes.
+     *
+     * @return array
+     */
+    public function getReservedAttributeNames()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Set a given attribute on the model.
-	 *
-	 * @param  string  $key
-	 * @param  mixed   $value
-	 * @return void
-	 */
-	public function setAttribute($key, $value)
-	{
-		$this->attributes[$key] = $value;
-	}
+    /**
+     * Get the name of a reserved attribute.
+     *
+     * @param  string  $key
+     * @return string
+     */
+    public function getReservedAttributeName($key)
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Get the reserved attributes.
-	 *
-	 * @return array
-	 */
-	public function getReservedAttributeNames()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Return the "depth" attribute.
+     *
+     * @return string
+     */
+    public function getDepthAttributeName()
+    {
+        return 'depth';
+    }
 
-	/**
-	 * Get the name of a reserved attribute.
-	 *
-	 * @param  string  $key
-	 * @return string
-	 */
-	public function getReservedAttributeName($key)
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Finds all nodes in a flat array.
+     *
+     * @return array
+     */
+    public function findAll()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Return the "depth" attribute.
-	 *
-	 * @return string
-	 */
-	public function getDepthAttributeName()
-	{
-		return 'depth';
-	}
+    /**
+     * Creates a new instance of this node.
+     *
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface
+     */
+    public function createNode()
+    {
+        throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
+    }
 
-	/**
-	 * Finds all nodes in a flat array.
-	 *
-	 * @return array
-	 */
-	public function findAll()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Callback after the node is created in the
+     * database, not necessarily through save().
+     *
+     * @return void
+     */
+    public function afterUpdate()
+    {
+    }
 
-	/**
-	 * Creates a new instance of this node.
-	 *
-	 * @return Cartalyst\NestedSets\Nodes\NodeInterface
-	 */
-	public function createNode()
-	{
-		throw new BadMethodCallException('Stub method '.__METHOD__.' not implemented.');
-	}
+    /**
+     * Callback after the node is updated in the
+     * database, not necessarily through save().
+     *
+     * @return void
+     */
+    public function afterCreate()
+    {
+    }
 
-	/**
-	 * Callback after the node is created in the
-	 * database, not necessarily through save().
-	 *
-	 * @return void
-	 */
-	public function afterUpdate()
-	{
+    /**
+     * Dynamically retrieve attributes on the object.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function __get($key)
+    {
+        return $this->getAttribute($key);
+    }
 
-	}
+    /**
+     * Dynamically set attributes on the object.
+     *
+     * @param  string  $key
+     * @param  mixed   $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->setAttribute($key, $value);
+    }
 
-	/**
-	 * Callback after the node is updated in the
-	 * database, not necessarily through save().
-	 *
-	 * @return void
-	 */
-	public function afterCreate()
-	{
+    /**
+     * Determine if an attribute exists on the object.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    public function __isset($key)
+    {
+        return isset($this->attributes[$key]);
+    }
 
-	}
-
-	/**
-	 * Dynamically retrieve attributes on the object.
-	 *
-	 * @param  string  $key
-	 * @return mixed
-	 */
-	public function __get($key)
-	{
-		return $this->getAttribute($key);
-	}
-
-	/**
-	 * Dynamically set attributes on the object.
-	 *
-	 * @param  string  $key
-	 * @param  mixed   $value
-	 * @return void
-	 */
-	public function __set($key, $value)
-	{
-		$this->setAttribute($key, $value);
-	}
-
-	/**
-	 * Determine if an attribute exists on the object.
-	 *
-	 * @param  string  $key
-	 * @return void
-	 */
-	public function __isset($key)
-	{
-		return isset($this->attributes[$key]);
-	}
-
-	/**
-	 * Unset an attribute on the object.
-	 *
-	 * @param  string  $key
-	 * @return void
-	 */
-	public function __unset($key)
-	{
-		unset($this->attributes[$key]);
-	}
-
+    /**
+     * Unset an attribute on the object.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    public function __unset($key)
+    {
+        unset($this->attributes[$key]);
+    }
 }
