@@ -30,7 +30,7 @@ class Presenter
      *
      * @var array
      */
-    public $formats = array('array', 'ul', 'ol', 'json');
+    public $formats = ['array', 'ul', 'ol', 'json'];
 
     /**
      * Presents the node in the given format. If the attribute
@@ -129,7 +129,7 @@ class Presenter
      */
     public function recursivelyPresentAs(NodeInterface $node, $format, $attribute, $depth = 0, $includeNode = false)
     {
-        $present = array();
+        $present = [];
 
         $node->findChildren($depth);
 
@@ -146,7 +146,7 @@ class Presenter
         if ($includeNode === true) {
             $extracted = $this->extractPresentable($node, $attribute);
 
-            $present = array($extracted => $present);
+            $present = [$extracted => $present];
         }
 
         return $this->{'presentArrayAs'.ucfirst($format)}($present);

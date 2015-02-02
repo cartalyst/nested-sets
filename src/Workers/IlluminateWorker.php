@@ -193,7 +193,7 @@ class IlluminateWorker implements WorkerInterface
                 $tree
             )
             ->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-            ->get(array(new Expression($this->wrapColumn("parent.$keyName"))));
+            ->get([new Expression($this->wrapColumn("parent.$keyName"))]);
 
         // Our results is an array of objects containing the key name
         // only. We will simplify this by simply returning the key
@@ -248,11 +248,11 @@ class IlluminateWorker implements WorkerInterface
             )
             ->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
             ->groupBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-            ->first(array(new Expression(sprintf(
+            ->first([new Expression(sprintf(
                 '(count(%s) - 1) as %s',
                 $this->wrapColumn("parent.$keyName"),
                 $this->wrap($this->getDepthAttributeName())
-            ))));
+            ))]);
 
         return $result->depth;
     }
@@ -326,7 +326,7 @@ class IlluminateWorker implements WorkerInterface
         $keyName    = $this->baseNode->getKeyName();
         $key        = $node->getAttribute($keyName);
         $tree       = $node->getAttribute($attributes['tree']);
-        $nodes      = array();
+        $nodes      = [];
 
         // We will store a query builder object that we
         // use throughout the course of this method.
@@ -472,7 +472,7 @@ class IlluminateWorker implements WorkerInterface
             );
         }
 
-        $results = $query->get(array(
+        $results = $query->get([
             new Expression($this->wrapColumn("node.*")),
             new Expression(sprintf(
                 '(count(%s) - (%s + 1)) as %s',
@@ -480,7 +480,7 @@ class IlluminateWorker implements WorkerInterface
                 $this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
                 $this->wrap($this->getDepthAttributeName())
             ))
-        ));
+        ]);
 
         foreach ($results as $result) {
             $nodes[] = $this->createNode($result);
@@ -1019,25 +1019,25 @@ class IlluminateWorker implements WorkerInterface
             ->connection->table($this->getTable())
             ->where($attributes['left'], '>=', $left)
             ->where($attributes['tree'], '=', $tree)
-            ->update(array(
+            ->update([
                 $attributes['left'] => new Expression(sprintf(
                     '%s + %d',
                     $this->connection->getQueryGrammar()->wrap($attributes['left']),
                     $size
                 )),
-            ));
+            ]);
 
         $this
             ->connection->table($this->getTable())
             ->where($attributes['right'], '>=', $left)
             ->where($attributes['tree'], '=', $tree)
-            ->update(array(
+            ->update([
                 $attributes['right'] => new Expression(sprintf(
                     '%s + %d',
                     $this->connection->getQueryGrammar()->wrap($attributes['right']),
                     $size
                 )),
-            ));
+            ]);
     }
 
     /**
@@ -1080,7 +1080,7 @@ class IlluminateWorker implements WorkerInterface
             ->where($attributes['left'], '>=', $node->getAttribute($attributes['left']))
             ->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
             ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
-            ->update(array(
+            ->update([
                 $attributes['left'] => new Expression(sprintf(
                     '%s + %d',
                     $grammar->wrap($attributes['left']),
@@ -1091,7 +1091,7 @@ class IlluminateWorker implements WorkerInterface
                     $grammar->wrap($attributes['right']),
                     $delta
                 )),
-            ));
+            ]);
 
         // Now, we will close the gap created by shifting the node
         $this->removeGap($node->getAttribute($attributes['left']), $size + 1, $node->getAttribute($attributes['tree']));
@@ -1131,7 +1131,7 @@ class IlluminateWorker implements WorkerInterface
             ->where($attributes['left'], '>=', 0 - $size)
             ->where($attributes['right'], '<=', 0)
             ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
-            ->update(array(
+            ->update([
                 $attributes['left'] => new Expression(sprintf(
                     '%s + %d',
                     $grammar->wrap($attributes['left']),
@@ -1142,7 +1142,7 @@ class IlluminateWorker implements WorkerInterface
                     $grammar->wrap($attributes['right']),
                     $delta
                 )),
-            ));
+            ]);
 
         // Like sliding out of a tree, we will now update the node's
         // attributes so they don't have to be hydrated.
@@ -1164,15 +1164,15 @@ class IlluminateWorker implements WorkerInterface
     public function flatNodesToTree(array $nodes)
     {
         if (count($nodes) === 0) {
-            return array();
+            return [];
         }
 
         // Tree to return
-        $tree = array();
+        $tree = [];
 
         // Current stack, used to determine relative
         // depth to a parent.
-        $stack = array();
+        $stack = [];
 
         // Variable used to check the size of the current
         // stack. We use it to determine where to put children
@@ -1224,7 +1224,7 @@ class IlluminateWorker implements WorkerInterface
      * @param  array  $existingNodes
      * @return void
      */
-    public function recursivelyMapNode($node, NodeInterface $parent, array &$existingNodes = array())
+    public function recursivelyMapNode($node, NodeInterface $parent, array &$existingNodes = [])
     {
         // We will accept arrays and StdClass objects
         // as parameters, as this method is typically
@@ -1387,7 +1387,7 @@ class IlluminateWorker implements WorkerInterface
 
         $attributes = array_except(
             $allAttributes,
-            array($this->getDepthAttributeName(), $keyName)
+            [$this->getDepthAttributeName(), $keyName]
         );
 
         if ($node->getIncrementing()) {
@@ -1411,7 +1411,7 @@ class IlluminateWorker implements WorkerInterface
     {
         $keyName    = $this->baseNode->getKeyName();
         $key        = $node->getAttribute($keyName);
-        $attributes = array_except($node->getAllAttributes(), array($this->getDepthAttributeName()));
+        $attributes = array_except($node->getAllAttributes(), [$this->getDepthAttributeName()]);
 
         $this
             ->connection->table($this->getTable())
@@ -1427,12 +1427,12 @@ class IlluminateWorker implements WorkerInterface
      * @param  mixed  $attributes
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $node
      */
-    public function createNode($attributes = array())
+    public function createNode($attributes = [])
     {
         $attributes = (array) $attributes;
 
         // Prepare the node's children
-        $children   = array();
+        $children   = [];
         if (isset($attributes['children'])) {
             $children = $attributes['children'];
             unset($attributes['children']);

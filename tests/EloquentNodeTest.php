@@ -51,9 +51,9 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase
     {
         $node = new Node;
 
-        $node->setChildren(array('foo'));
+        $node->setChildren(['foo']);
         $this->assertCount(1, $node->getChildren());
-        $this->assertEquals(array('foo'), $node->getChildren());
+        $this->assertEquals(['foo'], $node->getChildren());
 
         $node->clearChildren();
         $this->assertEmpty($node->getChildren());
@@ -91,7 +91,7 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase
         $node = m::mock('Cartalyst\NestedSets\Nodes\EloquentNode[createWorker]');
         $node->shouldReceive('createWorker')->once()->andReturn($worker = m::mock('Cartalyst\NestedSets\Workers\WorkerInterface'));
         $worker->shouldReceive('tree')->with($node, 0, null)->once()->andReturn($treeNode = new Node);
-        $this->assertEquals(array($treeNode), $node->findChildren());
+        $this->assertEquals([$treeNode], $node->findChildren());
     }
 
     protected function addMockConnection($model)

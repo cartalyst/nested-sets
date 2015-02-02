@@ -22,9 +22,9 @@ use Cartalyst\NestedSets\Nodes\NodeInterface;
 
 class NodeStub implements NodeInterface
 {
-    protected $attributes = array();
+    protected $attributes = [];
 
-    protected $children = array();
+    protected $children = [];
 
     /**
      * Actually finds the children for the node.

@@ -61,14 +61,14 @@ class PresenterTest extends PHPUnit_Framework_TestCase
     {
         $presenter = new Presenter;
 
-        $array = array(
+        $array = [
             'foo',
             'bar',
-            'baz' => array(
+            'baz' => [
                 'bat',
                 'qux',
-            ),
-        );
+            ],
+        ];
         $this->assertEquals($array, $presenter->presentArrayAsArray($array));
     }
 
@@ -76,14 +76,14 @@ class PresenterTest extends PHPUnit_Framework_TestCase
     {
         $presenter = new Presenter;
 
-        $array = array(
+        $array = [
             'foo',
             'bar',
-            'baz' => array(
+            'baz' => [
                 'bat',
                 'qux',
-            ),
-        );
+            ],
+        ];
         $expected = '<ul><li>foo</li><li>bar</li><li>baz<ul><li>bat</li><li>qux</li></ul></li></ul>';
         $this->assertEquals($expected, $presenter->presentArrayAsUl($array));
     }
@@ -92,14 +92,14 @@ class PresenterTest extends PHPUnit_Framework_TestCase
     {
         $presenter = new Presenter;
 
-        $array = array(
+        $array = [
             'foo',
             'bar',
-            'baz' => array(
+            'baz' => [
                 'bat',
                 'qux',
-            ),
-        );
+            ],
+        ];
         $expected = '<ol><li>foo</li><li>bar</li><li>baz<ol><li>bat</li><li>qux</li></ol></li></ol>';
         $this->assertEquals($expected, $presenter->presentArrayAsOl($array));
     }
