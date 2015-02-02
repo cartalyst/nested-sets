@@ -21,7 +21,7 @@
 namespace Cartalyst\NestedSets;
 
 use Illuminate\Support\ServiceProvider;
-use Cartalyst\NestedSets\Nodes\EloquentNode;
+use Cartalyst\NestedSets\Nodes\NodeTrait;
 
 class NestedSetsServiceProvider extends ServiceProvider
 {
@@ -32,7 +32,7 @@ class NestedSetsServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        EloquentNode::setPresenter($this->app['nested.sets.presenter']);
+        NodeTrait::setPresenter($this->app['nested.sets.presenter']);
     }
 
     /**

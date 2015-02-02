@@ -24,41 +24,22 @@ use Closure;
 use Cartalyst\NestedSets\Presenter;
 use Illuminate\Database\Eloquent\Model;
 
-class EloquentNode extends Model implements NodeInterface
+trait NodeTrait
 {
     /**
-     * Array of children associated with the model.
+     * Boot the node trait for a model.
      *
-     * @var array
+     * @return void
      */
-    protected $children = array();
-
-    /**
-     * Array of reserved attributes used by
-     * the node. These attributes cannot be
-     * set like normal attributes, they are
-     * reserved for the node and nested set
-     * workers to use.
-     *
-     * @var array
-     */
-    protected $reservedAttributes = array(
-
-        // The left column limit. "left" is a
-        // reserved word in SQL databases so
-        // we default to "lft" for compatiblity.
-        'left'  => 'lft',
-
-        // The right column limit. "right" is a
-        // reserved word in SQL databases so
-        // we default to "rgt" for compatiblity.
-        'right' => 'rgt',
-
-        // The tree that the node is on. This
-        // package supports multiple trees within
-        // the one database.
-        'tree'  => 'tree',
-    );
+    public static function bootNodeTrait()
+    {
+        static::deleting(function($model)
+        {
+            if ($model->exists) {
+                $model->createWorker()->deleteNode($model);
+            }
+        });
+    }
 
     /**
      * The attribute used to show the depth
@@ -112,7 +93,7 @@ class EloquentNode extends Model implements NodeInterface
      */
     public function clearChildren()
     {
-        $this->children = array();
+        $this->children = [];
     }
 
     /**
@@ -304,19 +285,6 @@ class EloquentNode extends Model implements NodeInterface
     }
 
     /**
-     * Delete the model from the database and orphan
-     * it's children.
-     *
-     * @return void
-     */
-    public function delete()
-    {
-        if ($this->exists) {
-            $this->createWorker()->deleteNode($this);
-        }
-    }
-
-    /**
      * Delete the model from the database and also
      * all of it's children.
      *
@@ -373,7 +341,7 @@ class EloquentNode extends Model implements NodeInterface
     /**
      * Returns the parent for the node.
      *
-     * @return Cartalyst\NestedSets\Nodes\EloquentNode
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface
      */
     public function getParent()
     {
@@ -433,10 +401,10 @@ class EloquentNode extends Model implements NodeInterface
     /**
      * Makes the model the first child of the given parent.
      *
-     * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $parent
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
      * @return void
      */
-    public function makeFirstChildOf(EloquentNode $parent)
+    public function makeFirstChildOf(NodeInterface $parent)
     {
         $method = $this->exists ? 'moveNodeAsFirstChild' : 'insertNodeAsFirstChild';
         $this->createWorker()->$method($this, $parent);
@@ -445,10 +413,10 @@ class EloquentNode extends Model implements NodeInterface
     /**
      * Makes the model the last child of the given parent.
      *
-     * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $parent
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
      * @return void
      */
-    public function makeLastChildOf(EloquentNode $parent)
+    public function makeLastChildOf(NodeInterface $parent)
     {
         $method = $this->exists ? 'moveNodeAsLastChild' : 'insertNodeAsLastChild';
         $this->createWorker()->$method($this, $parent);
@@ -457,10 +425,10 @@ class EloquentNode extends Model implements NodeInterface
     /**
      * Makes the model the previous sibling of the given sibling.
      *
-     * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $sibling
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
      * @return void
      */
-    public function makePreviousSiblingOf(EloquentNode $sibling)
+    public function makePreviousSiblingOf(NodeInterface $sibling)
     {
         $method = $this->exists ? 'moveNodeAsPreviousSibling' : 'insertNodeAsPreviousSibling';
         $this->createWorker()->$method($this, $sibling);
@@ -469,10 +437,10 @@ class EloquentNode extends Model implements NodeInterface
     /**
      * Makes the model the next sibling of the given sibling.
      *
-     * @param  Cartalyst\NestedSets\Nodes\EloquentNode  $sibling
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
      * @return void
      */
-    public function makeNextSiblingOf(EloquentNode $sibling)
+    public function makeNextSiblingOf(NodeInterface $sibling)
     {
         $method = $this->exists ? 'moveNodeAsNextSibling' : 'insertNodeAsNextSibling';
         $this->createWorker()->$method($this, $sibling);
@@ -570,7 +538,7 @@ class EloquentNode extends Model implements NodeInterface
     public function toArray()
     {
         $attributes = $this->attributesToArray();
-        $attributes['children'] = array();
+        $attributes['children'] = [];
 
         foreach ($this->children as $child) {
             $attributes['children'][] = $child->toArray();
@@ -596,7 +564,7 @@ class EloquentNode extends Model implements NodeInterface
         // singular object. We'll ensure we're actually returning
         // an array.
         if (! is_array($tree)) {
-            $tree = array($tree);
+            $tree = [$tree];
         }
 
         return $tree;
@@ -686,11 +654,11 @@ class EloquentNode extends Model implements NodeInterface
         // Account for dynamic calls to a the presenter instance
         if (starts_with($method, 'presentAs')) {
             array_unshift($parameters, lcfirst(substr($method, 9)));
-            return call_user_func_array(array($this, 'presentAs'), $parameters);
+            return call_user_func_array([$this, 'presentAs'], $parameters);
         }
         if (starts_with($method, 'presentChildrenAs')) {
             array_unshift($parameters, lcfirst(substr($method, 17)));
-            return call_user_func_array(array($this, 'presentChildrenAs'), $parameters);
+            return call_user_func_array([$this, 'presentChildrenAs'], $parameters);
         }
 
         return parent::__call($method, $parameters);
