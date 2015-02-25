@@ -22,9 +22,11 @@ namespace Cartalyst\NestedSets\Tests;
 
 use Mockery as m;
 use PHPUnit_Framework_TestCase;
-use Cartalyst\NestedSets\Nodes\EloquentNode as Node;
+use Illuminate\Database\Eloquent\Model;
+use Cartalyst\NestedSets\Nodes\NodeTrait;
+use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-class EloquentNodeTest extends PHPUnit_Framework_TestCase
+class NodeTraitTest extends PHPUnit_Framework_TestCase
 {
     /**
      * Setup resources and dependencies.
@@ -88,7 +90,7 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase
 
     public function testFindingChildrenAlwaysReturnsArray()
     {
-        $node = m::mock('Cartalyst\NestedSets\Nodes\EloquentNode[createWorker]');
+        $node = m::mock('Cartalyst\NestedSets\Tests\Node[createWorker]');
         $node->shouldReceive('createWorker')->once()->andReturn($worker = m::mock('Cartalyst\NestedSets\Workers\WorkerInterface'));
         $worker->shouldReceive('tree')->with($node, 0, null)->once()->andReturn($treeNode = new Node);
         $this->assertEquals([$treeNode], $node->findChildren());
@@ -102,4 +104,8 @@ class EloquentNodeTest extends PHPUnit_Framework_TestCase
         $model->getConnection()->shouldReceive('getQueryGrammar')->andReturn(m::mock('Illuminate\Database\Query\Grammars\Grammar'));
         $model->getConnection()->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
     }
+}
+
+class Node extends Model implements NodeInterface {
+    use NodeTrait;
 }

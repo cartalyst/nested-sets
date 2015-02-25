@@ -1508,8 +1508,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Wraps a table from the current database connection.
      *
-     * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
-     * is resolved.
+     * @param  string  $value
+     * @return string
      */
     public function wrapTable($value)
     {
@@ -1519,8 +1519,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Wraps a value from the current database connection.
      *
-     * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
-     * is resolved.
+     * @param  string  $value
+     * @return string
      */
     public function wrap($value)
     {
@@ -1530,8 +1530,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Wraps a column value from the current database connection.
      *
-     * @todo Remove if/when https://github.com/laravel/framework/pull/1244/
-     * is resolved.
+     * @param  string  $value
+     * @return string
      */
     public function wrapColumn($value)
     {

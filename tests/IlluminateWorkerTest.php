@@ -1139,12 +1139,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $worker->deleteNodeWithChildren($node);
     }
 
-    public function testWrapTable()
-    {
-        $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
-        $this->assertEquals('"prefix_foo" as "bar"', $worker->wrapTable('foo as bar'));
-    }
-
     public function testWrap()
     {
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());

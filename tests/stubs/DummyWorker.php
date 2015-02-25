@@ -20,7 +20,7 @@
 
 class DummyWorker
 {
-    public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\EloquentNode $node)
+    public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\NodeInterface $node)
     {
     }
 }

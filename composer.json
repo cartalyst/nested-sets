@@ -1,6 +1,6 @@
 {
 	"name": "cartalyst/nested-sets",
-	"description": "PHP 5.3+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
+	"description": "PHP 5.4+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
 	"keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
 	"license": "proprietary",
 	"authors": [
@@ -22,6 +22,11 @@
 			"name": "Dan Syme",
 			"email": "dan.syme@cartalyst.com",
 			"role": "Creator & Designer"
+		},
+		{
+			"name": "Suhayb Wardany",
+			"email": "su.wardany@cartalyst.com",
+			"role": "Developer"
 		}
 	],
 	"repositories": [
@@ -31,11 +36,11 @@
 		}
 	],
 	"require": {
-		"php": ">=5.3.0"
+		"php": ">=5.4.0"
 	},
 	"require-dev": {
 		"mockery/mockery": "0.9.*",
-		"illuminate/database": "~4"
+		"illuminate/database": "~5"
 	},
 	"suggest": {
 		"illuminate/database": "We (by default) provide an Eloquent implementation (and illuminate/database worker). Required if you are not building your own implementations."
@@ -47,13 +52,8 @@
 	},
 	"extra": {
 		"component": "package",
-		"frameworks": ["Laravel 3", "Laravel 4"],
-		"versions": {
-			"1": "1.0/master",
-			"2": "master"
-		},
 		"branch-alias": {
-			"dev-master": "2.1-dev"
+			"dev-master": "3.0.x-dev"
 		}
 	},
 	"minimum-stability": "dev"

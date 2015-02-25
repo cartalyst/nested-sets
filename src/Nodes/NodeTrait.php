@@ -27,6 +27,13 @@ use Illuminate\Database\Eloquent\Model;
 trait NodeTrait
 {
     /**
+     * Children associated with the model.
+     *
+     * @var array
+     */
+    protected $children = [];
+
+    /**
      * Boot the node trait for a model.
      *
      * @return void
