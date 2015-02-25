@@ -11,6 +11,16 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v2.0.3 - 2015-02-25
+
+`FIXED`
+
+- An issue when used with PostgreSQL.
+
+`REVISED`
+
+- Switched to PSR-2, PSR-4.
+
 ### v2.0.2 - 2014-01-07
 
 `ADDED`
