@@ -20,6 +20,7 @@
 
 namespace Cartalyst\NestedSets\Laravel;
 
+use Cartalyst\NestedSets\Presenter;
 use Illuminate\Support\ServiceProvider;
 use Cartalyst\NestedSets\Nodes\NodeTrait;
 
