@@ -360,28 +360,28 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."lft"';
+            return (string) $expression == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."rgt"';
+            return (string) $expression == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."id"';
+            return (string) $expression == '"prefix_node"."id"';
         }), '=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."tree"';
+            return (string) $expression == '"prefix_node"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"parent"."tree"';
+            return (string) $expression == '"prefix_parent"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
         $result1 = new stdClass;
@@ -394,7 +394,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('get')->with(m::on(function ($select) {
                 $this->assertCount(1, $select);
 
-                return (string) $select[0] == '"parent"."id"';
+                return (string) $select[0] == '"prefix_parent"."id"';
             }))->once()->andReturn([$result3, $result2, $result1]);
 
         $this->assertCount(3, $path = $worker->path($node));
@@ -407,31 +407,31 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."lft"';
+            return (string) $expression == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."rgt"';
+            return (string) $expression == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."id"';
+            return (string) $expression == '"prefix_node"."id"';
         }), '=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."tree"';
+            return (string) $expression == '"prefix_node"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"parent"."tree"';
+            return (string) $expression == '"prefix_parent"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('groupBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
         $result = new stdClass;
@@ -447,7 +447,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             list($expression) = $select;
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-            return (string) $expression == '(count("parent"."id") - 1) as "depth"';
+            return (string) $expression == '(count("prefix_parent"."id") - 1) as "depth"';
         }))->andReturn($result);
 
         $this->assertEquals(4, $worker->depth($node));
@@ -486,24 +486,24 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."lft"';
+            return (string) $expression == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"parent"."rgt"';
+            return (string) $expression == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $query->shouldReceive('join')->with('categories as sub_parent', m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"sub_parent"."lft"';
+            return (string) $expression == '"prefix_sub_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"sub_parent"."rgt"';
+            return (string) $expression == '"prefix_sub_parent"."rgt"';
         }))->once()->andReturn($query);
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -514,35 +514,35 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
 
             $subQuery->shouldReceive('select')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."id"';
+                return (string) $expression == '"prefix_node"."id"';
             }), m::on(function ($expression) {
-                return (string) $expression == '(count("parent"."id") - 1) as "depth"';
+                return (string) $expression == '(count("prefix_parent"."id") - 1) as "depth"';
             }))->once()->andReturn($subQuery);
 
             $subQuery->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-                return (string) $expression == '"node"."lft"';
+                return (string) $expression == '"prefix_node"."lft"';
             }), '>=', m::on(function ($expression) {
-                    return (string) $expression == '"parent"."lft"';
+                    return (string) $expression == '"prefix_parent"."lft"';
                 }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."lft"';
+                return (string) $expression == '"prefix_node"."lft"';
             }), '<=', m::on(function ($expression) {
-                return (string) $expression == '"parent"."rgt"';
+                return (string) $expression == '"prefix_parent"."rgt"';
             }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."id"';
+                return (string) $expression == '"prefix_node"."id"';
             }), '=', 1)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."tree"';
+                return (string) $expression == '"prefix_node"."tree"';
             }), '=', 3)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"parent"."tree"';
+                return (string) $expression == '"prefix_parent"."tree"';
             }), '=', 3)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('orderBy')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."lft"';
+                return (string) $expression == '"prefix_node"."lft"';
             }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('groupBy')->with(m::on(function ($expression) {
-                return (string) $expression == '"node"."id"';
+                return (string) $expression == '"prefix_node"."id"';
             }))->once()->andReturn($subQuery);
 
             $subQuery->shouldReceive('toSql')->once()->andReturn('foo');
@@ -550,15 +550,15 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $join->table = 'categories';
 
             $join->shouldReceive('on')->with(m::on(function ($expression) {
-                return (string) $expression == '"sub_parent"."id"';
+                return (string) $expression == '"prefix_sub_parent"."id"';
             }), '=', m::on(function ($expression) {
-                    return (string) $expression == '"sub_tree"."id"';
+                    return (string) $expression == '"prefix_sub_tree"."id"';
                 }))->once();
 
             // Call our closure
             $closure($join);
 
-            $me->assertEquals('(foo) as "categories"', $join->table);
+            $me->assertEquals('(foo) as "prefix_categories"', $join->table);
 
             // Our assertions will ensure we catch any errors, safe to
             // return true here.
@@ -568,24 +568,24 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('mergeBindings')->with(m::type('Illuminate\Database\Query\Builder'))->once();
 
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."id"';
+            return (string) $expression == '"prefix_node"."id"';
         }), '!=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."tree"';
+            return (string) $expression == '"prefix_node"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"parent"."tree"';
+            return (string) $expression == '"prefix_parent"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"sub_parent"."tree"';
+            return (string) $expression == '"prefix_sub_parent"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."lft"';
+            return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('groupBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"node"."id"';
+            return (string) $expression == '"prefix_node"."id"';
         }), m::on(function ($expression) {
-            return (string) $expression == '"sub_tree"."depth"';
+            return (string) $expression == '"prefix_sub_tree"."depth"';
         }))->once()->andReturn($query);
         $query->shouldReceive('having')->with(m::on(function ($expression) {
             return (string) $expression == 'count("depth")';
@@ -598,7 +598,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $first);
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-            return ((string) $first == '"node".*' and (string) $expression == '(count("parent"."id") - ("sub_tree"."depth" + 1)) as "depth"');
+            return ((string) $first == '"prefix_node".*' and (string) $expression == '(count("prefix_parent"."id") - ("prefix_sub_tree"."depth" + 1)) as "depth"');
         }))->once()->andReturn(['foo']);
 
         $node->shouldReceive('createNode')->andReturnUsing(function () {
@@ -1143,12 +1143,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
     {
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
         $this->assertEquals('"prefix_foo"."bar"', $worker->wrap('foo.bar'));
-    }
-
-    public function testWrappingColumn()
-    {
-        $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
-        $this->assertEquals('"foo"."bar"', $worker->wrapColumn('foo.bar'));
     }
 
     protected function getMockConnection()
