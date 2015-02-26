@@ -1,20 +1,20 @@
 ## Integration
 
-### Laravel 4
+### Laravel 5
 
-The Nested Sets package has optional support for Laravel 4 and it comes bundled with a Service Provider for easy integration.
+The Nested Sets package has optional support for Laravel 5 and it comes bundled with a Service Provider for easy integration.
 
-After installing the package, open your Laravel config file `app/config/app.php` and add the following lines.
+After installing the package, open your Laravel config file `config/app.php` and add the following lines.
 
 In the `$providers` array add the following service provider for this package.
 
-	'Cartalyst\NestedSets\NestedSetsServiceProvider',
+	'Cartalyst\NestedSets\Laravel\NestedSetsServiceProvider',
 
 ### Create a new Migration
 
-Run the following command `php artisan migrate:make create_menus_table`
+Run the following command `php artisan make:migration create_menus_table`
 
-Open the `app/database/migration/xxxx_xx_xxxxxx_create_menus_table.php` file
+Open the `database/migration/xxxx_xx_xxxxxx_create_menus_table.php` file
 
 > Note: the `xxxx_xx_xxxxxx` is your current date and you can customize the migration name to fit your own needs.
 
@@ -50,9 +50,13 @@ Once your migration is finished, you just need to run `php artisan migrate`.
 Here is a default Eloquent model that you can use
 
 ```
-use Cartalyst\NestedSets\Nodes\EloquentNode;
+use Illuminate\Database\Eloquent\Model;
+use Cartalyst\NestedSets\Nodes\NodeTrait;
+use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-class Menu extends EloquentNode {
+class Menu extends Model implements NodeInterface {
+
+	use NodeTrait;
 
 	/**
 	 * The table associated with the model.
@@ -86,18 +90,21 @@ class Menu extends EloquentNode {
 
 ### Native
 
-Nested Sets ships with an implementation for Eloquent out of the box, in order to use the Eloquent implementation, you must require 'illuminate/database': "~4.2" on your composer.json file and run composer update afterwards.
+Nested Sets ships with an implementation for Eloquent out of the box, in order to use the Eloquent implementation, you must require 'illuminate/database': "~5.0" on your composer.json file and run composer update afterwards.
 
 ```
 // Include the composer autoload file
 require 'vendor/autoload.php';
 
 // Import the necessary classes
-use Cartalyst\NestedSets\Nodes\EloquentNode;
-use Illuminate\Database\Capsule\Manager as Capsule;
+use Illuminate\Database\Eloquent\Model;
+use Cartalyst\NestedSets\Nodes\NodeTrait;
+use Cartalyst\NestedSets\Nodes\NodeInterface;
 
 // Create the model
-class Menu extends EloquentNode {
+class Menu extends Model implements NodeInterface {
+
+	use NodeTrait;
 
 	protected $table = 'menus';
 

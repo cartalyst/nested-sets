@@ -2,13 +2,17 @@
 
 ## Configure an Eloquent Node
 
-We make the assumption that you have read the [Laravel 4 documentation](http://laravel.com/docs/eloquent#basic-usage) on Eloquent models.
+We make the assumption that you have read the [Laravel 5 documentation](http://laravel.com/docs/eloquent#basic-usage) on Eloquent models.
 
 What do you need to do in addition? Not a whole lot:
 
-Ensure that your class extends
+Ensure that your class implements
 
-	Cartalyst\NestedSets\Nodes\EloquentNode
+	Cartalyst\NestedSets\Nodes\NodeInterface
+
+Ensure that your class uses the following trait
+
+	Cartalyst\NestedSets\Nodes\NodeTrait
 
 Ensure you have the following columns in your database:
 
@@ -20,9 +24,13 @@ An example of a basic Nested Sets Node:
 
 	<?php
 
-	use Cartalyst\NestedSets\Nodes\EloquentNode as Model;
+	use Illuminate\Database\Eloquent\Model;
+	use Cartalyst\NestedSets\Nodes\NodeTrait;
+	use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-	class Category extends Model {
+	class Category extends Model implements NodeInterface {
+
+		use NodeTrait;
 
 	}
 
@@ -30,9 +38,11 @@ An example of a slightly more configured Nested Sets Node:
 
 	<?php
 
-	use Cartalyst\NestedSets\Nodes\EloquentNode as Model;
+	use Illuminate\Database\Eloquent\Model;
+	use Cartalyst\NestedSets\Nodes\NodeTrait;
+	use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-	class Category extends Model {
+	class Category extends Model implements NodeInterface {
 
 		/**
 		 * The table associated with the model.

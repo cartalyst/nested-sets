@@ -10,9 +10,13 @@ Making a node a root node (which starts a new tree in the database) is done by c
 
 	<?php
 
-	use Cartalyst\NestedSets\Nodes\EloquentNode as Model;
+	use Illuminate\Database\Eloquent\Model;
+	use Cartalyst\NestedSets\Nodes\NodeTrait;
+	use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-	class Menu extends Model {
+	class Menu extends Model implements NodeInterface {
+
+		use NodeTrait;
 
 		protected $table = 'menus';
 
