@@ -18,7 +18,7 @@
  * @link       http://cartalyst.com
  */
 
-namespace Cartalyst\NestedSets;
+namespace Cartalyst\NestedSets\Laravel;
 
 use Illuminate\Support\ServiceProvider;
 use Cartalyst\NestedSets\Nodes\NodeTrait;
