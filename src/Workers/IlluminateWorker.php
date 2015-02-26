@@ -168,32 +168,32 @@ class IlluminateWorker implements WorkerInterface
             ->connection->table("$table as node")
             ->join(
                 "$table as parent",
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
-                new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+                new Expression($this->wrap("parent.{$attributes['left']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '<=',
-                new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+                new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.$keyName")),
+                new Expression($this->wrap("node.$keyName")),
                 '=',
                 $node->getAttribute($keyName)
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+                new Expression($this->wrap("node.{$attributes['tree']}")),
                 '=',
                 $tree
             )
             ->where(
-                new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+                new Expression($this->wrap("parent.{$attributes['tree']}")),
                 '=',
                 $tree
             )
-            ->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-            ->get([new Expression($this->wrapColumn("parent.$keyName"))]);
+            ->orderBy(new Expression($this->wrap("node.{$attributes['left']}")))
+            ->get([new Expression($this->wrap("parent.$keyName"))]);
 
         // Our results is an array of objects containing the key name
         // only. We will simplify this by simply returning the key
@@ -222,35 +222,35 @@ class IlluminateWorker implements WorkerInterface
             ->connection->table("$table as node")
             ->join(
                 "$table as parent",
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
-                new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+                new Expression($this->wrap("parent.{$attributes['left']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '<=',
-                new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+                new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.$keyName")),
+                new Expression($this->wrap("node.$keyName")),
                 '=',
                 $node->getAttribute($keyName)
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+                new Expression($this->wrap("node.{$attributes['tree']}")),
                 '=',
                 $tree
             )
             ->where(
-                new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+                new Expression($this->wrap("parent.{$attributes['tree']}")),
                 '=',
                 $tree
             )
-            ->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
-            ->groupBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
+            ->orderBy(new Expression($this->wrap("node.{$attributes['left']}")))
+            ->groupBy(new Expression($this->wrap("node.{$attributes['left']}")))
             ->first([new Expression(sprintf(
                 '(count(%s) - 1) as %s',
-                $this->wrapColumn("parent.$keyName"),
+                $this->wrap("parent.$keyName"),
                 $this->wrap($this->getDepthAttributeName())
             ))]);
 
@@ -334,25 +334,25 @@ class IlluminateWorker implements WorkerInterface
             ->connection->table("$table as node")
             ->join(
                 "$table as parent",
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
-                new Expression($this->wrapColumn("parent.{$attributes['left']}"))
+                new Expression($this->wrap("parent.{$attributes['left']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '<=',
-                new Expression($this->wrapColumn("parent.{$attributes['right']}"))
+                new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->join(
                 "$table as sub_parent",
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
-                new Expression($this->wrapColumn("sub_parent.{$attributes['left']}"))
+                new Expression($this->wrap("sub_parent.{$attributes['left']}"))
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['left']}")),
+                new Expression($this->wrap("node.{$attributes['left']}")),
                 '<=',
-                new Expression($this->wrapColumn("sub_parent.{$attributes['right']}"))
+                new Expression($this->wrap("sub_parent.{$attributes['right']}"))
             );
 
         // Create a query to select the sub-tree
@@ -369,54 +369,54 @@ class IlluminateWorker implements WorkerInterface
         $query->join('sub_tree', function ($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree) {
             $subQuery
                 ->select(
-                    new Expression($me->wrapColumn("node.$keyName")),
+                    new Expression($me->wrap("node.$keyName")),
                     new Expression(sprintf(
                         '(count(%s) - 1) as %s',
-                        $me->wrapColumn("parent.$keyName"),
+                        $me->wrap("parent.$keyName"),
                         $me->wrap($me->getDepthAttributeName())
                     ))
                 )
                 ->join(
                     "$table as parent",
-                    new Expression($me->wrapColumn("node.{$attributes['left']}")),
+                    new Expression($me->wrap("node.{$attributes['left']}")),
                     '>=',
-                    new Expression($me->wrapColumn("parent.{$attributes['left']}"))
+                    new Expression($me->wrap("parent.{$attributes['left']}"))
                 )
                 ->where(
-                    new Expression($me->wrapColumn("node.{$attributes['left']}")),
+                    new Expression($me->wrap("node.{$attributes['left']}")),
                     '<=',
-                    new Expression($me->wrapColumn("parent.{$attributes['right']}"))
+                    new Expression($me->wrap("parent.{$attributes['right']}"))
                 )
                 ->where(
-                    new Expression($me->wrapColumn("node.$keyName")),
+                    new Expression($me->wrap("node.$keyName")),
                     '=',
                     $key
                 )
                 ->where(
-                    new Expression($me->wrapColumn("node.{$attributes['tree']}")),
+                    new Expression($me->wrap("node.{$attributes['tree']}")),
                     '=',
                     $tree
                 )
                 ->where(
-                    new Expression($me->wrapColumn("parent.{$attributes['tree']}")),
+                    new Expression($me->wrap("parent.{$attributes['tree']}")),
                     '=',
                     $tree
                 )
-                ->orderBy(new Expression($me->wrapColumn("node.{$attributes['left']}")))
-                ->groupBy(new Expression($me->wrapColumn("node.$keyName")));
+                ->orderBy(new Expression($me->wrap("node.{$attributes['left']}")))
+                ->groupBy(new Expression($me->wrap("node.$keyName")));
 
             // Configure the join from the SQL the query
             // builder generates.
             $join->table = new Expression(sprintf(
                 '(%s) as %s',
                 $subQuery->toSql(),
-                $me->wrap($join->table)
+                $me->wrapTable($join->table)
             ));
 
             $join->on(
-                new Expression($me->wrapColumn("sub_parent.$keyName")),
+                new Expression($me->wrap("sub_parent.$keyName")),
                 '=',
-                new Expression($me->wrapColumn("sub_tree.$keyName"))
+                new Expression($me->wrap("sub_tree.$keyName"))
             );
         });
 
@@ -426,22 +426,22 @@ class IlluminateWorker implements WorkerInterface
 
         $query
             ->where(
-                new Expression($this->wrapColumn("node.{$keyName}")),
+                new Expression($this->wrap("node.{$keyName}")),
                 '!=',
                 $key
             )
             ->where(
-                new Expression($this->wrapColumn("node.{$attributes['tree']}")),
+                new Expression($this->wrap("node.{$attributes['tree']}")),
                 '=',
                 $tree
             )
             ->where(
-                new Expression($this->wrapColumn("parent.{$attributes['tree']}")),
+                new Expression($this->wrap("parent.{$attributes['tree']}")),
                 '=',
                 $tree
             )
             ->where(
-                new Expression($this->wrapColumn("sub_parent.{$attributes['tree']}")),
+                new Expression($this->wrap("sub_parent.{$attributes['tree']}")),
                 '=',
                 $tree
             );
@@ -452,10 +452,10 @@ class IlluminateWorker implements WorkerInterface
         }
 
         $query
-            ->orderBy(new Expression($this->wrapColumn("node.{$attributes['left']}")))
+            ->orderBy(new Expression($this->wrap("node.{$attributes['left']}")))
             ->groupBy(
-                new Expression($this->wrapColumn("node.$keyName")),
-                new Expression($this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"))
+                new Expression($this->wrap("node.$keyName")),
+                new Expression($this->wrap("sub_tree.{$this->getDepthAttributeName()}"))
             );
 
         // If we have a depth, we need to supply a "having"
@@ -465,7 +465,7 @@ class IlluminateWorker implements WorkerInterface
                 new Expression(
                     sprintf(
                         'count(%s)',
-                        $this->wrapColumn($me->getDepthAttributeName())
+                        $this->wrap($me->getDepthAttributeName())
                     )
                 ),
                 '<=', ++$depth
@@ -473,11 +473,11 @@ class IlluminateWorker implements WorkerInterface
         }
 
         $results = $query->get([
-            new Expression($this->wrapColumn("node.*")),
+            new Expression($this->wrap("node.*")),
             new Expression(sprintf(
                 '(count(%s) - (%s + 1)) as %s',
-                $this->wrapColumn("parent.$keyName"),
-                $this->wrapColumn("sub_tree.{$this->getDepthAttributeName()}"),
+                $this->wrap("parent.$keyName"),
+                $this->wrap("sub_tree.{$this->getDepthAttributeName()}"),
                 $this->wrap($this->getDepthAttributeName())
             ))
         ]);
@@ -1022,7 +1022,7 @@ class IlluminateWorker implements WorkerInterface
             ->update([
                 $attributes['left'] => new Expression(sprintf(
                     '%s + %d',
-                    $this->connection->getQueryGrammar()->wrap($attributes['left']),
+                    $this->wrap($attributes['left']),
                     $size
                 )),
             ]);
@@ -1034,7 +1034,7 @@ class IlluminateWorker implements WorkerInterface
             ->update([
                 $attributes['right'] => new Expression(sprintf(
                     '%s + %d',
-                    $this->connection->getQueryGrammar()->wrap($attributes['right']),
+                    $this->wrap($attributes['right']),
                     $size
                 )),
             ]);
@@ -1525,23 +1525,5 @@ class IlluminateWorker implements WorkerInterface
     public function wrap($value)
     {
         return $this->connection->getQueryGrammar()->wrap($value);
-    }
-
-    /**
-     * Wraps a column value from the current database connection.
-     *
-     * @param  string  $value
-     * @return string
-     */
-    public function wrapColumn($value)
-    {
-        $wrapped = $this->wrap($value);
-
-        $prefix = $this->connection->getQueryGrammar()->getTablePrefix();
-
-        $pattern = sprintf('/([^a-zA-Z])(%s)([a-zA-Z])/', preg_quote($prefix));
-        $replacement = '$1$3';
-
-        return preg_replace($pattern, $replacement, $wrapped);
     }
 }
