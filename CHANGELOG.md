@@ -11,7 +11,7 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
-### v3.0.0 - 2015-02-26
+### v3.0.0 - 2015-03-02
 
 - Refactored to use a trait instead of a base node class.
 
