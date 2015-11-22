@@ -100,6 +100,7 @@ require 'vendor/autoload.php';
 use Illuminate\Database\Eloquent\Model;
 use Cartalyst\NestedSets\Nodes\NodeTrait;
 use Cartalyst\NestedSets\Nodes\NodeInterface;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 // Create the model
 class Menu extends Model implements NodeInterface {
