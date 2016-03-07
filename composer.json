@@ -32,7 +32,7 @@
 	"repositories": [
 		{
 			"type": "composer",
-			"url": "http://packages.cartalyst.com"
+			"url": "http://marketplace.rubinred.it"
 		}
 	],
 	"require": {
@@ -51,10 +51,7 @@
 		}
 	},
 	"extra": {
-		"component": "package",
-		"branch-alias": {
-			"dev-master": "3.1.x-dev"
-		}
+		"component": "package"
 	},
 	"minimum-stability": "dev"
 }
