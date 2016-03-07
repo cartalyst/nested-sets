@@ -335,7 +335,7 @@ class IlluminateWorker implements WorkerInterface
                 ->orderBy($attributes['tree'], 'desc');
         } else {
             // To find the next sibling, we'll query the database for all
-            // nodes who's right are equals to $left + 1.
+            // nodes who's left are equals to $right + 1.
             $query
                 ->where($attributes['left'], '=', $right + 1)
                 ->orderBy($attributes['left'], 'desc');
@@ -376,10 +376,10 @@ class IlluminateWorker implements WorkerInterface
                 ->where($attributes['tree'], '<', $tree)
                 ->orderBy($attributes['tree'], 'desc');
         } else {
-            // To find the next sibling, we'll query the database for all
-            // nodes who's right are equals to $left + 1.
+            // To find the previous sibling, we'll query the database for all
+            // nodes who's right are equals to $left - 1.
             $query
-                ->where($attributes['right'], '=', $left + 1)
+                ->where($attributes['right'], '=', $left - 1)
                 ->orderBy($attributes['left'], 'desc');
         }
 
