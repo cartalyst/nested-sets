@@ -338,6 +338,7 @@ class IlluminateWorker implements WorkerInterface
             // nodes who's left are equals to $right + 1.
             $query
                 ->where($attributes['left'], '=', $right + 1)
+                ->where($attributes['tree'], '=', $tree)
                 ->orderBy($attributes['left'], 'desc');
         }
 
@@ -380,6 +381,7 @@ class IlluminateWorker implements WorkerInterface
             // nodes who's right are equals to $left - 1.
             $query
                 ->where($attributes['right'], '=', $left - 1)
+                ->where($attributes['tree'], '=', $tree)
                 ->orderBy($attributes['left'], 'desc');
         }
 
