@@ -11,7 +11,7 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.0.0
+ * @version    3.1.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -304,6 +304,90 @@ class IlluminateWorker implements WorkerInterface
             ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
             ->orderBy($attributes['left'], 'desc')
             ->first();
+
+        return $this->createNode($result);
+    }
+
+    /**
+     * Returns the next sibling node for the given node or null.
+     *
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
+     */
+    public function nextSibling(NodeInterface $node)
+    {
+        $attributes = $this->getReservedAttributeNames();
+        $table      = $this->getTable();
+        $keyName    = $this->baseNode->getKeyName();
+        $key        = $node->getAttribute($keyName);
+        $left       = $node->getAttribute($attributes['left']);
+        $right      = $node->getAttribute($attributes['right']);
+        $tree       = $node->getAttribute($attributes['tree']);
+
+        $query =  $this->connection->table($table);
+
+        if ($left == 1) {
+            // If we are a root node, we'll query the database for
+            // all roots nodes with tree value > of current $tree.
+            $query
+                ->where($attributes['left'], '=', 1)
+                ->where($attributes['tree'], '>', $tree)
+                ->orderBy($attributes['tree'], 'desc');
+        } else {
+            // To find the next sibling, we'll query the database for all
+            // nodes who's left are equals to $right + 1.
+            $query
+                ->where($attributes['left'], '=', $right + 1)
+                ->orderBy($attributes['left'], 'desc');
+        }
+
+        $result = $query->first();
+
+        if (empty($result)) {
+            return null;
+        }
+
+        return $this->createNode($result);
+    }
+
+    /**
+     * Returns the previous sibling node for the given node or null.
+     *
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
+     */
+    public function prevSibling(NodeInterface $node)
+    {
+        $attributes = $this->getReservedAttributeNames();
+        $table      = $this->getTable();
+        $keyName    = $this->baseNode->getKeyName();
+        $key        = $node->getAttribute($keyName);
+        $left       = $node->getAttribute($attributes['left']);
+        $right      = $node->getAttribute($attributes['right']);
+        $tree       = $node->getAttribute($attributes['tree']);
+
+        $query =  $this->connection->table($table);
+
+        if ($left == 1) {
+            // If we are a root node, we'll query the database for
+            // all roots nodes with tree value < of current $tree.
+            $query
+                ->where($attributes['left'], '=', 1)
+                ->where($attributes['tree'], '<', $tree)
+                ->orderBy($attributes['tree'], 'desc');
+        } else {
+            // To find the previous sibling, we'll query the database for all
+            // nodes who's right are equals to $left - 1.
+            $query
+                ->where($attributes['right'], '=', $left - 1)
+                ->orderBy($attributes['left'], 'desc');
+        }
+
+        $result = $query->first();
+
+        if (empty($result)) {
+            return null;
+        }
 
         return $this->createNode($result);
     }
@@ -786,7 +870,76 @@ class IlluminateWorker implements WorkerInterface
      */
     public function moveNodeAsRoot(NodeInterface $node)
     {
-        throw new \BadMethodCallException(__METHOD__);
+        $keyName    = $this->baseNode->getKeyName();
+        $key        = $node->getAttribute($keyName);
+        $table      = $this->getTable();
+        $attributes = $this->getReservedAttributeNames();
+        $me         = $this;
+
+        // Firstly, if a node is a "root" node, we cannot
+        // move the node as root.
+        if ($node->getAttribute($this->getReservedAttributeName('left')) == 1) {
+            throw new \RuntimeException("Cannot set node [$key] as root because it's already a root.");
+        }
+
+        $this->ensureTransaction(function ($connection) use ($me, $node, $table, $attributes) {
+            $query   = $connection->table($table);
+            $grammar = $connection->getQueryGrammar();
+            $parent  = $me->parentNode($node);
+            $size    = $me->getNodeSize($node);
+            $delta   = $size + 1;
+            $tree    = $node->getAttribute($attributes['tree']);
+
+            $me->slideNodeOutOfTree($node);
+
+            // We will hydrate our parent node now just
+            // in case the sliding process above messed it's
+            // order up.
+            $me->hydrateNode($parent);
+
+            // We will now adjust the tree value of every node which
+            // belongs to subsequent trees by adding 1.
+            $query
+                ->where($attributes['tree'], '>', $tree)
+                ->update([
+                    $attributes['tree'] => new Expression(sprintf(
+                        '%s + 1',
+                        $grammar->wrap($attributes['tree'])
+                    )),
+                ]);
+
+            // Get a fresh query instance.
+            $query = $connection->table($table);
+            // New root's tree value is equal to current value plus 1.
+            $newTree = $tree + 1;
+
+            // We will now adjust the tree, left and right limits of our node and
+            // all it's children to be within the hierachical data in the
+            // tree we just created.
+            $query
+                ->where($attributes['left'], '>=', 0 - $size)
+                ->where($attributes['right'], '<=', 0)
+                ->where($attributes['tree'], '=', $tree)
+                ->update([
+                    $attributes['tree'] => $newTree,
+                    $attributes['left'] => new Expression(sprintf(
+                        '%s + %d',
+                        $grammar->wrap($attributes['left']),
+                        $delta
+                    )),
+                    $attributes['right'] => new Expression(sprintf(
+                        '%s + %d',
+                        $grammar->wrap($attributes['right']),
+                        $delta
+                    )),
+                ]);
+
+            // Like sliding out of a tree, we will now update the node's
+            // attributes so they don't have to be hydrated.
+            $node->setAttribute($attributes['tree'], $newTree);
+            $node->setAttribute($attributes['left'], $node->getAttribute($attributes['left']) + $delta);
+            $node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
+        });
     }
 
     /**
@@ -811,7 +964,7 @@ class IlluminateWorker implements WorkerInterface
             $me->hydrateNode($parent);
 
             $left = $parent->getAttribute($attributes['left']) + 1;
-            $me->slideNodeInTree($node, $left);
+            $me->slideNodeInTree($node, $left, $parent->getAttribute($attributes['tree']));
             $me->afterUpdateNode($node);
 
             // And once more we will hydrate the parent's
@@ -844,7 +997,7 @@ class IlluminateWorker implements WorkerInterface
             $me->hydrateNode($parent);
 
             $left = $parent->getAttribute($attributes['right']);
-            $me->slideNodeInTree($node, $left);
+            $me->slideNodeInTree($node, $left, $parent->getAttribute($attributes['tree']));
             $me->afterUpdateNode($node);
 
             // And once more we will hydrate the parent's
@@ -877,7 +1030,7 @@ class IlluminateWorker implements WorkerInterface
             $me->hydrateNode($sibling);
 
             $left = $sibling->getAttribute($attributes['left']);
-            $me->slideNodeInTree($node, $left);
+            $me->slideNodeInTree($node, $left, $sibling->getAttribute($attributes['tree']));
             $me->afterUpdateNode($node);
 
             // And once more we will hydrate the sibling's
@@ -910,7 +1063,7 @@ class IlluminateWorker implements WorkerInterface
             $me->hydrateNode($sibling);
 
             $left = $sibling->getAttribute($attributes['right']) + 1;
-            $me->slideNodeInTree($node, $left);
+            $me->slideNodeInTree($node, $left, $sibling->getAttribute($attributes['tree']));
             $me->afterUpdateNode($node);
 
             // And once more we will hydrate the sibling's
@@ -1112,16 +1265,18 @@ class IlluminateWorker implements WorkerInterface
      * @param  int  $left
      * @return void
      */
-    public function slideNodeInTree(NodeInterface $node, $left)
+    public function slideNodeInTree(NodeInterface $node, $left, $tree = null)
     {
         $attributes = $this->getReservedAttributeNames();
         $size       = $this->getNodeSize($node);
         $delta      = $size + $left;
         $grammar    = $this->connection->getQueryGrammar();
+        $oldTree    = $node->getAttribute($attributes['tree']);
+        $tree       = $tree ?: $oldTree;
 
         // Reversing the proces of sliding out of a tree, we will
         // now create a gap for our node to enter at.
-        $this->createGap($left, $size + 1, $node->getAttribute($attributes['tree']));
+        $this->createGap($left, $size + 1, $tree);
 
         // We will now adjust the left and right limits of our node and
         // all it's children to be within the hierachical data in the
@@ -1132,6 +1287,7 @@ class IlluminateWorker implements WorkerInterface
             ->where($attributes['right'], '<=', 0)
             ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
             ->update([
+                $attributes['tree'] => $tree,
                 $attributes['left'] => new Expression(sprintf(
                     '%s + %d',
                     $grammar->wrap($attributes['left']),
@@ -1146,8 +1302,23 @@ class IlluminateWorker implements WorkerInterface
 
         // Like sliding out of a tree, we will now update the node's
         // attributes so they don't have to be hydrated.
+        $node->setAttribute($attributes['tree'], $tree);
         $node->setAttribute($attributes['left'], $node->getAttribute($attributes['left']) + $delta);
         $node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
+
+        // If node doesn't belongs to current tree we will adjust the tree value of every node whose
+        // belongs to subsequent trees by subtracting 1.
+        if($tree != $oldTree) {
+            $this
+                ->connection->table($this->getTable())
+                ->where($attributes['tree'], '>', $oldTree)
+                ->update([
+                    $attributes['tree'] => new Expression(sprintf(
+                        '%s - 1',
+                        $grammar->wrap($attributes['tree'])
+                    )),
+                ]);
+        }
     }
 
     /**
