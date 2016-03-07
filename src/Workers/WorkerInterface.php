@@ -11,7 +11,7 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.0.0
+ * @version    3.1.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -98,6 +98,22 @@ interface WorkerInterface
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $parent
      */
     public function parentNode(NodeInterface $node);
+
+    /**
+     * Returns the next sibling node for the given node or null.
+     *
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
+     */
+    public function nextSibling(NodeInterface $node);
+
+    /**
+     * Returns the previous sibling node for the given node or null.
+     *
+     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
+     */
+    public function prevSibling(NodeInterface $node);
 
     /**
      * Returns all children for the given node in a flat
