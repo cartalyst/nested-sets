@@ -11,7 +11,7 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.0.0
+ * @version    3.1.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -356,6 +356,26 @@ trait NodeTrait
     }
 
     /**
+     * Returns the next sibling for the node or null.
+     *
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null
+     */
+    public function getNextSibling()
+    {
+        return $this->createWorker()->nextSibling($this);
+    }
+
+    /**
+     * Returns the previous sibling for the node or null.
+     *
+     * @return Cartalyst\NestedSets\Nodes\NodeInterface|null
+     */
+    public function getPrevSibling()
+    {
+        return $this->createWorker()->prevSibling($this);
+    }
+
+    /**
      * Returns the cound of children for the model.
      *
      * @param  int  $depth
@@ -397,12 +417,8 @@ trait NodeTrait
      */
     public function makeRoot()
     {
-        // @todo Allow existing items to become new root items
-        if ($this->exists) {
-            throw new \RuntimeException("Currently cannot make existing node {$this->getKey()} a root item.");
-        }
-
-        $this->createWorker()->insertNodeAsRoot($this);
+        $method = $this->exists ? 'moveNodeAsRoot' : 'insertNodeAsRoot';
+        $this->createWorker()->$method($this);
     }
 
     /**

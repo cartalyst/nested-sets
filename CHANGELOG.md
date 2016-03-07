@@ -11,6 +11,13 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v3.1.0 - 2016-03-07
+
+- Implemented moveNodeAsRoot.
+- Changed slideNodeInTree to check consistency of tree attribute
+- Added nextSibling and prevSibling to worker.
+- Added getNextSibling and getPrevSibling to trait.
+
 ### v3.0.0 - 2015-03-02
 
 - Refactored to use a trait instead of a base node class.
