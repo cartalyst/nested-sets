@@ -1093,7 +1093,7 @@ class IlluminateWorker implements WorkerInterface
             throw new \RuntimeException("Cannot move root from [$fromTree] to [$toTree].");
         }
 
-        $this->ensureTransaction(function ($connection) use ($me, $fromTree, $toTree, $attributes, $table) {
+        $this->ensureTransaction(function ($connection) use ($me, $from, $to, $fromTree, $toTree, $attributes, $table) {
             // We will assign -1 to the node tree value that has to be moved
             // in order to exclude it from subsequent queries
             $connection->table($table)
@@ -1132,6 +1132,10 @@ class IlluminateWorker implements WorkerInterface
             $connection->table($table)
                 ->where($attributes['tree'], '=', -1)
                 ->update([$attributes['tree'] => $toTree]);
+
+            // Hydrate nodes
+            $this->hydrateNode($from);
+            $this->hydrateNode($to);
         });
     }
 
