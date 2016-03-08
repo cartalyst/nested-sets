@@ -113,7 +113,7 @@ interface WorkerInterface
      * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
      * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
      */
-    public function prevSibling(NodeInterface $node);
+    public function previousSibling(NodeInterface $node);
 
     /**
      * Returns all children for the given node in a flat
@@ -268,6 +268,15 @@ interface WorkerInterface
      * @return void
      */
     public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling);
+
+    /**
+     * Moves the given root from one position to another
+     *
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $from
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $to
+     * @return void
+     */
+    public function moveRoot(NodeInterface $from, NodeInterface $to);
 
     /**
      * Removes a node from the database and orphans

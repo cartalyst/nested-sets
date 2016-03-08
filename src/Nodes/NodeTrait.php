@@ -370,9 +370,9 @@ trait NodeTrait
      *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface|null
      */
-    public function getPrevSibling()
+    public function getPreviousSibling()
     {
-        return $this->createWorker()->prevSibling($this);
+        return $this->createWorker()->previousSibling($this);
     }
 
     /**
@@ -467,6 +467,17 @@ trait NodeTrait
     {
         $method = $this->exists ? 'moveNodeAsNextSibling' : 'insertNodeAsNextSibling';
         $this->createWorker()->$method($this, $sibling);
+    }
+
+    /**
+     * Moves current root model to position.
+     *
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $to
+     * @return void
+     */
+    public function moveRoot(NodeInterface $to)
+    {
+        $this->createWorker()->moveRoot($this, $to);
     }
 
     /**

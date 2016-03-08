@@ -1048,6 +1048,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $siblingNode = $this->getMockNode();
 
+        $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+        $siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
+
         $worker->shouldReceive('ensureTransaction')->with(m::on(function ($callback) use ($worker, $connection, $node, $siblingNode) {
             $worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
             $worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
@@ -1072,6 +1075,9 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[ensureTransaction,slideNodeOutOfTree,hydrateNode,slideNodeInTree,afterUpdateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
         $siblingNode = $this->getMockNode();
+
+        $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+        $siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
 
         $worker->shouldReceive('ensureTransaction')->with(m::on(function ($callback) use ($worker, $connection, $node, $siblingNode) {
             $worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
