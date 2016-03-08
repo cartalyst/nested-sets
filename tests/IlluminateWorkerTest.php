@@ -128,10 +128,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('where')->with('rgt', '<=', 0)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
         $query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
-        $query->shouldReceive('update')->with(['lft' => '"lft" + 3', 'rgt' => '"rgt" + 3'])->once();
+        $query->shouldReceive('update')->with(['tree' => 1, 'lft' => '"lft" + 3', 'rgt' => '"rgt" + 3'])->once();
 
         $worker->shouldReceive('createGap')->with(2, 2, 1)->once();
 
+        $node->shouldReceive('setAttribute')->with('tree', 1)->once();
         $node->shouldReceive('setAttribute')->with('lft', 2)->once();
         $node->shouldReceive('setAttribute')->with('rgt', 3)->once();
 
@@ -1001,7 +1002,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $worker->shouldReceive('hydrateNode')->with($parentNode)->twice();
 
             $parentNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
-            $worker->shouldReceive('slideNodeInTree')->with($childNode, 2)->once();
+            $parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+            $worker->shouldReceive('slideNodeInTree')->with($childNode, 2, 1)->once();
             $worker->shouldReceive('afterUpdateNode')->with($childNode)->once();
 
             $worker->shouldReceive('afterUpdateNode')->with($parentNode)->once();
@@ -1026,7 +1028,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $worker->shouldReceive('hydrateNode')->with($parentNode)->twice();
 
             $parentNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
-            $worker->shouldReceive('slideNodeInTree')->with($childNode, 3)->once();
+            $parentNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+            $worker->shouldReceive('slideNodeInTree')->with($childNode, 3, 1)->once();
             $worker->shouldReceive('afterUpdateNode')->with($childNode)->once();
 
             $worker->shouldReceive('afterUpdateNode')->with($parentNode)->once();
@@ -1045,12 +1048,16 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $siblingNode = $this->getMockNode();
 
+        $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+        $siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
+
         $worker->shouldReceive('ensureTransaction')->with(m::on(function ($callback) use ($worker, $connection, $node, $siblingNode) {
             $worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
             $worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
 
             $siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
-            $worker->shouldReceive('slideNodeInTree')->with($node, 3)->once();
+            $siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+            $worker->shouldReceive('slideNodeInTree')->with($node, 3, 1)->once();
             $worker->shouldReceive('afterUpdateNode')->with($node)->once();
 
             $worker->shouldReceive('afterUpdateNode')->with($siblingNode)->once();
@@ -1069,12 +1076,16 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
         $siblingNode = $this->getMockNode();
 
+        $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
+        $siblingNode->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
+
         $worker->shouldReceive('ensureTransaction')->with(m::on(function ($callback) use ($worker, $connection, $node, $siblingNode) {
             $worker->shouldReceive('slideNodeOutOfTree')->with($node)->once();
             $worker->shouldReceive('hydrateNode')->with($siblingNode)->twice();
 
             $siblingNode->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
-            $worker->shouldReceive('slideNodeInTree')->with($node, 4)->once();
+            $siblingNode->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+            $worker->shouldReceive('slideNodeInTree')->with($node, 4, 1)->once();
             $worker->shouldReceive('afterUpdateNode')->with($node)->once();
 
             $worker->shouldReceive('afterUpdateNode')->with($siblingNode)->once();
