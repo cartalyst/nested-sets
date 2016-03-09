@@ -1334,6 +1334,7 @@ class IlluminateWorker implements WorkerInterface
         $attributes = $this->getReservedAttributeNames();
         $size       = $this->getNodeSize($node);
         $delta      = $size + $left;
+        $isRoot     = $node->getAttribute($attributes['left']) == 1;
         $oldTree    = $node->getAttribute($attributes['tree']);
         $tree       = $tree ?: $oldTree;
 
@@ -1369,9 +1370,9 @@ class IlluminateWorker implements WorkerInterface
         $node->setAttribute($attributes['left'], $node->getAttribute($attributes['left']) + $delta);
         $node->setAttribute($attributes['right'], $node->getAttribute($attributes['right']) + $delta);
 
-        // If node doesn't belongs to current tree we will adjust the tree value of every node whose
+        // If node is a root and doesn't belongs to current tree we will adjust the tree value of every node whose
         // belongs to subsequent trees by subtracting 1.
-        if($tree != $oldTree) {
+        if ($isRoot && $tree != $oldTree) {
             $this
                 ->connection->table($this->getTable())
                 ->where($attributes['tree'], '>', $oldTree)

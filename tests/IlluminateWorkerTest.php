@@ -121,6 +121,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[getNodeSize,createGap]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
 
         $worker->shouldReceive('getNodeSize')->with($node)->once()->andReturn(1);
+        $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
         $connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $node->shouldReceive('getAttribute')->with('lft')->once()->andReturn(-1);
         $query->shouldReceive('where')->with('lft', '>=', -1)->once()->andReturn($query);
