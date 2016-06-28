@@ -11,16 +11,19 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.0.0
+ * @version    3.1.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2015, Cartalyst LLC
+ * @copyright  (c) 2011-2016, Cartalyst LLC
  * @link       http://cartalyst.com
  */
 
+use Illuminate\Database\Connection;
+use Cartalyst\NestedSets\Nodes\NodeInterface;
+
 class DummyWorker
 {
-    public function __construct(Illuminate\Database\Connection $connection, Cartalyst\NestedSets\Nodes\NodeInterface $node)
+    public function __construct(Connection $connection, NodeInterface $node)
     {
     }
 }

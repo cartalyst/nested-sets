@@ -1,6 +1,6 @@
 # Nested Sets
 
-[![Build Status](http://ci.cartalyst.com/build-status/svg/9)](http://ci.cartalyst.com/build-status/view/9)
+[![Build Status](https://magnum.travis-ci.com/cartalyst/nested-sets.svg?token=LAut3LMbmBFi3T9j45FH&branch=3.1)](https://magnum.travis-ci.com/cartalyst/nested-sets)
 
 Nested sets utilizing the Modified Preorder Tree Traversal algorithm.
 
@@ -8,16 +8,13 @@ Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, ro
 
 ## Documentation
 
-Reader-friendly Documentation can be found here. [Nested Sets Manual](https://cartalyst.com/manual/nested-sets).
+Reader-friendly Documentation can be found [here](https://cartalyst.com/manual/nested-sets/3.0).
 
-Raw files can be found via this projects docs/version branch.
+Raw files can be found [here](https://github.com/cartalyst/nested-sets/tree/docs/3.0).
 
-- [3.0](https://github.com/cartalyst/nested-sets/tree/docs/3.0)
-- [2.0](https://github.com/cartalyst/nested-sets/tree/docs/2.0)
+## Change Log
 
-## Changelog
-
-Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
+Important versions listed below. Refer to the [Change Log](CHANGELOG.md) for a full history of the project.
 
 - [3.0](CHANGELOG.md) - 2015-03-02
 - [2.0](CHANGELOG.md) - 2013-08-22
@@ -26,7 +23,7 @@ Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a fu
 
 The following support channels can be used for contact.
 
-- [Twitter](https://cartalyst.com/@twitter)
+- [Twitter](https://twitter.com/cartalyst)
 - [Email](mailto:help@cartalyst.com)
 
 Bug reports, feature requests, and pull requests can be submitted by following our [Contribution Guide](CONTRIBUTING.md).
@@ -41,4 +38,4 @@ Bug reports, feature requests, and pull requests can be submitted by following o
 
 This software is released under the [Cartalyst PSL](LICENSE) License.
 
-© 2011-2015 Cartalyst LLC, All rights reserved.
+© 2011-2016 Cartalyst LLC, All rights reserved.
