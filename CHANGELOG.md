@@ -11,6 +11,10 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v3.1.1 - 2017-01-30
+
+- Updated service provider for laravel 5.4 support.
+
 ### v3.1.0 - 2016-06-28
 
 - Implemented `moveNodeAsRoot()`.
