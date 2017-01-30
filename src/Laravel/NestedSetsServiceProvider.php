@@ -53,7 +53,7 @@ class NestedSetsServiceProvider extends ServiceProvider
      */
     protected function registerPresenter()
     {
-        $this->app['nested.sets.presenter'] = $this->app->share(function ($app) {
+        $this->app->singleton('nested.sets.presenter', function ($app) {
             return new Presenter;
         });
     }
