@@ -6,7 +6,7 @@ The best and easiest way to install the Nested Sets package is with [Composer](h
 
 Open your `composer.json` file and add the following to the `require` array:
 
-	"cartalyst/nested-sets": "3.0.*"
+	"cartalyst/nested-sets": "3.1.*"
 
 Add the following lines after the `require` array on your `composer.json` file:
 
