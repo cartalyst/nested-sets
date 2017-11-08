@@ -11,6 +11,12 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v3.1.2 - 2017-11-08
+
+`FIXED`
+
+- A bug affecting the `getPath` method.
+
 ### v3.1.1 - 2017-01-30
 
 - Updated service provider for laravel 5.4 support.
