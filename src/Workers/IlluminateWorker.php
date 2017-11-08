@@ -198,6 +198,10 @@ class IlluminateWorker implements WorkerInterface
         // Our results is an array of objects containing the key name
         // only. We will simplify this by simply returning the key
         // name so our array is a simple array of primatives.
+        if (! is_array($results)) {
+            $results = $results->toArray();
+        }
+
         return array_map(function ($result) use ($keyName) {
             return $result->$keyName;
         }, $results);

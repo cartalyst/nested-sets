@@ -403,6 +403,53 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('1,2,3', implode(',', $path));
     }
 
+    public function testPathWithIlluminateCollections()
+    {
+        $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
+
+        $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+        $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
+            return (string) $expression == '"prefix_node"."lft"';
+        }), '>=', m::on(function ($expression) {
+            return (string) $expression == '"prefix_parent"."lft"';
+        }))->once()->andReturn($query);
+        $query->shouldReceive('where')->with(m::on(function ($expression) {
+            return (string) $expression == '"prefix_node"."lft"';
+        }), '<=', m::on(function ($expression) {
+            return (string) $expression == '"prefix_parent"."rgt"';
+        }))->once()->andReturn($query);
+        $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
+        $query->shouldReceive('where')->with(m::on(function ($expression) {
+            return (string) $expression == '"prefix_node"."id"';
+        }), '=', 3)->once()->andReturn($query);
+        $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
+        $query->shouldReceive('where')->with(m::on(function ($expression) {
+            return (string) $expression == '"prefix_node"."tree"';
+        }), '=', 1)->once()->andReturn($query);
+        $query->shouldReceive('where')->with(m::on(function ($expression) {
+            return (string) $expression == '"prefix_parent"."tree"';
+        }), '=', 1)->once()->andReturn($query);
+        $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
+            return (string) $expression == '"prefix_node"."lft"';
+        }))->once()->andReturn($query);
+
+        $result1 = new stdClass;
+        $result1->id = 3;
+        $result2 = new stdClass;
+        $result2->id = 2;
+        $result3 = new stdClass;
+        $result3->id = 1;
+
+        $query->shouldReceive('get')->with(m::on(function ($select) {
+                $this->assertCount(1, $select);
+
+                return (string) $select[0] == '"prefix_parent"."id"';
+            }))->once()->andReturn(new \Illuminate\Support\Collection([$result3, $result2, $result1]));
+
+        $this->assertCount(3, $path = $worker->path($node));
+        $this->assertEquals('1,2,3', implode(',', $path));
+    }
+
     public function testDepth()
     {
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());

@@ -40,7 +40,8 @@
 	},
 	"require-dev": {
 		"mockery/mockery": "0.9.*",
-		"illuminate/database": "~5"
+		"illuminate/database": "~5",
+		"phpunit/phpunit": "~5.0"
 	},
 	"suggest": {
 		"illuminate/database": "We (by default) provide an Eloquent implementation (and illuminate/database worker). Required if you are not building your own implementations."
