@@ -89,7 +89,7 @@ class Presenter
      * Presents the given array as an array.
      *
      * @param  array  $present
-     * @return array  $present
+     * @return array
      */
     public function presentArrayAsArray(array $present)
     {
@@ -100,7 +100,7 @@ class Presenter
      * Presents the given array as an unordered HTML list.
      *
      * @param  array  $present
-     * @return array  $present
+     * @return string
      */
     public function presentArrayAsUl(array $present)
     {
@@ -111,11 +111,22 @@ class Presenter
      * Presents the given array as an ordered HTML list.
      *
      * @param  array  $present
-     * @return array  $present
+     * @return string
      */
     public function presentArrayAsOl(array $present)
     {
         return $this->presentArrayAsList($present, 'ol');
+    }
+
+    /**
+     * Presents the given array as an array.
+     *
+     * @param  array  $present
+     * @return string
+     */
+    public function presentArrayAsJson(array $present)
+    {
+        return json_encode($present);
     }
 
     /**
@@ -157,7 +168,7 @@ class Presenter
      *
      * @param  array   $present
      * @param  string  $type
-     * @return array   $present
+     * @return string
      */
     protected function presentArrayAsList(array $present, $type = 'ul')
     {
