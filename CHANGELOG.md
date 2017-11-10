@@ -11,6 +11,12 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v3.1.3 - 2017-11-10
+
+`FIXED`
+
+- Added missing json presenter method.
+
 ### v3.1.2 - 2017-11-08
 
 `FIXED`
