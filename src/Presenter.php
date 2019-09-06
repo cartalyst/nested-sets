@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,11 +11,11 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets;
@@ -39,10 +39,11 @@ class Presenter
      * your closure which will be used as the output for that
      * node when presenting.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  string  $format
-     * @param  string|Closure  $attribute
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param string                                   $format
+     * @param Closure|string                           $attribute
+     * @param int                                      $depth
+     *
      * @return mixed
      */
     public function presentAs(NodeInterface $node, $format, $attribute, $depth = 0)
@@ -57,10 +58,11 @@ class Presenter
      * must return a string from your closure which will be
      * used as the output for that node when presenting.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  string  $format
-     * @param  string|Closure  $attribute
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param string                                   $format
+     * @param Closure|string                           $attribute
+     * @param int                                      $depth
+     *
      * @return mixed
      */
     public function presentChildrenAs(NodeInterface $node, $format, $attribute, $depth = 0)
@@ -72,8 +74,9 @@ class Presenter
      * Extracts the presentable data from a node by the given
      * dynamic attribute.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  mixed  $attribute
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param mixed                                    $attribute
+     *
      * @return mixed
      */
     public function extractPresentable(NodeInterface $node, $attribute)
@@ -88,7 +91,8 @@ class Presenter
     /**
      * Presents the given array as an array.
      *
-     * @param  array  $present
+     * @param array $present
+     *
      * @return array
      */
     public function presentArrayAsArray(array $present)
@@ -99,7 +103,8 @@ class Presenter
     /**
      * Presents the given array as an unordered HTML list.
      *
-     * @param  array  $present
+     * @param array $present
+     *
      * @return string
      */
     public function presentArrayAsUl(array $present)
@@ -110,7 +115,8 @@ class Presenter
     /**
      * Presents the given array as an ordered HTML list.
      *
-     * @param  array  $present
+     * @param array $present
+     *
      * @return string
      */
     public function presentArrayAsOl(array $present)
@@ -121,7 +127,8 @@ class Presenter
     /**
      * Presents the given array as an array.
      *
-     * @param  array  $present
+     * @param array $present
+     *
      * @return string
      */
     public function presentArrayAsJson(array $present)
@@ -132,10 +139,12 @@ class Presenter
     /**
      * Actually does the magic for presenting nodes.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  string  $format
-     * @param  string|Closure  $attribute
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param string                                   $format
+     * @param Closure|string                           $attribute
+     * @param int                                      $depth
+     * @param mixed                                    $includeNode
+     *
      * @return mixed
      */
     public function recursivelyPresentAs(NodeInterface $node, $format, $attribute, $depth = 0, $includeNode = false)
@@ -166,8 +175,9 @@ class Presenter
     /**
      * Presents the given array as the given HTML list.
      *
-     * @param  array   $present
-     * @param  string  $type
+     * @param array  $present
+     * @param string $type
+     *
      * @return string
      */
     protected function presentArrayAsList(array $present, $type = 'ul')

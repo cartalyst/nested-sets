@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,11 +11,11 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Tests;
@@ -24,19 +24,19 @@ use Closure;
 use NodeStub;
 use stdClass;
 use Mockery as m;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
 
-class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
+class IlluminateWorkerTest extends TestCase
 {
     /**
      * Setup resources and dependencies.
      *
      * @return void
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         require_once __DIR__.'/stubs/NodeStub.php';
     }
@@ -46,16 +46,19 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function tearDown()
+    protected function tearDown(): void
     {
+        $this->addToAssertionCount(1);
+
         m::close();
     }
 
     /**
-     * @expectedException InvalidArgumentException
      */
     public function testCreatingZeroGap()
     {
+        $this->expectException('InvalidArgumentException');
+
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
 
         $worker->createGap(1, 0, 1);
@@ -79,10 +82,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException InvalidArgumentException
      */
     public function testRemovingNegativeGap()
     {
+        $this->expectException('InvalidArgumentException');
+
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
         $worker->removeGap(1, -2, 3);
     }
@@ -155,7 +159,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
                 $actualCallback($connection);
             }
 
-            return ($actualCallback instanceof Closure);
+            return $actualCallback instanceof Closure;
         }))->once();
 
         $worker->ensureTransaction($callback);
@@ -202,10 +206,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException RuntimeException
      */
     public function testHydrateNodeForNonExistentNode()
     {
+        $this->expectException('RuntimeException');
+
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
         $connection->shouldReceive('table')->with('categories')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -224,7 +229,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(1);
         $query->shouldReceive('where')->with('id', '=', 1)->once()->andReturn($query);
 
-        $result = new stdClass;
+        $result       = new stdClass();
         $result->lft  = 2;
         $result->rgt  = 3;
         $result->tree = 4;
@@ -242,7 +247,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
     {
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
         $node->shouldReceive('findAll')->once()->andReturn($allFlat = ['foo', 'bar']);
-        $this->assertEquals($allFlat, $worker->allFlat());
+        $this->assertSame($allFlat, $worker->allFlat());
     }
 
     public function testAllFlatWithTree()
@@ -386,21 +391,21 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
-        $result1 = new stdClass;
+        $result1     = new stdClass();
         $result1->id = 3;
-        $result2 = new stdClass;
+        $result2     = new stdClass();
         $result2->id = 2;
-        $result3 = new stdClass;
+        $result3     = new stdClass();
         $result3->id = 1;
 
         $query->shouldReceive('get')->with(m::on(function ($select) {
-                $this->assertCount(1, $select);
+            $this->assertCount(1, $select);
 
-                return (string) $select[0] == '"prefix_parent"."id"';
-            }))->once()->andReturn([$result3, $result2, $result1]);
+            return (string) $select[0] == '"prefix_parent"."id"';
+        }))->once()->andReturn([$result3, $result2, $result1]);
 
         $this->assertCount(3, $path = $worker->path($node));
-        $this->assertEquals('1,2,3', implode(',', $path));
+        $this->assertSame('1,2,3', implode(',', $path));
     }
 
     public function testPathWithIlluminateCollections()
@@ -433,21 +438,21 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
-        $result1 = new stdClass;
+        $result1     = new stdClass();
         $result1->id = 3;
-        $result2 = new stdClass;
+        $result2     = new stdClass();
         $result2->id = 2;
-        $result3 = new stdClass;
+        $result3     = new stdClass();
         $result3->id = 1;
 
         $query->shouldReceive('get')->with(m::on(function ($select) {
-                $this->assertCount(1, $select);
+            $this->assertCount(1, $select);
 
-                return (string) $select[0] == '"prefix_parent"."id"';
-            }))->once()->andReturn(new \Illuminate\Support\Collection([$result3, $result2, $result1]));
+            return (string) $select[0] == '"prefix_parent"."id"';
+        }))->once()->andReturn(new \Illuminate\Support\Collection([$result3, $result2, $result1]));
 
         $this->assertCount(3, $path = $worker->path($node));
-        $this->assertEquals('1,2,3', implode(',', $path));
+        $this->assertSame('1,2,3', implode(',', $path));
     }
 
     public function testDepth()
@@ -483,7 +488,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             return (string) $expression == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
-        $result = new stdClass;
+        $result        = new stdClass();
         $result->depth = 4;
 
         // For some reason, unlike other tests, we have to actually ensure the
@@ -499,7 +504,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             return (string) $expression == '(count("prefix_parent"."id") - 1) as "depth"';
         }))->andReturn($result);
 
-        $this->assertEquals(4, $worker->depth($node));
+        $this->assertSame(4, $worker->depth($node));
     }
 
     public function testParentNode()
@@ -512,7 +517,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
 
         $node->shouldReceive('createNode')->andReturnUsing(function () {
-            return new NodeStub;
+            return new NodeStub();
         });
 
         $connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
@@ -523,7 +528,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('first')->once()->andReturn(['foo' => 'bar']);
 
         $this->assertInstanceOf('NodeStub', $parentNode = $worker->parentNode($node));
-        $this->assertEquals(['foo' => 'bar'], $parentNode->getAllAttributes());
+        $this->assertSame(['foo' => 'bar'], $parentNode->getAllAttributes());
     }
 
     public function testChildrenNodes()
@@ -561,7 +566,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('join')->with('sub_tree', m::on(function ($closure) use ($me, $subQuery, $connection) {
             $join = m::mock('Illuminate\Database\Query\JoinClause');
 
-
             $subQuery->shouldReceive('select')->with(m::on(function ($expression) {
                 return (string) $expression == '"prefix_node"."id"';
             }), m::on(function ($expression) {
@@ -571,8 +575,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $subQuery->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
                 return (string) $expression == '"prefix_node"."lft"';
             }), '>=', m::on(function ($expression) {
-                    return (string) $expression == '"prefix_parent"."lft"';
-                }))->once()->andReturn($subQuery);
+                return (string) $expression == '"prefix_parent"."lft"';
+            }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
                 return (string) $expression == '"prefix_node"."lft"';
             }), '<=', m::on(function ($expression) {
@@ -601,8 +605,8 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $join->shouldReceive('on')->with(m::on(function ($expression) {
                 return (string) $expression == '"prefix_sub_parent"."id"';
             }), '=', m::on(function ($expression) {
-                    return (string) $expression == '"prefix_sub_tree"."id"';
-                }))->once();
+                return (string) $expression == '"prefix_sub_tree"."id"';
+            }))->once();
 
             // Call our closure
             $closure($join);
@@ -647,11 +651,11 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $first);
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-            return ((string) $first == '"prefix_node".*' and (string) $expression == '(count("prefix_parent"."id") - ("prefix_sub_tree"."depth" + 1)) as "depth"');
+            return (string) $first == '"prefix_node".*' and (string) $expression == '(count("prefix_parent"."id") - ("prefix_sub_tree"."depth" + 1)) as "depth"';
         }))->once()->andReturn(['foo']);
 
         $node->shouldReceive('createNode')->andReturnUsing(function () {
-            return new NodeStub;
+            return new NodeStub();
         });
 
         $this->assertCount(1, $results = $worker->childrenNodes($node, 2));
@@ -666,23 +670,23 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $node1->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
         $node1->shouldReceive('getAttribute')->with('lft')->once()->andReturn(1);
 
-        $this->assertEquals(2, $worker->childrenCount($node1, 1));
-        $this->assertEquals(3, $worker->childrenCount($node1));
+        $this->assertSame(2, $worker->childrenCount($node1, 1));
+        $this->assertSame(3, $worker->childrenCount($node1));
 
         $node2 = $this->getMockNode();
         $node2->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(3);
         $node2->shouldReceive('getAttribute')->with('lft')->once()->andReturn(2);
-        $this->assertEquals(0, $worker->childrenCount($node2));
+        $this->assertSame(0, $worker->childrenCount($node2));
 
         $node3 = $this->getMockNode();
         $node3->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(20);
         $node3->shouldReceive('getAttribute')->with('lft')->once()->andReturn(3);
-        $this->assertEquals(8, $worker->childrenCount($node3));
+        $this->assertSame(8, $worker->childrenCount($node3));
 
         $node4 = $this->getMockNode();
         $node4->shouldReceive('getAttribute')->with('rgt')->once()->andReturn(8);
         $node4->shouldReceive('getAttribute')->with('lft')->once()->andReturn(5);
-        $this->assertEquals(1, $worker->childrenCount($node4));
+        $this->assertSame(1, $worker->childrenCount($node4));
     }
 
     public function testTree()
@@ -692,7 +696,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $worker->shouldReceive('childrenNodes')->with($node, $depth = 2, null)->andReturn($results = ['foo']);
         $worker->shouldReceive('flatNodesToTree')->with($results)->andReturn('success');
 
-        $this->assertEquals('success', $worker->tree($node, $depth));
+        $this->assertSame('success', $worker->tree($node, $depth));
     }
 
     public function testFlatNodesToTree()
@@ -710,7 +714,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         $nodes = [];
 
         foreach ($resultsArray as $result) {
-            $node = new NodeStub;
+            $node = new NodeStub();
             $node->setAllAttributes((array) $result);
             $nodes[] = $node;
         }
@@ -731,22 +735,22 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             switch ($child->id) {
                 // TVs
                 case 2:
-                    $this->assertEquals('TVs', $child->name);
+                    $this->assertSame('TVs', $child->name);
 
                     $expected = '';
-                    $actual = implode(',', array_map(function ($grandChild) {
+                    $actual   = implode(',', array_map(function ($grandChild) {
                         return $grandChild->name;
                     }, $child->getChildren()));
 
-                    $this->assertEquals($expected, $actual);
-                    break;
+                    $this->assertSame($expected, $actual);
 
+                    break;
                 // Computers
                 case 3:
-                    $this->assertEquals('Computers', $child->name);
+                    $this->assertSame('Computers', $child->name);
 
                     $expected = 'Mac,PC';
-                    $actual = implode(',', array_map(function ($grandChild) use ($me) {
+                    $actual   = implode(',', array_map(function ($grandChild) use ($me) {
                         // Inspecting mac, we'll go one level deeper
                         // again and ass
                         if ($grandChild->id == 4) {
@@ -760,14 +764,14 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
                         }
 
                         return $grandChild->name;
-
                     }, $child->getChildren()));
 
-                    $this->assertEquals($expected, $actual);
-                    break;
+                    $this->assertSame($expected, $actual);
 
+                    break;
                 default:
                     $this->fail("Missing analyzing flat result [{$child->id}].");
+
                     break;
             }
         }
@@ -804,7 +808,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $callback($connection);
 
             return true;
-
         }))->once();
 
         $worker->mapTree($parentNode, $nodes);
@@ -836,7 +839,6 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
             $callback($connection);
 
             return true;
-
         }))->once();
 
         $worker->mapTreeAndKeep($parentNode, $nodes);
@@ -844,7 +846,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
 
     public function testRecursivelyMapNode()
     {
-        $worker = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[hydrateNode,insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
+        $worker        = m::mock('Cartalyst\NestedSets\Workers\IlluminateWorker[hydrateNode,insertNodeAsLastChild,moveNodeAsLastChild,insertNode,updateNode]', [$connection = $this->getMockConnection(), $node = $this->getMockNode()]);
         $parentNode    = $this->getMockNode();
         $existingNodes = [$childNode1 = $this->getMockNode()];
 
@@ -877,7 +879,7 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
         // Array-based node, also tests "recursive-ness"
         $nodeArray = ['id' => 3, 'name' => 'Foo', 'children' => [['name' => 'Bar']]];
         $node->shouldReceive('createNode')->twice()->andReturnUsing(function () {
-            return new NodeStub;
+            return new NodeStub();
         });
 
         $worker->shouldReceive('hydrateNode')->with($nodeStubCheck = m::on(function ($node) {
@@ -1201,13 +1203,13 @@ class IlluminateWorkerTest extends PHPUnit_Framework_TestCase
     public function testWrap()
     {
         $worker = new Worker($connection = $this->getMockConnection(), $node = $this->getMockNode());
-        $this->assertEquals('"prefix_foo"."bar"', $worker->wrap('foo.bar'));
+        $this->assertSame('"prefix_foo"."bar"', $worker->wrap('foo.bar'));
     }
 
     protected function getMockConnection()
     {
         $connection = m::mock('Illuminate\Database\Connection');
-        $connection->shouldReceive('getQueryGrammar')->andReturn($grammar = new Grammar);
+        $connection->shouldReceive('getQueryGrammar')->andReturn($grammar = new Grammar());
         $grammar->setTablePrefix('prefix_');
         $connection->shouldReceive('getPostProcessor')->andReturn(m::mock('Illuminate\Database\Query\Processors\Processor'));
 

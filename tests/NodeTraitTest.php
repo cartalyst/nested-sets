@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,29 +11,29 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Tests;
 
 use Mockery as m;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Illuminate\Database\Eloquent\Model;
 use Cartalyst\NestedSets\Nodes\NodeTrait;
 use Cartalyst\NestedSets\Nodes\NodeInterface;
 
-class NodeTraitTest extends PHPUnit_Framework_TestCase
+class NodeTraitTest extends TestCase
 {
     /**
      * Setup resources and dependencies.
      *
      * @return void
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         require_once __DIR__.'/stubs/DummyWorker.php';
     }
@@ -43,7 +43,7 @@ class NodeTraitTest extends PHPUnit_Framework_TestCase
      *
      * @return void
      */
-    public function tearDown()
+    protected function tearDown(): void
     {
         m::close();
         Node::unsetPresenter();
@@ -51,24 +51,24 @@ class NodeTraitTest extends PHPUnit_Framework_TestCase
 
     public function testChildrenManipulation()
     {
-        $node = new Node;
+        $node = new Node();
 
         $node->setChildren(['foo']);
         $this->assertCount(1, $node->getChildren());
-        $this->assertEquals(['foo'], $node->getChildren());
+        $this->assertSame(['foo'], $node->getChildren());
 
         $node->clearChildren();
         $this->assertEmpty($node->getChildren());
 
-        $node->setChildAtIndex($child1 = new Node, 2);
+        $node->setChildAtIndex($child1 = new Node(), 2);
         $this->assertCount(1, $children = $node->getChildren());
-        $this->assertEquals($child1, reset($children));
-        $this->assertEquals(2, key($children));
+        $this->assertSame($child1, reset($children));
+        $this->assertSame(2, key($children));
     }
 
     public function testSettingHelper()
     {
-        $node = new Node;
+        $node = new Node();
         $this->addMockConnection($node);
         $node->setWorker('DummyWorker');
         $this->assertInstanceOf('DummyWorker', $node->createWorker());
@@ -78,22 +78,22 @@ class NodeTraitTest extends PHPUnit_Framework_TestCase
     {
         $this->assertNull(Node::getPresenter());
         Node::setPresenter($presenter = m::mock('Cartalyst\NestedSets\Presenter'));
-        $this->assertEquals($presenter, Node::getPresenter());
+        $this->assertSame($presenter, Node::getPresenter());
 
-        $node = new Node;
+        $node = new Node();
         $presenter->shouldReceive('presentAs')->with($node, 'foo', 'bar', 0)->once()->andReturn('success');
-        $this->assertEquals('success', $node->presentAs('foo', 'bar'));
+        $this->assertSame('success', $node->presentAs('foo', 'bar'));
 
         $presenter->shouldReceive('presentAs')->with($node, 'baz', 'qux', 2)->once()->andReturn('success');
-        $this->assertEquals('success', $node->presentAsBaz('qux', 2));
+        $this->assertSame('success', $node->presentAsBaz('qux', 2));
     }
 
     public function testFindingChildrenAlwaysReturnsArray()
     {
         $node = m::mock('Cartalyst\NestedSets\Tests\Node[createWorker]');
         $node->shouldReceive('createWorker')->once()->andReturn($worker = m::mock('Cartalyst\NestedSets\Workers\WorkerInterface'));
-        $worker->shouldReceive('tree')->with($node, 0, null)->once()->andReturn($treeNode = new Node);
-        $this->assertEquals([$treeNode], $node->findChildren());
+        $worker->shouldReceive('tree')->with($node, 0, null)->once()->andReturn($treeNode = new Node());
+        $this->assertSame([$treeNode], $node->findChildren());
     }
 
     protected function addMockConnection($model)
@@ -106,6 +106,7 @@ class NodeTraitTest extends PHPUnit_Framework_TestCase
     }
 }
 
-class Node extends Model implements NodeInterface {
+class Node extends Model implements NodeInterface
+{
     use NodeTrait;
 }

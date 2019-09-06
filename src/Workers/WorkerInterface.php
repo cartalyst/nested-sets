@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,11 +11,11 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Workers;
@@ -27,7 +27,8 @@ interface WorkerInterface
     /**
      * Returns all nodes, in a flat array.
      *
-     * @param  int  $tree
+     * @param int $tree
+     *
      * @return array
      */
     public function allFlat($tree = null);
@@ -44,7 +45,8 @@ interface WorkerInterface
      * Leaf nodes are nodes which do not have
      * any children.
      *
-     * @param  int  $tree
+     * @param int $tree
+     *
      * @return array
      */
     public function allLeaf($tree = null);
@@ -53,7 +55,8 @@ interface WorkerInterface
      * Returns if the given node is a leaf node (has
      * no children).
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return bool
      */
     public function isLeaf(NodeInterface $node);
@@ -63,7 +66,8 @@ interface WorkerInterface
      * the primary key of the node and all of it's
      * parents up to the root item.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return array
      */
     public function path(NodeInterface $node);
@@ -73,7 +77,8 @@ interface WorkerInterface
      * 0 is a root node, 1 is a root node's direct
      * child and so on.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return int
      */
     public function depth(NodeInterface $node);
@@ -85,8 +90,9 @@ interface WorkerInterface
      * item otherwise we cannot find the relative
      * depth.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parentNode
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parentNode
+     *
      * @return int
      */
     public function relativeDepth(NodeInterface $node, NodeInterface $parentNode);
@@ -94,7 +100,8 @@ interface WorkerInterface
     /**
      * Returns the parnet node for the given node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $parent
      */
     public function parentNode(NodeInterface $node);
@@ -102,7 +109,8 @@ interface WorkerInterface
     /**
      * Returns the next sibling node for the given node or null.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
      */
     public function nextSibling(NodeInterface $node);
@@ -110,7 +118,8 @@ interface WorkerInterface
     /**
      * Returns the previous sibling node for the given node or null.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface      $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface|null $parent
      */
     public function previousSibling(NodeInterface $node);
@@ -121,8 +130,9 @@ interface WorkerInterface
      * levels of children we recurse through to put into
      * the flat array.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     *
      * @return array
      */
     public function childrenNodes(NodeInterface $node, $depth = 0);
@@ -131,8 +141,9 @@ interface WorkerInterface
      * Returns the count of the children for the given node, with an
      * optional depth limit.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     *
      * @return int
      */
     public function childrenCount(NodeInterface $node, $depth = 0);
@@ -143,8 +154,9 @@ interface WorkerInterface
      * 1 or more, that is how many levels of children
      * nodes we recurse through.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     *
      * @return array
      */
     public function tree(NodeInterface $node, $depth = 0);
@@ -155,9 +167,10 @@ interface WorkerInterface
      * to create a whole new tree structure or simply to re-order
      * a tree.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-     * @param  array   $nodes
-     * @param  delete  $delete
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     * @param array                                    $nodes
+     * @param delete                                   $delete
+     *
      * @return void
      */
     public function mapTree(NodeInterface $parent, array $nodes, $delete = true);
@@ -167,8 +180,9 @@ interface WorkerInterface
      * the passed array. This allows for allowing pushing new items
      * into a tree without affecting the entire tree.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-     * @param  array  $nodes
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     * @param array                                    $nodes
+     *
      * @return void
      */
     public function mapTreeAndKeep(NodeInterface $parent, array $nodes);
@@ -176,7 +190,8 @@ interface WorkerInterface
     /**
      * Makes a new node a root node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function insertNodeAsRoot(NodeInterface $node);
@@ -185,8 +200,9 @@ interface WorkerInterface
      * Inserts the given node as the first child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent);
@@ -195,8 +211,9 @@ interface WorkerInterface
      * Inserts the given node as the last child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent);
@@ -205,8 +222,9 @@ interface WorkerInterface
      * Inserts the given node as the previous sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling);
@@ -215,8 +233,9 @@ interface WorkerInterface
      * Inserts the given node as the next sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling);
@@ -224,7 +243,8 @@ interface WorkerInterface
     /**
      * Makes the given node a root node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function moveNodeAsRoot(NodeInterface $node);
@@ -233,8 +253,9 @@ interface WorkerInterface
      * Moves the given node as the first child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent);
@@ -243,8 +264,9 @@ interface WorkerInterface
      * Moves the given node as the last child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent);
@@ -253,8 +275,9 @@ interface WorkerInterface
      * Moves the given node as the previous sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling);
@@ -263,17 +286,19 @@ interface WorkerInterface
      * Moves the given node as the next sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling);
 
     /**
-     * Moves the given root from one position to another
+     * Moves the given root from one position to another.
      *
      * @param Cartalyst\NestedSets\Nodes\NodeInterface $from
      * @param Cartalyst\NestedSets\Nodes\NodeInterface $to
+     *
      * @return void
      */
     public function moveRoot(NodeInterface $from, NodeInterface $to);
@@ -282,7 +307,8 @@ interface WorkerInterface
      * Removes a node from the database and orphans
      * it's children.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function deleteNode(NodeInterface $node);
@@ -291,7 +317,8 @@ interface WorkerInterface
      * Removes a node from the database and all of
      * it's children.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function deleteNodeWithChildren(NodeInterface $node);

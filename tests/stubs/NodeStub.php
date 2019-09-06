@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,11 +11,11 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 use Cartalyst\NestedSets\Nodes\NodeInterface;
@@ -29,7 +29,8 @@ class NodeStub implements NodeInterface
     /**
      * Actually finds the children for the node.
      *
-     * @param  int  $depth
+     * @param int $depth
+     *
      * @return array
      */
     public function findChildren($depth = 0)
@@ -49,7 +50,8 @@ class NodeStub implements NodeInterface
     /**
      * Sets the children for the model.
      *
-     * @param  array  $children
+     * @param array $children
+     *
      * @return void
      */
     public function setChildren(array $children)
@@ -71,20 +73,22 @@ class NodeStub implements NodeInterface
      * Sets the child in the children array at
      * the given index.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
-     * @param  int  $index
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $child
+     * @param int                                      $index
+     *
      * @return void
      */
-    public function setChildAtIndex(Cartalyst\NestedSets\Nodes\NodeInterface $child, $index)
+    public function setChildAtIndex(NodeInterface $child, $index)
     {
         $this->children[$index] = $child;
     }
 
     /**
      * Returns the child at the given index. If
-     * the index does not exist, we return "null"
+     * the index does not exist, we return "null".
      *
-     * @param  int  $index
+     * @param int $index
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
      */
     public function getChildAtIndex($index)
@@ -135,7 +139,8 @@ class NodeStub implements NodeInterface
     /**
      * Set all of the current attributes on the node.
      *
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return void
      */
     public function setAllAttributes(array $attributes)
@@ -146,8 +151,9 @@ class NodeStub implements NodeInterface
     /**
      * Get an attribute from the model.
      *
-     * @param  string  $key
-     * @param  mixed   $default
+     * @param string $key
+     * @param mixed  $default
+     *
      * @return mixed
      */
     public function getAttribute($key, $default = null)
@@ -162,8 +168,9 @@ class NodeStub implements NodeInterface
     /**
      * Set a given attribute on the model.
      *
-     * @param  string  $key
-     * @param  mixed   $value
+     * @param string $key
+     * @param mixed  $value
+     *
      * @return void
      */
     public function setAttribute($key, $value)
@@ -184,7 +191,8 @@ class NodeStub implements NodeInterface
     /**
      * Get the name of a reserved attribute.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string
      */
     public function getReservedAttributeName($key)
@@ -245,7 +253,8 @@ class NodeStub implements NodeInterface
     /**
      * Dynamically retrieve attributes on the object.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function __get($key)
@@ -256,8 +265,9 @@ class NodeStub implements NodeInterface
     /**
      * Dynamically set attributes on the object.
      *
-     * @param  string  $key
-     * @param  mixed   $value
+     * @param string $key
+     * @param mixed  $value
+     *
      * @return void
      */
     public function __set($key, $value)
@@ -268,7 +278,8 @@ class NodeStub implements NodeInterface
     /**
      * Determine if an attribute exists on the object.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return void
      */
     public function __isset($key)
@@ -279,7 +290,8 @@ class NodeStub implements NodeInterface
     /**
      * Unset an attribute on the object.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return void
      */
     public function __unset($key)

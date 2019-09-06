@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,25 +11,25 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Workers;
 
 use Closure;
+use Illuminate\Support\Arr;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Expression;
 use Cartalyst\NestedSets\Nodes\NodeInterface;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 
 /**
  * This class does the MPTT magic which powers nested-sets.
  * A great resource to learn about MPTT can be found at
- * http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/
+ * http://mikehillyer.com/articles/managing-hierarchical-data-in-mysql/.
  */
 class IlluminateWorker implements WorkerInterface
 {
@@ -53,7 +53,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Create a Illuminate worker instance.
      *
-     * @param  Illuminate\Database\Connection  $connection
+     * @param Illuminate\Database\Connection $connection
+     *
      * @return void
      */
     public function __construct(Connection $connection, NodeInterface $baseNode)
@@ -65,7 +66,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Returns all nodes, in a flat array.
      *
-     * @param  int  $tree
+     * @param int $tree
+     *
      * @return array
      */
     public function allFlat($tree = null)
@@ -82,7 +84,7 @@ class IlluminateWorker implements WorkerInterface
         // If a tree was supplied, we will filter the items to
         // ensure the tree matches.
         return array_filter($all, function ($node) use ($me, $tree) {
-            return ($node->getAttribute($me->getReservedAttributeName('tree')) == $tree);
+            return $node->getAttribute($me->getReservedAttributeName('tree')) == $tree;
         });
     }
 
@@ -97,7 +99,7 @@ class IlluminateWorker implements WorkerInterface
 
         // Root items are those who's left limit is equal to "1".
         return array_filter($this->baseNode->findAll(), function ($node) use ($me) {
-            return ($node->getAttribute($me->getReservedAttributeName('left')) == 1);
+            return $node->getAttribute($me->getReservedAttributeName('left')) == 1;
         });
     }
 
@@ -106,7 +108,8 @@ class IlluminateWorker implements WorkerInterface
      * Leaf nodes are nodes which do not have
      * any children.
      *
-     * @param  int  $tree
+     * @param int $tree
+     *
      * @return array
      */
     public function allLeaf($tree = null)
@@ -117,8 +120,8 @@ class IlluminateWorker implements WorkerInterface
         // right limit will be one greater than the left limit.
         return array_filter($this->baseNode->findAll(), function ($node) use ($me, $tree) {
             $right = $node->getAttribute($me->getReservedAttributeName('right'));
-            $left  = $node->getAttribute($me->getReservedAttributeName('left'));
-            $size  = $right - $left;
+            $left = $node->getAttribute($me->getReservedAttributeName('left'));
+            $size = $right - $left;
 
             // If we have no tree, simply check the size
             if ($tree === null) {
@@ -126,7 +129,7 @@ class IlluminateWorker implements WorkerInterface
             }
 
             // Otherwise, check our tree constraint matches as well.
-            return ($size == 1 and $node->getAttribute($me->getReservedAttributeName('tree')) == $tree);
+            return $size == 1 and $node->getAttribute($me->getReservedAttributeName('tree')) == $tree;
         });
     }
 
@@ -134,7 +137,8 @@ class IlluminateWorker implements WorkerInterface
      * Returns if the given node is a leaf node (has
      * no children).
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return bool
      */
     public function isLeaf(NodeInterface $node)
@@ -149,7 +153,8 @@ class IlluminateWorker implements WorkerInterface
      * the primary key of the node and all of it's
      * parents up to the root item.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return array
      */
     public function path(NodeInterface $node)
@@ -165,9 +170,9 @@ class IlluminateWorker implements WorkerInterface
         // clause. This will allow us to use the query builder for
         // it's database agnostic compilation
         $results = $this
-            ->connection->table("$table as node")
+            ->connection->table("${table} as node")
             ->join(
-                "$table as parent",
+                "${table} as parent",
                 new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
                 new Expression($this->wrap("parent.{$attributes['left']}"))
@@ -178,7 +183,7 @@ class IlluminateWorker implements WorkerInterface
                 new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->where(
-                new Expression($this->wrap("node.$keyName")),
+                new Expression($this->wrap("node.${keyName}")),
                 '=',
                 $node->getAttribute($keyName)
             )
@@ -193,7 +198,8 @@ class IlluminateWorker implements WorkerInterface
                 $tree
             )
             ->orderBy(new Expression($this->wrap("node.{$attributes['left']}")))
-            ->get([new Expression($this->wrap("parent.$keyName"))]);
+            ->get([new Expression($this->wrap("parent.${keyName}"))])
+        ;
 
         // Our results is an array of objects containing the key name
         // only. We will simplify this by simply returning the key
@@ -203,7 +209,7 @@ class IlluminateWorker implements WorkerInterface
         }
 
         return array_map(function ($result) use ($keyName) {
-            return $result->$keyName;
+            return $result->{$keyName};
         }, $results);
     }
 
@@ -212,7 +218,8 @@ class IlluminateWorker implements WorkerInterface
      * 0 is a root node, 1 is a root node's direct
      * child and so on.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return int
      */
     public function depth(NodeInterface $node)
@@ -223,9 +230,9 @@ class IlluminateWorker implements WorkerInterface
         $tree       = $node->getAttribute($attributes['tree']);
 
         $result = $this
-            ->connection->table("$table as node")
+            ->connection->table("${table} as node")
             ->join(
-                "$table as parent",
+                "${table} as parent",
                 new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
                 new Expression($this->wrap("parent.{$attributes['left']}"))
@@ -236,7 +243,7 @@ class IlluminateWorker implements WorkerInterface
                 new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->where(
-                new Expression($this->wrap("node.$keyName")),
+                new Expression($this->wrap("node.${keyName}")),
                 '=',
                 $node->getAttribute($keyName)
             )
@@ -254,9 +261,10 @@ class IlluminateWorker implements WorkerInterface
             ->groupBy(new Expression($this->wrap("node.{$attributes['left']}")))
             ->first([new Expression(sprintf(
                 '(count(%s) - 1) as %s',
-                $this->wrap("parent.$keyName"),
+                $this->wrap("parent.${keyName}"),
                 $this->wrap($this->getDepthAttributeName())
-            ))]);
+            ))])
+        ;
 
         return $result->depth;
     }
@@ -268,8 +276,9 @@ class IlluminateWorker implements WorkerInterface
      * item otherwise we cannot find the relative
      * depth.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parentNode
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parentNode
+     *
      * @return int
      */
     public function relativeDepth(NodeInterface $node, NodeInterface $parentNode)
@@ -280,7 +289,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Returns the parnet node for the given node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $parent
      */
     public function parentNode(NodeInterface $node)
@@ -294,7 +304,7 @@ class IlluminateWorker implements WorkerInterface
         // If we are a root node, we obviously won't have a parent.
         // This method should never be called on root nodes.
         if ($left == 1) {
-            throw new \RuntimeException("Node [$key] has no parent as it is a root node.");
+            throw new \RuntimeException("Node [${key}] has no parent as it is a root node.");
         }
 
         // To find the parent, we'll query the database for all
@@ -307,7 +317,8 @@ class IlluminateWorker implements WorkerInterface
             ->where($attributes['right'], '>', $node->getAttribute($attributes['right']))
             ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
             ->orderBy($attributes['left'], 'desc')
-            ->first();
+            ->first()
+        ;
 
         return $this->createNode($result);
     }
@@ -315,7 +326,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Returns the next sibling node for the given node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface $parent
      */
     public function nextSibling(NodeInterface $node)
@@ -326,7 +338,7 @@ class IlluminateWorker implements WorkerInterface
         $right      = $node->getAttribute($attributes['right']);
         $tree       = $node->getAttribute($attributes['tree']);
 
-        $query =  $this->connection->table($table);
+        $query = $this->connection->table($table);
 
         if ($left == 1) {
             // If we are a root node, we'll query the database for
@@ -334,14 +346,16 @@ class IlluminateWorker implements WorkerInterface
             $query
                 ->where($attributes['left'], '=', 1)
                 ->where($attributes['tree'], '>', $tree)
-                ->orderBy($attributes['tree'], 'asc');
+                ->orderBy($attributes['tree'], 'asc')
+            ;
         } else {
             // To find the next sibling, we'll query the database for all
             // nodes who's left are equals to $right + 1.
             $query
                 ->where($attributes['left'], '=', $right + 1)
                 ->where($attributes['tree'], '=', $tree)
-                ->orderBy($attributes['left'], 'asc');
+                ->orderBy($attributes['left'], 'asc')
+            ;
         }
 
         $result = $query->first();
@@ -352,7 +366,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Returns the previous sibling node for the given node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface $parent
      */
     public function previousSibling(NodeInterface $node)
@@ -362,7 +377,7 @@ class IlluminateWorker implements WorkerInterface
         $left       = $node->getAttribute($attributes['left']);
         $tree       = $node->getAttribute($attributes['tree']);
 
-        $query =  $this->connection->table($table);
+        $query = $this->connection->table($table);
 
         if ($left == 1) {
             // If we are a root node, we'll query the database for
@@ -370,14 +385,16 @@ class IlluminateWorker implements WorkerInterface
             $query
                 ->where($attributes['left'], '=', 1)
                 ->where($attributes['tree'], '<', $tree)
-                ->orderBy($attributes['tree'], 'desc');
+                ->orderBy($attributes['tree'], 'desc')
+            ;
         } else {
             // To find the previous sibling, we'll query the database for all
             // nodes who's right are equals to $left - 1.
             $query
                 ->where($attributes['right'], '=', $left - 1)
                 ->where($attributes['tree'], '=', $tree)
-                ->orderBy($attributes['left'], 'desc');
+                ->orderBy($attributes['left'], 'desc')
+            ;
         }
 
         $result = $query->first();
@@ -391,9 +408,10 @@ class IlluminateWorker implements WorkerInterface
      * levels of children we recurse through to put into
      * the flat array.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
-     * @param  Closure  $callback
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     * @param Closure                                  $callback
+     *
      * @return array
      */
     public function childrenNodes(NodeInterface $node, $depth = 0, Closure $callback = null)
@@ -408,9 +426,9 @@ class IlluminateWorker implements WorkerInterface
         // We will store a query builder object that we
         // use throughout the course of this method.
         $query = $this
-            ->connection->table("$table as node")
+            ->connection->table("${table} as node")
             ->join(
-                "$table as parent",
+                "${table} as parent",
                 new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
                 new Expression($this->wrap("parent.{$attributes['left']}"))
@@ -421,7 +439,7 @@ class IlluminateWorker implements WorkerInterface
                 new Expression($this->wrap("parent.{$attributes['right']}"))
             )
             ->join(
-                "$table as sub_parent",
+                "${table} as sub_parent",
                 new Expression($this->wrap("node.{$attributes['left']}")),
                 '>=',
                 new Expression($this->wrap("sub_parent.{$attributes['left']}"))
@@ -430,13 +448,14 @@ class IlluminateWorker implements WorkerInterface
                 new Expression($this->wrap("node.{$attributes['left']}")),
                 '<=',
                 new Expression($this->wrap("sub_parent.{$attributes['right']}"))
-            );
+            )
+        ;
 
         // Create a query to select the sub-tree
         // component of each node. We initialize this
         // here so that we can take its' bindings and
         // merge them in.
-        $subQuery = $this->connection->table("$table as node");
+        $subQuery = $this->connection->table("${table} as node");
 
         // We now build up the sub-tree component of the
         // query in a closure which is passed as the condition
@@ -446,15 +465,15 @@ class IlluminateWorker implements WorkerInterface
         $query->join('sub_tree', function ($join) use ($me, $node, $subQuery, $attributes, $table, $keyName, $key, $tree) {
             $subQuery
                 ->select(
-                    new Expression($me->wrap("node.$keyName")),
+                    new Expression($me->wrap("node.${keyName}")),
                     new Expression(sprintf(
                         '(count(%s) - 1) as %s',
-                        $me->wrap("parent.$keyName"),
+                        $me->wrap("parent.${keyName}"),
                         $me->wrap($me->getDepthAttributeName())
                     ))
                 )
                 ->join(
-                    "$table as parent",
+                    "${table} as parent",
                     new Expression($me->wrap("node.{$attributes['left']}")),
                     '>=',
                     new Expression($me->wrap("parent.{$attributes['left']}"))
@@ -465,7 +484,7 @@ class IlluminateWorker implements WorkerInterface
                     new Expression($me->wrap("parent.{$attributes['right']}"))
                 )
                 ->where(
-                    new Expression($me->wrap("node.$keyName")),
+                    new Expression($me->wrap("node.${keyName}")),
                     '=',
                     $key
                 )
@@ -480,7 +499,8 @@ class IlluminateWorker implements WorkerInterface
                     $tree
                 )
                 ->orderBy(new Expression($me->wrap("node.{$attributes['left']}")))
-                ->groupBy(new Expression($me->wrap("node.$keyName")));
+                ->groupBy(new Expression($me->wrap("node.${keyName}")))
+            ;
 
             // Configure the join from the SQL the query
             // builder generates.
@@ -491,9 +511,9 @@ class IlluminateWorker implements WorkerInterface
             ));
 
             $join->on(
-                new Expression($me->wrap("sub_parent.$keyName")),
+                new Expression($me->wrap("sub_parent.${keyName}")),
                 '=',
-                new Expression($me->wrap("sub_tree.$keyName"))
+                new Expression($me->wrap("sub_tree.${keyName}"))
             );
         });
 
@@ -521,7 +541,8 @@ class IlluminateWorker implements WorkerInterface
                 new Expression($this->wrap("sub_parent.{$attributes['tree']}")),
                 '=',
                 $tree
-            );
+            )
+        ;
 
         // If a callback was supplied, we'll call it now
         if ($callback) {
@@ -531,9 +552,10 @@ class IlluminateWorker implements WorkerInterface
         $query
             ->orderBy(new Expression($this->wrap("node.{$attributes['left']}")))
             ->groupBy(
-                new Expression($this->wrap("node.$keyName")),
+                new Expression($this->wrap("node.${keyName}")),
                 new Expression($this->wrap("sub_tree.{$this->getDepthAttributeName()}"))
-            );
+            )
+        ;
 
         // If we have a depth, we need to supply a "having"
         // clause to the query builder.
@@ -550,13 +572,13 @@ class IlluminateWorker implements WorkerInterface
         }
 
         $results = $query->get([
-            new Expression($this->wrap("node.*")),
+            new Expression($this->wrap('node.*')),
             new Expression(sprintf(
                 '(count(%s) - (%s + 1)) as %s',
-                $this->wrap("parent.$keyName"),
+                $this->wrap("parent.${keyName}"),
                 $this->wrap("sub_tree.{$this->getDepthAttributeName()}"),
                 $this->wrap($this->getDepthAttributeName())
-            ))
+            )),
         ]);
 
         foreach ($results as $result) {
@@ -570,9 +592,10 @@ class IlluminateWorker implements WorkerInterface
      * Returns the count of the children for the given node, with an
      * optional depth limit.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
-     * @param  Closure  $callback
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     * @param Closure                                  $callback
+     *
      * @return int
      */
     public function childrenCount(NodeInterface $node, $depth = 0, $callback = null)
@@ -597,9 +620,10 @@ class IlluminateWorker implements WorkerInterface
      * 1 or more, that is how many levels of children
      * nodes we recurse through.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $depth
-     * @param  Closure  $callback
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $depth
+     * @param Closure                                  $callback
+     *
      * @return array
      */
     public function tree(NodeInterface $node, $depth = 0, $callback = null)
@@ -615,9 +639,10 @@ class IlluminateWorker implements WorkerInterface
      * to create a whole new tree structure or simply to re-order
      * a tree.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-     * @param  array   $nodes
-     * @param  delete  $delete
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     * @param array                                    $nodes
+     * @param delete                                   $delete
+     *
      * @return void
      */
     public function mapTree(NodeInterface $parent, array $nodes, $delete = true)
@@ -658,8 +683,9 @@ class IlluminateWorker implements WorkerInterface
      * the passed array. This allows for allowing pushing new items
      * into a tree without affecting the entire tree.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface   $parent
-     * @param  array  $nodes
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     * @param array                                    $nodes
+     *
      * @return void
      */
     public function mapTreeAndKeep(NodeInterface $parent, array $nodes)
@@ -670,7 +696,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Makes a new node a root node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function insertNodeAsRoot(NodeInterface $node)
@@ -687,7 +714,6 @@ class IlluminateWorker implements WorkerInterface
             $node->setAttribute($attributes['tree'], $query->max($attributes['tree']) + 1);
 
             $me->insertNode($node);
-
         });
     }
 
@@ -695,8 +721,9 @@ class IlluminateWorker implements WorkerInterface
      * Inserts the given node as the first child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function insertNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
@@ -712,9 +739,9 @@ class IlluminateWorker implements WorkerInterface
 
             // Our left limit will be one greater than that of the parent
             // node, which will mean we are the first child.
-            $left  = $parent->getAttribute($attributes['left']) + 1;
+            $left = $parent->getAttribute($attributes['left']) + 1;
             $right = $left + 1;
-            $tree  = $parent->getAttribute($attributes['tree']);
+            $tree = $parent->getAttribute($attributes['tree']);
 
             $me->createGap($left, 2, $tree);
 
@@ -728,7 +755,6 @@ class IlluminateWorker implements WorkerInterface
             // We will update the parent instance so that it's
             // limits are accurate and it can be used again.
             $parent->setAttribute($attributes['right'], $parent->getAttribute($attributes['right']) + 2);
-
         });
     }
 
@@ -736,8 +762,9 @@ class IlluminateWorker implements WorkerInterface
      * Inserts the given node as the last child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function insertNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
@@ -753,9 +780,9 @@ class IlluminateWorker implements WorkerInterface
 
             // Our left limit will be the same as the (current) right limit
             // of the parent node, which will mean we are the last child.
-            $left  = $parentRight = $parent->getAttribute($attributes['right']);
+            $left = $parentRight = $parent->getAttribute($attributes['right']);
             $right = $left + 1;
-            $tree  = $parent->getAttribute($attributes['tree']);
+            $tree = $parent->getAttribute($attributes['tree']);
 
             $me->createGap($left, 2, $tree);
 
@@ -769,7 +796,6 @@ class IlluminateWorker implements WorkerInterface
             // We will update the parent instance so that it's
             // limits are accurate and it can be used again.
             $parent->setAttribute($attributes['right'], $parentRight + 2);
-
         });
     }
 
@@ -777,8 +803,9 @@ class IlluminateWorker implements WorkerInterface
      * Inserts the given node as the previous sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function insertNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
@@ -794,9 +821,9 @@ class IlluminateWorker implements WorkerInterface
 
             // Our left limit will be the same as the (current) left limit
             // of the sibling node, which will mean we are the previous sibling.
-            $left  = $siblingLeft = $sibling->getAttribute($attributes['left']);
+            $left = $siblingLeft = $sibling->getAttribute($attributes['left']);
             $right = $left + 1;
-            $tree  = $sibling->getAttribute($attributes['tree']);
+            $tree = $sibling->getAttribute($attributes['tree']);
 
             $me->createGap($left, 2, $tree);
 
@@ -811,7 +838,6 @@ class IlluminateWorker implements WorkerInterface
             // limits are accurate and it can be used again.
             $sibling->setAttribute($attributes['left'], $siblingLeft + 2);
             $sibling->setAttribute($attributes['right'], $sibling->getAttribute($attributes['right']) + 2);
-
         });
     }
 
@@ -819,8 +845,9 @@ class IlluminateWorker implements WorkerInterface
      * Inserts the given node as the next sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function insertNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
@@ -839,9 +866,9 @@ class IlluminateWorker implements WorkerInterface
             // Additionally, because we sit to the right of the child, we do
             // not have to update the child's properties as none of our queries
             // will adjust the record it represents in the database.
-            $left  = $sibling->getAttribute($attributes['right']) + 1;
+            $left = $sibling->getAttribute($attributes['right']) + 1;
             $right = $left + 1;
-            $tree  = $sibling->getAttribute($attributes['tree']);
+            $tree = $sibling->getAttribute($attributes['tree']);
 
             $me->createGap($left, 2, $tree);
 
@@ -851,14 +878,14 @@ class IlluminateWorker implements WorkerInterface
             $node->setAttribute($attributes['tree'], $tree);
 
             $me->insertNode($node);
-
         });
     }
 
     /**
      * Makes the given node a root node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function moveNodeAsRoot(NodeInterface $node)
@@ -872,15 +899,15 @@ class IlluminateWorker implements WorkerInterface
         // Firstly, if a node is a "root" node, we cannot
         // move the node as root.
         if ($node->getAttribute($this->getReservedAttributeName('left')) == 1) {
-            throw new \RuntimeException("Cannot set node [$key] as root because it's already a root.");
+            throw new \RuntimeException("Cannot set node [${key}] as root because it's already a root.");
         }
 
         $this->ensureTransaction(function ($connection) use ($me, $node, $table, $attributes) {
-            $query   = $connection->table($table);
-            $parent  = $me->parentNode($node);
-            $size    = $me->getNodeSize($node);
-            $delta   = $size + 1;
-            $tree    = $node->getAttribute($attributes['tree']);
+            $query = $connection->table($table);
+            $parent = $me->parentNode($node);
+            $size = $me->getNodeSize($node);
+            $delta = $size + 1;
+            $tree = $node->getAttribute($attributes['tree']);
 
             $me->slideNodeOutOfTree($node);
 
@@ -898,7 +925,8 @@ class IlluminateWorker implements WorkerInterface
                         '%s + 1',
                         $me->wrap($attributes['tree'])
                     )),
-                ]);
+                ])
+            ;
 
             // Get a fresh query instance.
             $query = $connection->table($table);
@@ -924,7 +952,8 @@ class IlluminateWorker implements WorkerInterface
                         $me->wrap($attributes['right']),
                         $delta
                     )),
-                ]);
+                ])
+            ;
 
             // Like sliding out of a tree, we will now update the node's
             // attributes so they don't have to be hydrated.
@@ -938,8 +967,9 @@ class IlluminateWorker implements WorkerInterface
      * Moves the given node as the first child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function moveNodeAsFirstChild(NodeInterface $node, NodeInterface $parent)
@@ -971,8 +1001,9 @@ class IlluminateWorker implements WorkerInterface
      * Moves the given node as the last child of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function moveNodeAsLastChild(NodeInterface $node, NodeInterface $parent)
@@ -1004,8 +1035,9 @@ class IlluminateWorker implements WorkerInterface
      * Moves the given node as the previous sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function moveNodeAsPreviousSibling(NodeInterface $node, NodeInterface $sibling)
@@ -1043,8 +1075,9 @@ class IlluminateWorker implements WorkerInterface
      * Moves the given node as the next sibling of
      * the parent node. Updates node attributes as well.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function moveNodeAsNextSibling(NodeInterface $node, NodeInterface $sibling)
@@ -1078,10 +1111,11 @@ class IlluminateWorker implements WorkerInterface
     }
 
     /**
-     * Moves the given root from one position to another
+     * Moves the given root from one position to another.
      *
      * @param Cartalyst\NestedSets\Nodes\NodeInterface $from
      * @param Cartalyst\NestedSets\Nodes\NodeInterface $to
+     *
      * @return void
      */
     public function moveRoot(NodeInterface $from, NodeInterface $to)
@@ -1094,7 +1128,7 @@ class IlluminateWorker implements WorkerInterface
 
         // Firstly, check if from position is the same as to position
         if ($fromTree == $toTree) {
-            throw new \RuntimeException("Cannot move root from [$fromTree] to [$toTree].");
+            throw new \RuntimeException("Cannot move root from [${fromTree}] to [${toTree}].");
         }
 
         $this->ensureTransaction(function ($connection) use ($me, $from, $to, $fromTree, $toTree, $attributes, $table) {
@@ -1102,7 +1136,8 @@ class IlluminateWorker implements WorkerInterface
             // in order to exclude it from subsequent queries
             $connection->table($table)
                 ->where($attributes['tree'], '=', $fromTree)
-                ->update([$attributes['tree'] => -1]);
+                ->update([$attributes['tree'] => -1])
+            ;
 
             if ($fromTree > $toTree) {
                 // If from is greater than to, we will add 1 to tree values
@@ -1116,7 +1151,8 @@ class IlluminateWorker implements WorkerInterface
                             '%s + 1',
                             $me->wrap($attributes['tree'])
                         )),
-                    ]);
+                    ])
+                ;
             } else {
                 // If from is smaller than to, we will substract 1 to tree values
                 // which are major of $fromTree and minor or equal of $toTree
@@ -1129,13 +1165,15 @@ class IlluminateWorker implements WorkerInterface
                             '%s - 1',
                             $me->wrap($attributes['tree'])
                         )),
-                    ]);
+                    ])
+                ;
             }
 
             // We can now update current tree with final tree position
             $connection->table($table)
                 ->where($attributes['tree'], '=', -1)
-                ->update([$attributes['tree'] => $toTree]);
+                ->update([$attributes['tree'] => $toTree])
+            ;
 
             // Hydrate nodes
             $this->hydrateNode($from);
@@ -1147,7 +1185,8 @@ class IlluminateWorker implements WorkerInterface
      * Removes a node from the database and orphans
      * it's children.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function deleteNode(NodeInterface $node)
@@ -1161,7 +1200,7 @@ class IlluminateWorker implements WorkerInterface
         // Firstly, if a node is a "root" node, we cannot
         // orphan it's children, where would they go?
         if ($left == 1) {
-            throw new \RuntimeException("Cannot delete node [$key] and orphan it's children as it is root.");
+            throw new \RuntimeException("Cannot delete node [${key}] and orphan it's children as it is root.");
         }
 
         $this->ensureTransaction(function ($connection) use ($me, $node, $keyName, $key, $left, $attributes) {
@@ -1170,7 +1209,8 @@ class IlluminateWorker implements WorkerInterface
                 ->getConnection()
                 ->table($me->getTable())
                 ->where($keyName, '=', $key)
-                ->delete();
+                ->delete()
+            ;
 
             $tree = $node->getAttribute($attributes['tree']);
 
@@ -1192,7 +1232,8 @@ class IlluminateWorker implements WorkerInterface
      * Removes a node from the database and all of
      * it's children.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function deleteNodeWithChildren(NodeInterface $node)
@@ -1215,7 +1256,8 @@ class IlluminateWorker implements WorkerInterface
                 ->where($attributes['left'], '>=', $node->getAttribute($attributes['left']))
                 ->where($attributes['right'], '<=', $node->getAttribute($attributes['right']))
                 ->where($attributes['tree'], '=', $node->getAttribute($attributes['tree']))
-                ->delete();
+                ->delete()
+            ;
         });
     }
 
@@ -1224,15 +1266,16 @@ class IlluminateWorker implements WorkerInterface
      * left limit with the given size (the size can
      * be negative).
      *
-     * @param  int  $left
-     * @param  int  $size
-     * @param  int  $tree
+     * @param int $left
+     * @param int $size
+     * @param int $tree
+     *
      * @return void
      */
     public function createGap($left, $size, $tree)
     {
         if ($size === 0) {
-            throw new \InvalidArgumentException("Cannot create a gap in tree [$tree] starting from [$left] with a size of [0].");
+            throw new \InvalidArgumentException("Cannot create a gap in tree [${tree}] starting from [${left}] with a size of [0].");
         }
 
         $attributes = $this->getReservedAttributeNames();
@@ -1247,7 +1290,8 @@ class IlluminateWorker implements WorkerInterface
                     $this->wrap($attributes['left']),
                     $size
                 )),
-            ]);
+            ])
+        ;
 
         $this
             ->connection->table($this->getTable())
@@ -1259,21 +1303,23 @@ class IlluminateWorker implements WorkerInterface
                     $this->wrap($attributes['right']),
                     $size
                 )),
-            ]);
+            ])
+        ;
     }
 
     /**
      * Alias to create a negative gap.
      *
-     * @param  int  $start
-     * @param  int  $size
-     * @param  int  $tree
+     * @param int $start
+     * @param int $size
+     * @param int $tree
+     *
      * @return void
      */
     public function removeGap($start, $size, $tree)
     {
         if ($size < 0) {
-            throw new \InvalidArgumentException("Cannot provide a negative size of [$size] remove a gap. Instead, provide the positive size.");
+            throw new \InvalidArgumentException("Cannot provide a negative size of [${size}] remove a gap. Instead, provide the positive size.");
         }
 
         return $this->createGap($start, $size * -1, $tree);
@@ -1284,7 +1330,8 @@ class IlluminateWorker implements WorkerInterface
      * right limit sits on '0'; it will not render in any
      * hierarchical data).
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function slideNodeOutOfTree(NodeInterface $node)
@@ -1312,7 +1359,8 @@ class IlluminateWorker implements WorkerInterface
                     $this->wrap($attributes['right']),
                     $delta
                 )),
-            ]);
+            ])
+        ;
 
         // Now, we will close the gap created by shifting the node
         $this->removeGap($node->getAttribute($attributes['left']), $size + 1, $node->getAttribute($attributes['tree']));
@@ -1329,8 +1377,10 @@ class IlluminateWorker implements WorkerInterface
      * in hierarchical data. This is the reverse of sliding out
      * of a tree and can be used to reposition a node.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  int  $left
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param int                                      $left
+     * @param mixed|null                               $tree
+     *
      * @return void
      */
     public function slideNodeInTree(NodeInterface $node, $left, $tree = null)
@@ -1366,7 +1416,8 @@ class IlluminateWorker implements WorkerInterface
                     $this->wrap($attributes['right']),
                     $delta
                 )),
-            ]);
+            ])
+        ;
 
         // Like sliding out of a tree, we will now update the node's
         // attributes so they don't have to be hydrated.
@@ -1385,7 +1436,8 @@ class IlluminateWorker implements WorkerInterface
                         '%s - 1',
                         $this->wrap($attributes['tree'])
                     )),
-                ]);
+                ])
+            ;
         }
     }
 
@@ -1397,7 +1449,8 @@ class IlluminateWorker implements WorkerInterface
      * are accessible through getChildren(). Otherwise, an array of
      * results are returned).
      *
-     * @param  array   $nodes
+     * @param array $nodes
+     *
      * @return mixed
      */
     public function flatNodesToTree(array $nodes)
@@ -1435,9 +1488,9 @@ class IlluminateWorker implements WorkerInterface
             // nodes above, we are dealing with a root node and
             // it should be appended to the main tree.
             if ($stackCounter === 0) {
-                $i = count($tree);
+                $i        = count($tree);
                 $tree[$i] = $node;
-                $stack[] = &$tree[$i];
+                $stack[]  = &$tree[$i];
             }
 
             // Otherwise, we will assign it as a child to the
@@ -1458,9 +1511,10 @@ class IlluminateWorker implements WorkerInterface
      * and invoking this same method for each one of the node's children,
      * presenting the node as the parent.
      *
-     * @param  mixed  $node
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
-     * @param  array  $existingNodes
+     * @param mixed                                    $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     * @param array                                    $existingNodes
+     *
      * @return void
      */
     public function recursivelyMapNode($node, NodeInterface $parent, array &$existingNodes = [])
@@ -1509,6 +1563,7 @@ class IlluminateWorker implements WorkerInterface
 
             // Break our loop so that we don't continually test other nodes.
             $matched = true;
+
             break;
         }
 
@@ -1565,7 +1620,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Get the name of a reserved attribute.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string
      */
     public function getReservedAttributeName($key)
@@ -1587,7 +1643,8 @@ class IlluminateWorker implements WorkerInterface
      * Calculate's the "size" of a node in the hierachical
      * structure, based off it's left and right limits.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return int
      */
     public function getNodeSize(NodeInterface $node)
@@ -1598,7 +1655,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Enures the given closur is executed within a PDO transaction.
      *
-     * @param  Closure  $callback
+     * @param Closure $callback
+     *
      * @return void
      */
     public function ensureTransaction(Closure $callback)
@@ -1614,8 +1672,9 @@ class IlluminateWorker implements WorkerInterface
      * Inserts a node in the database and upates the node's
      * properties if applicable.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
-     * @param  Illuminate\Database\Query\Builder  $query
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     * @param Illuminate\Database\Query\Builder        $query
+     *
      * @return void
      */
     public function insertNode(NodeInterface $node)
@@ -1624,7 +1683,7 @@ class IlluminateWorker implements WorkerInterface
         $keyName       = $this->baseNode->getKeyName();
         $allAttributes = $node->getAllAttributes();
 
-        $attributes = array_except(
+        $attributes = Arr::except(
             $allAttributes,
             [$this->getDepthAttributeName(), $keyName]
         );
@@ -1632,7 +1691,7 @@ class IlluminateWorker implements WorkerInterface
         if ($node->getIncrementing()) {
             $node->setAttribute($keyName, $query->insertGetId($attributes));
         } else {
-            $attributes[$keyName] = array_get($allAttributes, $keyName);
+            $attributes[$keyName] = Arr::get($allAttributes, $keyName);
 
             $query->insert($attributes);
         }
@@ -1643,19 +1702,21 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Updates the given node in the database.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function updateNode(NodeInterface $node)
     {
         $keyName    = $this->baseNode->getKeyName();
         $key        = $node->getAttribute($keyName);
-        $attributes = array_except($node->getAllAttributes(), [$this->getDepthAttributeName()]);
+        $attributes = Arr::except($node->getAllAttributes(), [$this->getDepthAttributeName()]);
 
         $this
             ->connection->table($this->getTable())
             ->where($keyName, '=', $key)
-            ->update($attributes);
+            ->update($attributes)
+        ;
 
         $this->afterUpdateNode($node);
     }
@@ -1663,7 +1724,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Creates a node with the given attributes.
      *
-     * @param  mixed  $attributes
+     * @param mixed $attributes
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $node
      */
     public function createNode($attributes = [])
@@ -1671,7 +1733,8 @@ class IlluminateWorker implements WorkerInterface
         $attributes = (array) $attributes;
 
         // Prepare the node's children
-        $children   = [];
+        $children = [];
+
         if (isset($attributes['children'])) {
             $children = $attributes['children'];
             unset($attributes['children']);
@@ -1691,7 +1754,8 @@ class IlluminateWorker implements WorkerInterface
      * and updating it's reserved attributes from the
      * queried record.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function hydrateNode(NodeInterface $node)
@@ -1701,12 +1765,13 @@ class IlluminateWorker implements WorkerInterface
         $keyName    = $this->baseNode->getKeyName();
 
         $result = $this
-            ->connection->table("$table")
+            ->connection->table("${table}")
             ->where($keyName, '=', $key = $node->getAttribute($keyName))
-            ->first(array_values($attributes));
+            ->first(array_values($attributes))
+        ;
 
         if ($result === null) {
-            throw new \RuntimeException("Attempting to hydrate non-existent node [$key].");
+            throw new \RuntimeException("Attempting to hydrate non-existent node [${key}].");
         }
 
         // We only want to update the attributes which
@@ -1719,9 +1784,10 @@ class IlluminateWorker implements WorkerInterface
     }
 
     /**
-     * Fires the "after create" trigger for a node.*
+     * Fires the "after create" trigger for a node.*.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function afterCreateNode(NodeInterface $node)
@@ -1732,9 +1798,10 @@ class IlluminateWorker implements WorkerInterface
     }
 
     /**
-     * Fires the "after update" trigger for a node.*
+     * Fires the "after update" trigger for a node.*.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $node
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $node
+     *
      * @return void
      */
     public function afterUpdateNode(NodeInterface $node)
@@ -1747,7 +1814,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Wraps a table from the current database connection.
      *
-     * @param  string  $value
+     * @param string $value
+     *
      * @return string
      */
     public function wrapTable($value)
@@ -1758,7 +1826,8 @@ class IlluminateWorker implements WorkerInterface
     /**
      * Wraps a value from the current database connection.
      *
-     * @param  string  $value
+     * @param string $value
+     *
      * @return string
      */
     public function wrap($value)

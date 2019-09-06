@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,11 +11,11 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Nodes;
@@ -25,7 +25,8 @@ interface NodeInterface
     /**
      * Actually finds the children for the node.
      *
-     * @param  int  $depth
+     * @param int $depth
+     *
      * @return array
      */
     public function findChildren($depth = 0);
@@ -40,7 +41,8 @@ interface NodeInterface
     /**
      * Sets the children for the model.
      *
-     * @param  array  $children
+     * @param array $children
+     *
      * @return void
      */
     public function setChildren(array $children);
@@ -56,17 +58,19 @@ interface NodeInterface
      * Sets the child in the children array at
      * the given index.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
-     * @param  int  $index
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $child
+     * @param int                                      $index
+     *
      * @return void
      */
     public function setChildAtIndex(NodeInterface $child, $index);
 
     /**
      * Returns the child at the given index. If
-     * the index does not exist, we return "null"
+     * the index does not exist, we return "null".
      *
-     * @param  int  $index
+     * @param int $index
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
      */
     public function getChildAtIndex($index);
@@ -102,7 +106,8 @@ interface NodeInterface
     /**
      * Set all of the current attributes on the node.
      *
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return void
      */
     public function setAllAttributes(array $attributes);
@@ -110,7 +115,8 @@ interface NodeInterface
     /**
      * Get an attribute from the model.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function getAttribute($key);
@@ -118,8 +124,9 @@ interface NodeInterface
     /**
      * Set a given attribute on the model.
      *
-     * @param  string  $key
-     * @param  mixed   $value
+     * @param string $key
+     * @param mixed  $value
+     *
      * @return void
      */
     public function setAttribute($key, $value);
@@ -134,7 +141,8 @@ interface NodeInterface
     /**
      * Get the name of a reserved attribute.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string
      */
     public function getReservedAttributeName($key);

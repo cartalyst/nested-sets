@@ -1,34 +1,15 @@
 {
 	"name": "cartalyst/nested-sets",
-	"description": "PHP 5.4+ nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
+	"description": "Nested sets package utilizing the Modified Preorder Tree Traversal algorithm.",
 	"keywords": ["nested", "nested-sets", "mptt", "tags", "categories"],
 	"license": "proprietary",
-	"authors": [
-		{
-			"name": "Cartalyst LLC",
-			"email": "help@cartalyst.com"
-		},
-		{
-			"name": "Ben Corlett",
-			"email": "ben.corlett@cartalyst.com",
-			"role": "Developer"
-		},
-		{
-			"name": "Bruno Gaspar",
-			"email": "bruno.gaspar@cartalyst.com",
-			"role": "Developer"
-		},
-		{
-			"name": "Dan Syme",
-			"email": "dan.syme@cartalyst.com",
-			"role": "Creator & Designer"
-		},
-		{
-			"name": "Suhayb Wardany",
-			"email": "su.wardany@cartalyst.com",
-			"role": "Developer"
-		}
-	],
+    "authors": [
+        {
+            "name": "Cartalyst LLC",
+            "email": "help@cartalyst.com",
+            "homepage": "https://cartalyst.com"
+        }
+    ],
 	"repositories": [
 		{
 			"type": "composer",
@@ -36,12 +17,13 @@
 		}
 	],
 	"require": {
-		"php": ">=5.4.0"
+		"php": "^7.2"
 	},
 	"require-dev": {
-		"mockery/mockery": "0.9.*",
-		"illuminate/database": "~5",
-		"phpunit/phpunit": "~4.0|~5.0"
+		"cartalyst/php-cs-fixer-config": "^1.0",
+		"mockery/mockery": "^1.0",
+		"illuminate/database": "^6.0",
+		"phpunit/phpunit": "^8.0"
 	},
 	"suggest": {
 		"illuminate/database": "We (by default) provide an Eloquent implementation (and illuminate/database worker). Required if you are not building your own implementations."
@@ -51,11 +33,22 @@
 			"Cartalyst\\NestedSets\\": "src/"
 		}
 	},
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
 	"extra": {
 		"component": "package",
 		"branch-alias": {
-			"dev-master": "3.1.x-dev"
+			"dev-master": "4.0.x-dev"
 		}
 	},
-	"minimum-stability": "dev"
+    "scripts": {
+        "cs:check": "./vendor/bin/php-cs-fixer fix --verbose --ansi --show-progress=estimating --diff --dry-run --config .php_cs.php",
+        "cs:fix": "./vendor/bin/php-cs-fixer fix --verbose --ansi --show-progress=estimating --config .php_cs.php",
+        "test": "./vendor/bin/phpunit --verbose --colors=always"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

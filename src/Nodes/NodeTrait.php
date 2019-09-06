@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Nested Sets package.
  *
  * NOTICE OF LICENSE
@@ -11,16 +11,17 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    3.1.3
+ * @version    4.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2017, Cartalyst LLC
- * @link       http://cartalyst.com
+ * @copyright  (c) 2011-2019, Cartalyst LLC
+ * @link       https://cartalyst.com
  */
 
 namespace Cartalyst\NestedSets\Nodes;
 
 use Closure;
+use Illuminate\Support\Str;
 use Cartalyst\NestedSets\Presenter;
 use Illuminate\Database\Eloquent\Model;
 
@@ -40,8 +41,7 @@ trait NodeTrait
      */
     public static function bootNodeTrait()
     {
-        static::deleting(function($model)
-        {
+        static::deleting(function ($model) {
             if ($model->exists) {
                 $model->createWorker()->deleteNode($model);
             }
@@ -85,7 +85,8 @@ trait NodeTrait
     /**
      * Sets the children for the model.
      *
-     * @param  array  $children
+     * @param array $children
+     *
      * @return void
      */
     public function setChildren(array $children)
@@ -107,8 +108,9 @@ trait NodeTrait
      * Sets the child in the children array at
      * the given index.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $child
-     * @param  int  $index
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $child
+     * @param int                                      $index
+     *
      * @return void
      */
     public function setChildAtIndex(NodeInterface $child, $index)
@@ -118,9 +120,10 @@ trait NodeTrait
 
     /**
      * Returns the child at the given index. If
-     * the index does not exist, we return "null"
+     * the index does not exist, we return "null".
      *
-     * @param  int  $index
+     * @param int $index
+     *
      * @return Cartalyst\NestedSets\Nodes\NodeInterface  $child
      */
     public function getChildAtIndex($index)
@@ -171,7 +174,8 @@ trait NodeTrait
     /**
      * Set all of the current attributes on the node.
      *
-     * @param  array  $attributes
+     * @param array $attributes
+     *
      * @return void
      */
     public function setAllAttributes(array $attributes)
@@ -188,7 +192,8 @@ trait NodeTrait
     /**
      * Get an attribute from the model.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return mixed
      */
     public function getAttribute($key)
@@ -199,8 +204,9 @@ trait NodeTrait
     /**
      * Set a given attribute on the model.
      *
-     * @param  string  $key
-     * @param  mixed   $value
+     * @param string $key
+     * @param mixed  $value
+     *
      * @return void
      */
     public function setAttribute($key, $value)
@@ -225,7 +231,8 @@ trait NodeTrait
     /**
      * Get the name of a reserved attribute.
      *
-     * @param  string  $key
+     * @param string $key
+     *
      * @return string
      */
     public function getReservedAttributeName($key)
@@ -378,7 +385,8 @@ trait NodeTrait
     /**
      * Returns the cound of children for the model.
      *
-     * @param  int  $depth
+     * @param int $depth
+     *
      * @return int
      */
     public function getChildrenCount($depth = 0)
@@ -389,7 +397,8 @@ trait NodeTrait
     /**
      * Actually finds the children for the node.
      *
-     * @param  int  $depth
+     * @param int $depth
+     *
      * @return array
      */
     public function findChildren($depth = 0)
@@ -401,8 +410,9 @@ trait NodeTrait
      * Allows you to pass through a callback when finding children,
      * to manipulate the query. Does not cache the children.
      *
-     * @param  Closure  $callback
-     * @param  int  $depth
+     * @param Closure $callback
+     * @param int     $depth
+     *
      * @return array
      */
     public function filterChildren(Closure $callback, $depth = 0)
@@ -418,61 +428,66 @@ trait NodeTrait
     public function makeRoot()
     {
         $method = $this->exists ? 'moveNodeAsRoot' : 'insertNodeAsRoot';
-        $this->createWorker()->$method($this);
+        $this->createWorker()->{$method}($this);
     }
 
     /**
      * Makes the model the first child of the given parent.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function makeFirstChildOf(NodeInterface $parent)
     {
         $method = $this->exists ? 'moveNodeAsFirstChild' : 'insertNodeAsFirstChild';
-        $this->createWorker()->$method($this, $parent);
+        $this->createWorker()->{$method}($this, $parent);
     }
 
     /**
      * Makes the model the last child of the given parent.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $parent
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $parent
+     *
      * @return void
      */
     public function makeLastChildOf(NodeInterface $parent)
     {
         $method = $this->exists ? 'moveNodeAsLastChild' : 'insertNodeAsLastChild';
-        $this->createWorker()->$method($this, $parent);
+        $this->createWorker()->{$method}($this, $parent);
     }
 
     /**
      * Makes the model the previous sibling of the given sibling.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function makePreviousSiblingOf(NodeInterface $sibling)
     {
         $method = $this->exists ? 'moveNodeAsPreviousSibling' : 'insertNodeAsPreviousSibling';
-        $this->createWorker()->$method($this, $sibling);
+        $this->createWorker()->{$method}($this, $sibling);
     }
 
     /**
      * Makes the model the next sibling of the given sibling.
      *
-     * @param  Cartalyst\NestedSets\Nodes\NodeInterface  $sibling
+     * @param Cartalyst\NestedSets\Nodes\NodeInterface $sibling
+     *
      * @return void
      */
     public function makeNextSiblingOf(NodeInterface $sibling)
     {
         $method = $this->exists ? 'moveNodeAsNextSibling' : 'insertNodeAsNextSibling';
-        $this->createWorker()->$method($this, $sibling);
+        $this->createWorker()->{$method}($this, $sibling);
     }
 
     /**
      * Moves current root model to position.
      *
      * @param Cartalyst\NestedSets\Nodes\NodeInterface $to
+     *
      * @return void
      */
     public function moveRoot(NodeInterface $to)
@@ -485,7 +500,8 @@ trait NodeTrait
      * the hierarchy array. Children nodes present in the database
      * but not present in this hierarchy will removed.
      *
-     * @param  mixed  $nodes
+     * @param mixed $nodes
+     *
      * @return void
      */
     public function mapTree($nodes)
@@ -499,7 +515,8 @@ trait NodeTrait
      * but not present in this hierarchy will be kept, they
      * become the first items in the tree.
      *
-     * @param  mixed  $nodes
+     * @param mixed $nodes
+     *
      * @return void
      */
     public function mapTreeAndKeep($nodes)
@@ -514,9 +531,10 @@ trait NodeTrait
      * your closure which will be used as the output for that
      * node when presenting.
      *
-     * @param  string  $format
-     * @param  string|Closure  $attribute
-     * @param  int  $depth
+     * @param string         $format
+     * @param Closure|string $attribute
+     * @param int            $depth
+     *
      * @return mixed
      */
     public function presentAs($format, $attribute, $depth = 0)
@@ -531,9 +549,10 @@ trait NodeTrait
      * must return a string from your closure which will be
      * used as the output for that node when presenting.
      *
-     * @param  string  $format
-     * @param  string|Closure  $attribute
-     * @param  int  $depth
+     * @param string         $format
+     * @param Closure|string $attribute
+     * @param int            $depth
+     *
      * @return mixed
      */
     public function presentChildrenAs($format, $attribute, $depth = 0)
@@ -556,7 +575,9 @@ trait NodeTrait
     /**
      * Sets the wroker to be used by the model.
      *
-     * @param  string  $helper
+     * @param string $helper
+     * @param mixed  $worker
+     *
      * @return void
      */
     public function setWorker($worker)
@@ -571,7 +592,7 @@ trait NodeTrait
      */
     public function toArray()
     {
-        $attributes = $this->attributesToArray();
+        $attributes             = $this->attributesToArray();
         $attributes['children'] = [];
 
         foreach ($this->children as $child) {
@@ -584,8 +605,9 @@ trait NodeTrait
     /**
      * Loads a tree.
      *
-     * @param  int  $depth
-     * @param  Closure  $callback
+     * @param int     $depth
+     * @param Closure $callback
+     *
      * @return array
      */
     protected function loadTree($depth = 0, Closure $callback = null)
@@ -607,12 +629,13 @@ trait NodeTrait
     /**
      * Returns a collection of all nodes in a flat array.
      *
-     * @param  int  $tree
+     * @param int $tree
+     *
      * @return Illuminate\Database\Eloquent\Collection
      */
     public static function allFlat($tree = null)
     {
-        $static = new static;
+        $static = new static();
         $nodes  = $static->createWorker()->allFlat($tree);
 
         return $static->newCollection($nodes);
@@ -625,7 +648,7 @@ trait NodeTrait
      */
     public static function allRoot()
     {
-        $static = new static;
+        $static = new static();
         $root   = $static->createWorker()->allRoot();
 
         return $static->newCollection($root);
@@ -634,12 +657,13 @@ trait NodeTrait
     /**
      * Returns a collection of all leaf nodes.
      *
-     * @param  ind  $tree
+     * @param ind $tree
+     *
      * @return Illuminate\Database\Eloquent\Collection
      */
     public static function allLeaf($tree = null)
     {
-        $static = new static;
+        $static = new static();
         $leaf   = $static->createWorker()->allLeaf($tree);
 
         return $static->newCollection($leaf);
@@ -649,6 +673,7 @@ trait NodeTrait
      * Sets the presenter to be used by all Eloquent nodes.
      *
      * @param  Cartalyst\NestedSets\Presenter
+     *
      * @return void
      */
     public static function setPresenter(Presenter $presenter)
@@ -679,19 +704,23 @@ trait NodeTrait
     /**
      * Handle dynamic method calls into the method.
      *
-     * @param  string  $method
-     * @param  array   $parameters
+     * @param string $method
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public function __call($method, $parameters)
     {
         // Account for dynamic calls to a the presenter instance
-        if (starts_with($method, 'presentAs')) {
+        if (Str::startsWith($method, 'presentAs')) {
             array_unshift($parameters, lcfirst(substr($method, 9)));
+
             return call_user_func_array([$this, 'presentAs'], $parameters);
         }
-        if (starts_with($method, 'presentChildrenAs')) {
+
+        if (Str::startsWith($method, 'presentChildrenAs')) {
             array_unshift($parameters, lcfirst(substr($method, 17)));
+
             return call_user_func_array([$this, 'presentChildrenAs'], $parameters);
         }
 
