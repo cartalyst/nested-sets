@@ -1,15 +1,9 @@
-# Change Log
+# Changelog
 
-This project follows [Semantic Versioning](CONTRIBUTING.md).
+### v4.0.0 - 2019-09-11
 
-## Proposals
-
-We do not give estimated times for completion on `Accepted` Proposals.
-
-- [Accepted](https://github.com/cartalyst/nested-sets/labels/Accepted)
-- [Rejected](https://github.com/cartalyst/nested-sets/labels/Rejected)
-
----
+- BC Break: PHP 7.2 is the minimum required PHP version
+- BC Break: Laravel 6.0 is the minimum supported Laravel version
 
 ### v3.1.3 - 2017-11-10
 
