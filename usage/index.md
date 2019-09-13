@@ -2,7 +2,7 @@
 
 ## Configure an Eloquent Node
 
-We make the assumption that you have read the [Laravel 5 documentation](http://laravel.com/docs/eloquent#basic-usage) on Eloquent models.
+We make the assumption that you have read the [Laravel 6 documentation](https://laravel.com/docs/6.0/database) on Eloquent models.
 
 What do you need to do in addition? Not a whole lot:
 

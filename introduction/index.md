@@ -4,9 +4,9 @@ A modern and framework agnostic nested sets package utilizing the Modified Preor
 
 The package follows the FIG standard PSR-4 to ensure a high level of interoperability between shared PHP code and is fully unit-tested.
 
-The package requires PHP 5.4+ and comes bundled with a Laravel 5 Service Provider to simplify the optional framework integration.
+The package requires PHP 7.2+ and comes bundled with a Laravel 6 Service Provider to simplify the optional framework integration.
 
-Have a [read through the Installation Guide](#installation) and on how to [Integrate it with Laravel 5](#laravel-5).
+Have a [read through the Installation Guide](#installation) and on how to [Integrate it with Laravel 6](#laravel-6).
 
 ### Quick Example
 
