@@ -38,4 +38,4 @@ This software is released under the [Cartalyst PSL](LICENSE) License.
 [link-docs]:   https://cartalyst.com/manual/nested-sets
 [link-travis]: https://travis-ci.com/cartalyst/nested-sets
 
-[icon-travis]: https://travis-ci.com/cartalyst/nested-sets.svg?branch=4.0
+[icon-travis]: https://travis-ci.com/cartalyst/nested-sets.svg?token=LAut3LMbmBFi3T9j45FH&branch=4.0
