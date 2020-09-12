@@ -1,8 +1,8 @@
 ## Integration
 
-### Laravel 7
+### Laravel 8
 
-The Nested Sets package has optional support for Laravel 7 and it comes bundled with a Service Provider for easy integration.
+The Nested Sets package has optional support for Laravel 8 and it comes bundled with a Service Provider for easy integration.
 
 After installing the package, open your Laravel config file `config/app.php` and add the following lines.
 
@@ -90,7 +90,7 @@ class Menu extends Model implements NodeInterface {
 
 ### Native
 
-Nested Sets ships with an implementation for Eloquent out of the box, in order to use the Eloquent implementation, you must require 'illuminate/database': "^7.0" on your composer.json file and run composer update afterwards.
+Nested Sets ships with an implementation for Eloquent out of the box, in order to use the Eloquent implementation, you must require 'illuminate/database': "^8.0" on your composer.json file and run composer update afterwards.
 
 ```
 // Include the composer autoload file
