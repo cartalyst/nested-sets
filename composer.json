@@ -23,13 +23,13 @@
         }
     ],
     "require": {
-        "php": "^7.2.5"
+        "php": "^7.3"
     },
     "require-dev": {
         "cartalyst/php-cs-fixer-config": "^1.0",
-        "illuminate/database": "^7.0",
+        "illuminate/database": "^8.0",
         "mockery/mockery": "^1.0",
-        "phpunit/phpunit": "^8.0"
+        "phpunit/phpunit": "^9.0"
     },
     "suggest": {
         "illuminate/database": "We (by default) provide an Eloquent implementation (and illuminate/database worker). Required if you are not building your own implementations."
