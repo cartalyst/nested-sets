@@ -10,6 +10,7 @@ Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, ro
 
 Version | Laravel   | PHP Version
 ------- | --------- | ------------
+6.x     | 8.x       | >= 7.3
 5.x     | 7.x       | >= 7.2.5
 4.x     | 6.x       | >= 7.2
 3.x     | 5.x       | >= 5.4.0
@@ -39,4 +40,4 @@ This software is released under the [Cartalyst PSL](LICENSE) License.
 [link-docs]:   https://cartalyst.com/manual/nested-sets
 [link-travis]: https://travis-ci.com/cartalyst/nested-sets
 
-[icon-travis]: https://travis-ci.com/cartalyst/nested-sets.svg?token=LAut3LMbmBFi3T9j45FH&branch=5.x
+[icon-travis]: https://travis-ci.com/cartalyst/nested-sets.svg?token=LAut3LMbmBFi3T9j45FH&branch=6.x
