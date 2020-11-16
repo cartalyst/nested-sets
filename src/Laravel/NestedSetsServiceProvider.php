@@ -27,16 +27,6 @@ use Cartalyst\NestedSets\Nodes\NodeTrait;
 class NestedSetsServiceProvider extends ServiceProvider
 {
     /**
-     * Boot the service provider.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        NodeTrait::setPresenter($this->app['nested.sets.presenter']);
-    }
-
-    /**
      * Register the service provider.
      *
      * @return void
@@ -44,6 +34,8 @@ class NestedSetsServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerPresenter();
+
+        NodeTrait::setPresenter($this->app['nested.sets.presenter']);
     }
 
     /**

@@ -70,7 +70,7 @@ trait NodeTrait
      *
      * @var Cartalyst\NestedSets\Presenter
      */
-    protected static $presenter;
+    public static Presenter $presenter;
 
     /**
      * Returns the loaded children for the node.
