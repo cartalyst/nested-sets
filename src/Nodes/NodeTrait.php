@@ -670,38 +670,6 @@ trait NodeTrait
     }
 
     /**
-     * Sets the presenter to be used by all Eloquent nodes.
-     *
-     * @param  Cartalyst\NestedSets\Presenter
-     *
-     * @return void
-     */
-    public static function setPresenter(Presenter $presenter)
-    {
-        static::$presenter = $presenter;
-    }
-
-    /**
-     * Gets the presenter used by all Eloquent nodes.
-     *
-     * @return Cartalyst\NestedSets\Presenter
-     */
-    public static function getPresenter()
-    {
-        return static::$presenter;
-    }
-
-    /**
-     * Unsets the presenter instance.
-     *
-     * @return void
-     */
-    public static function unsetPresenter()
-    {
-        static::$presenter = null;
-    }
-
-    /**
      * Handle dynamic method calls into the method.
      *
      * @param string $method

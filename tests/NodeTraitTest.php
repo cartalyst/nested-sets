@@ -46,7 +46,6 @@ class NodeTraitTest extends TestCase
     protected function tearDown(): void
     {
         m::close();
-        Node::unsetPresenter();
     }
 
     public function testChildrenManipulation()
@@ -76,9 +75,9 @@ class NodeTraitTest extends TestCase
 
     public function testPresenter()
     {
-        $this->assertNull(Node::getPresenter());
-        Node::setPresenter($presenter = m::mock('Cartalyst\NestedSets\Presenter'));
-        $this->assertSame($presenter, Node::getPresenter());
+        $presenter = m::mock('Cartalyst\NestedSets\Presenter');
+        Node::$presenter = $presenter;
+        $this->assertSame($presenter, Node::$presenter);
 
         $node = new Node();
         $presenter->shouldReceive('presentAs')->with($node, 'foo', 'bar', 0)->once()->andReturn('success');

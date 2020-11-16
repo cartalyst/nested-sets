@@ -35,7 +35,7 @@ class NestedSetsServiceProvider extends ServiceProvider
     {
         $this->registerPresenter();
 
-        NodeTrait::setPresenter($this->app['nested.sets.presenter']);
+        NodeTrait::$presenter = $this->app['nested.sets.presenter'];
     }
 
     /**
