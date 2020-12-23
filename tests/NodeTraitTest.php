@@ -73,9 +73,33 @@ class NodeTraitTest extends TestCase
         $this->assertInstanceOf('DummyWorker', $node->createWorker());
     }
 
+    public function testPresenterNotSet1()
+    {
+        $this->expectException('RuntimeException');
+
+        $node = new Node();
+        $node->presentAs('qux', 2);
+    }
+
+    public function testPresenterNotSet2()
+    {
+        $this->expectException('RuntimeException');
+
+        $node = new Node();
+        $node->presentAsBaz('qux', 2);
+    }
+
+    public function testPresenterNotSet3()
+    {
+        $this->expectException('RuntimeException');
+
+        $node = new Node();
+        $node->presentChildrenAs('qux', 2);
+    }
+
     public function testPresenter()
     {
-        $presenter = m::mock('Cartalyst\NestedSets\Presenter');
+        $presenter       = m::mock('Cartalyst\NestedSets\Presenter');
         Node::$presenter = $presenter;
         $this->assertSame($presenter, Node::$presenter);
 

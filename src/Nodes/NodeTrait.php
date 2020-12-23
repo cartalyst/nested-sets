@@ -21,9 +21,9 @@
 namespace Cartalyst\NestedSets\Nodes;
 
 use Closure;
+use RuntimeException;
 use Illuminate\Support\Str;
 use Cartalyst\NestedSets\Presenter;
-use Illuminate\Database\Eloquent\Model;
 
 trait NodeTrait
 {
@@ -68,9 +68,9 @@ trait NodeTrait
     /**
      * The presenter instance.
      *
-     * @var Cartalyst\NestedSets\Presenter
+     * @var \Cartalyst\NestedSets\Presenter|null
      */
-    public static Presenter $presenter;
+    public static ?Presenter $presenter = null;
 
     /**
      * Returns the loaded children for the node.
@@ -539,6 +539,10 @@ trait NodeTrait
      */
     public function presentAs($format, $attribute, $depth = 0)
     {
+        if (! static::$presenter) {
+            throw new RuntimeException('The Presenter is not set');
+        }
+
         return static::$presenter->presentAs($this, $format, $attribute, $depth);
     }
 
@@ -557,6 +561,10 @@ trait NodeTrait
      */
     public function presentChildrenAs($format, $attribute, $depth = 0)
     {
+        if (! static::$presenter) {
+            throw new RuntimeException('The Presenter is not set');
+        }
+
         return static::$presenter->presentChildrenAs($this, $format, $attribute, $depth);
     }
 
