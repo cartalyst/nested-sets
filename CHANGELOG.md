@@ -1,5 +1,11 @@
 # Changelog
 
+### v7.0.0 - TBA
+
+- BC Break: PHP 7.4 is the minimum required PHP version
+- Fixed issue with presenter not being properly set on PHP 7.4
+- Add PHP 8 support
+
 ### v6.0.0 - 2020-09-12
 
 - Updated for Laravel 8.
