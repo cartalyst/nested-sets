@@ -1,5 +1,9 @@
 # Changelog
 
+### v8.0.0 - 2022-04-06
+
+- Updated for Laravel 9.
+
 ### v7.0.0 - 2020-12-23
 
 - BC Break: PHP 7.4 is the minimum required PHP version
