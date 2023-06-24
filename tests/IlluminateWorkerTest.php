@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Nested Sets
- * @version    8.0.0
+ * @version    9.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2022, Cartalyst LLC
+ * @copyright  (c) 2011-2023, Cartalyst LLC
  * @link       https://cartalyst.com
  */
 
@@ -26,6 +26,7 @@ use stdClass;
 use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Cartalyst\NestedSets\Workers\IlluminateWorker as Worker;
 
@@ -71,12 +72,13 @@ class IlluminateWorkerTest extends TestCase
         $connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('where')->with('lft', '>=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-        $query->shouldReceive('update')->with(['lft' => '"lft" + 2'])->once();
+
+        $query->shouldReceive('update')->with(['lft' => new Expression('"lft" + 2')])->once();
 
         $connection->shouldReceive('table')->with('categories')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('where')->with('rgt', '>=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with('tree', '=', 3)->once()->andReturn($query);
-        $query->shouldReceive('update')->with(['rgt' => '"rgt" + 2'])->once();
+        $query->shouldReceive('update')->with(['rgt' => new Expression('"rgt" + 2')])->once();
 
         $worker->createGap(1, 2, 3);
     }
@@ -110,7 +112,7 @@ class IlluminateWorkerTest extends TestCase
         $query->shouldReceive('where')->with('rgt', '<=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
         $query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
-        $query->shouldReceive('update')->with(['lft' => '"lft" + -3', 'rgt' => '"rgt" + -3'])->once();
+        $query->shouldReceive('update')->with(['lft' => new Expression('"lft" + -3'), 'rgt' => new Expression('"rgt" + -3')])->once();
 
         $worker->shouldReceive('removeGap')->with(2, 2, 1)->once();
 
@@ -133,7 +135,7 @@ class IlluminateWorkerTest extends TestCase
         $query->shouldReceive('where')->with('rgt', '<=', 0)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->twice()->andReturn(1);
         $query->shouldReceive('where')->with('tree', '=', 1)->once()->andReturn($query);
-        $query->shouldReceive('update')->with(['tree' => 1, 'lft' => '"lft" + 3', 'rgt' => '"rgt" + 3'])->once();
+        $query->shouldReceive('update')->with(['tree' => 1, 'lft' => new Expression('"lft" + 3'), 'rgt' => new Expression('"rgt" + 3')])->once();
 
         $worker->shouldReceive('createGap')->with(2, 2, 1)->once();
 
@@ -367,28 +369,28 @@ class IlluminateWorkerTest extends TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."rgt"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."id"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
         }), '=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
         $result1     = new stdClass();
@@ -401,7 +403,7 @@ class IlluminateWorkerTest extends TestCase
         $query->shouldReceive('get')->with(m::on(function ($select) {
             $this->assertCount(1, $select);
 
-            return (string) $select[0] == '"prefix_parent"."id"';
+            return (string) $select[0]->getValue(new Grammar()) == '"prefix_parent"."id"';
         }))->once()->andReturn([$result3, $result2, $result1]);
 
         $this->assertCount(3, $path = $worker->path($node));
@@ -414,28 +416,28 @@ class IlluminateWorkerTest extends TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."rgt"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."id"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
         }), '=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
         $result1     = new stdClass();
@@ -448,7 +450,7 @@ class IlluminateWorkerTest extends TestCase
         $query->shouldReceive('get')->with(m::on(function ($select) {
             $this->assertCount(1, $select);
 
-            return (string) $select[0] == '"prefix_parent"."id"';
+            return (string) $select[0]->getValue(new Grammar()) == '"prefix_parent"."id"';
         }))->once()->andReturn(new \Illuminate\Support\Collection([$result3, $result2, $result1]));
 
         $this->assertCount(3, $path = $worker->path($node));
@@ -461,31 +463,31 @@ class IlluminateWorkerTest extends TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."rgt"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('id')->once()->andReturn(3);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."id"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
         }), '=', 3)->once()->andReturn($query);
         $node->shouldReceive('getAttribute')->with('tree')->once()->andReturn(1);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."tree"';
         }), '=', 1)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('groupBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
 
         $result        = new stdClass();
@@ -501,7 +503,7 @@ class IlluminateWorkerTest extends TestCase
             list($expression) = $select;
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-            return (string) $expression == '(count("prefix_parent"."id") - 1) as "depth"';
+            return (string) $expression->getValue(new Grammar()) == '(count("prefix_parent"."id") - 1) as "depth"';
         }))->andReturn($result);
 
         $this->assertSame(4, $worker->depth($node));
@@ -540,24 +542,24 @@ class IlluminateWorkerTest extends TestCase
 
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
         $query->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."rgt"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."rgt"';
         }))->once()->andReturn($query);
         $query->shouldReceive('join')->with('categories as sub_parent', m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '>=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_sub_parent"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_sub_parent"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }), '<=', m::on(function ($expression) {
-            return (string) $expression == '"prefix_sub_parent"."rgt"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_sub_parent"."rgt"';
         }))->once()->andReturn($query);
         $connection->shouldReceive('table')->with('categories as node')->once()->andReturn($subQuery = m::mock('Illuminate\Database\Query\Builder'));
 
@@ -567,35 +569,35 @@ class IlluminateWorkerTest extends TestCase
             $join = m::mock('Illuminate\Database\Query\JoinClause');
 
             $subQuery->shouldReceive('select')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."id"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
             }), m::on(function ($expression) {
-                return (string) $expression == '(count("prefix_parent"."id") - 1) as "depth"';
+                return (string) $expression->getValue(new Grammar()) == '(count("prefix_parent"."id") - 1) as "depth"';
             }))->once()->andReturn($subQuery);
 
             $subQuery->shouldReceive('join')->with('categories as parent', m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."lft"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
             }), '>=', m::on(function ($expression) {
-                return (string) $expression == '"prefix_parent"."lft"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."lft"';
             }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."lft"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
             }), '<=', m::on(function ($expression) {
-                return (string) $expression == '"prefix_parent"."rgt"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."rgt"';
             }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."id"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
             }), '=', 1)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."tree"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."tree"';
             }), '=', 3)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('where')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_parent"."tree"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."tree"';
             }), '=', 3)->once()->andReturn($subQuery);
             $subQuery->shouldReceive('orderBy')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."lft"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
             }))->once()->andReturn($subQuery);
             $subQuery->shouldReceive('groupBy')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_node"."id"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
             }))->once()->andReturn($subQuery);
 
             $subQuery->shouldReceive('toSql')->once()->andReturn('foo');
@@ -603,15 +605,15 @@ class IlluminateWorkerTest extends TestCase
             $join->table = 'categories';
 
             $join->shouldReceive('on')->with(m::on(function ($expression) {
-                return (string) $expression == '"prefix_sub_parent"."id"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_sub_parent"."id"';
             }), '=', m::on(function ($expression) {
-                return (string) $expression == '"prefix_sub_tree"."id"';
+                return (string) $expression->getValue(new Grammar()) == '"prefix_sub_tree"."id"';
             }))->once();
 
             // Call our closure
             $closure($join);
 
-            $me->assertEquals('(foo) as "prefix_categories"', $join->table);
+            $me->assertEquals('(foo) as "prefix_categories"', $join->table->getValue(new Grammar()));
 
             // Our assertions will ensure we catch any errors, safe to
             // return true here.
@@ -621,27 +623,27 @@ class IlluminateWorkerTest extends TestCase
         $query->shouldReceive('mergeBindings')->with(m::type('Illuminate\Database\Query\Builder'))->once();
 
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."id"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
         }), '!=', 1)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_parent"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_parent"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('where')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_sub_parent"."tree"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_sub_parent"."tree"';
         }), '=', 3)->once()->andReturn($query);
         $query->shouldReceive('orderBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."lft"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."lft"';
         }))->once()->andReturn($query);
         $query->shouldReceive('groupBy')->with(m::on(function ($expression) {
-            return (string) $expression == '"prefix_node"."id"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_node"."id"';
         }), m::on(function ($expression) {
-            return (string) $expression == '"prefix_sub_tree"."depth"';
+            return (string) $expression->getValue(new Grammar()) == '"prefix_sub_tree"."depth"';
         }))->once()->andReturn($query);
         $query->shouldReceive('having')->with(m::on(function ($expression) {
-            return (string) $expression == 'count("depth")';
+            return (string) $expression->getValue(new Grammar()) == 'count("depth")';
         }), '<=', 3)->once()->andReturn($query);
 
         $query->shouldReceive('get')->with(m::on(function ($select) use ($me) {
@@ -651,7 +653,7 @@ class IlluminateWorkerTest extends TestCase
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $first);
             $me->assertInstanceOf('Illuminate\Database\Query\Expression', $expression);
 
-            return (string) $first == '"prefix_node".*' and (string) $expression == '(count("prefix_parent"."id") - ("prefix_sub_tree"."depth" + 1)) as "depth"';
+            return (string) $first->getValue(new Grammar()) == '"prefix_node".*' and (string) $expression->getValue(new Grammar()) == '(count("prefix_parent"."id") - ("prefix_sub_tree"."depth" + 1)) as "depth"';
         }))->once()->andReturn(['foo']);
 
         $node->shouldReceive('createNode')->andReturnUsing(function () {
